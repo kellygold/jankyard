@@ -1,0 +1,281 @@
+{# 
+Reusable UI Components
+======================
+Common UI components (Jinja2 macros) used across challenges.
+
+Import any component you need:
+{% from "challenges/_components.html" import level_tabs, info_box, badge, etc %}
+#}
+
+{# Info Box - Standard styled container #}
+{% macro info_box(title, content_html, style='') %}
+<div class="info-box" {% if style %}style="{{ style }}"{% endif %}>
+    {% if title %}
+    <h3>{{ title }}</h3>
+    {% endif %}
+    {{ content_html | safe }}
+</div>
+{% endmacro %}
+
+{# Badge/Pill - Colored label #}
+{% macro badge(text, color='blue') %}
+{% set colors = {
+    'blue': 'rgba(59,130,246,0.2)',
+    'green': 'rgba(34,197,94,0.2)',
+    'yellow': 'rgba(234,179,8,0.2)',
+    'red': 'rgba(239,68,68,0.2)',
+    'purple': 'rgba(168,85,247,0.2)'
+} %}
+<span class="badge" style="background: {{ colors.get(color, colors['blue']) }};">{{ text }}</span>
+{% endmacro %}
+
+{# Progress Bar #}
+{% macro progress_bar(current, max, label='', color='#22c55e') %}
+<div class="progress-container">
+    {% if label %}
+    <div class="progress-label">{{ label }}</div>
+    {% endif %}
+    <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: {{ (current / max * 100) | round(1) }}%; background: {{ color }};">
+            <span class="progress-text">{{ current }} / {{ max }}</span>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress-container {
+    margin: 1rem 0;
+}
+
+.progress-label {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 24px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-text {
+    color: white;
+    font-size: 0.875rem;
+    font-weight: bold;
+}
+</style>
+{% endmacro %}
+
+{# Hint/Tip Box #}
+{% macro hint_box(text, emoji='💡') %}
+<div class="hint-box">
+    <strong>{{ emoji }} Tip:</strong> {{ text }}
+</div>
+
+<style>
+.hint-box {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border-left: 3px solid rgba(99,102,241,0.5);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+</style>
+{% endmacro %}
+
+{# Success Message #}
+{% macro success_message(title, message) %}
+<div class="message-box success">
+    <div class="message-icon">🎉</div>
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+</div>
+
+<style>
+.message-box {
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.message-box.success {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+}
+
+.message-box .message-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.message-box h3 {
+    margin: 0 0 0.5rem 0;
+    color: rgb(34,197,94);
+}
+
+.message-box p {
+    margin: 0;
+    opacity: 0.9;
+}
+</style>
+{% endmacro %}
+
+{# Error Message #}
+{% macro error_message(title, message) %}
+<div class="message-box error">
+    <div class="message-icon">❌</div>
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+</div>
+
+<style>
+.message-box.error {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+}
+
+.message-box.error h3 {
+    color: rgb(239,68,68);
+}
+</style>
+{% endmacro %}
+
+{# Stat Display - Key-value pairs #}
+{% macro stat(label, value, icon='') %}
+<div class="stat-item">
+    {% if icon %}<span class="stat-icon">{{ icon }}</span>{% endif %}
+    <span class="stat-label">{{ label }}:</span>
+    <span class="stat-value">{{ value }}</span>
+</div>
+
+<style>
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.stat-icon {
+    font-size: 1.25rem;
+}
+
+.stat-label {
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    font-weight: 600;
+    margin-left: auto;
+}
+</style>
+{% endmacro %}
+
+{# Level Tabs - For progressive challenges with multiple levels #}
+{% macro level_tabs(levels, unlocked_levels=[1]) %}
+<div class="level-tabs-container">
+    <h3 style="margin-bottom: 1rem;">📊 Select Your Level</h3>
+    <div class="level-tabs">
+        {% for level in levels %}
+        {% set is_unlocked = level.level in unlocked_levels %}
+        <button 
+            class="level-tab {% if level.level == 1 %}active{% endif %}" 
+            data-level="{{ level.level }}"
+            data-difficulty="{{ level.difficulty }}"
+            {% if not is_unlocked %}disabled{% endif %}
+        >
+            <div class="level-icon">{{ level.icon|default('⭐') }}</div>
+            <div class="level-name">{{ level.name }}</div>
+            <div class="level-difficulty">{{ level.difficulty }}</div>
+            <div class="level-status">
+                {% if is_unlocked %}
+                    {% if level.level == 1 %}🎯 Active{% else %}✅ Unlocked{% endif %}
+                {% else %}
+                    🔒 Locked
+                {% endif %}
+            </div>
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.level-tabs-container {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+}
+
+.level-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.level-tab {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    color: white;
+}
+
+.level-tab:not(:disabled):hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(99,102,241,0.5);
+    transform: translateY(-2px);
+}
+
+.level-tab.active {
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
+    border-color: rgba(99,102,241,0.5);
+}
+
+.level-tab:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.level-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.level-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.level-difficulty {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    margin-bottom: 0.5rem;
+}
+
+.level-status {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+</style>
+{% endmacro %}

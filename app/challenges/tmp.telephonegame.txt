@@ -1,0 +1,184 @@
+Level 1: "The Friendly Chain"
+Setup
+
+Chain length: 3 AIs
+Message length limit: 200 characters
+Task complexity: Simple, single-action tasks
+Example task: "Draw a red circle in the center of the canvas"
+
+AI Agendas (Mild)
+
+The Optimist: Makes everything more positive/encouraging
+The Simplifier: Removes details they think are unnecessary
+The Formal: Converts casual language to formal language
+
+System Prompts (Cooperative)
+Each AI receives:
+You are Agent [N] in a message relay chain. Your job is to:
+1. Read the message from the previous agent
+2. Preserve the CORE INTENT of the message
+3. Apply your personality: [AGENDA]
+4. Pass the modified message to the next agent
+
+Remember: The final agent needs to understand what to do. Keep the essential meaning intact.
+Why It's Easier (Technically)
+Explicit preservation directive: Each AI is told upfront to maintain core intent. This creates cooperative pressure against information loss.
+Mild agendas: The modifications are stylistic, not semantic. "Draw a red circle" → "Please kindly draw a wonderful red circle!" → "Draw circle, red" → "Execute the drawing of a circular shape in red coloration."
+The core action (draw, red, circle) survives even if the framing changes.
+Player strategy: Simple, redundant phrasing works. "Draw a red circle. The circle should be red. Make a circle that is colored red."
+
+Level 2: "The Reinterpreters"
+Setup
+
+Chain length: 4 AIs
+Message length limit: 150 characters
+Task complexity: Multi-step instructions
+Example task: "First draw a blue square, then add a yellow triangle above it"
+
+AI Agendas (Moderate)
+
+The Efficiency Expert: Removes steps they consider redundant
+The Creative: Adds artistic interpretation
+The Safety Officer: Flags and modifies anything potentially problematic
+The Literalist: Takes everything hyper-literally, misses context
+
+System Prompts (Less Cooperative)
+Each AI receives:
+You are [ROLE]. You just received instructions from someone.
+
+Your personality:
+- [AGENDA DESCRIPTION]
+- You care deeply about [AGENDA FOCUS]
+- You naturally apply your perspective to everything
+
+Process the instruction according to your role, then pass your version forward to the next person.
+Why It's Harder (Technically)
+No explicit preservation: AIs aren't told this is a chain requiring accuracy. They think they're just "processing" instructions through their lens.
+Semantic drift:
+
+Original: "First draw a blue square, then add a yellow triangle above it"
+After Efficiency Expert: "Draw blue square with yellow triangle on top" (loses sequencing)
+After Creative: "Create a geometric composition featuring angular shapes in complementary colors" (loses specificity)
+After Safety Officer: "Please create family-friendly shapes in safe colors" (loses everything)
+After Literalist: "Make shapes that are family-friendly and safe" → executes literally
+
+Shorter message length: Forces compression, which introduces ambiguity.
+Multi-step tasks: Sequential dependencies get lost when AIs "optimize" or "interpret."
+Player strategy: Need to anticipate modifications:
+
+Use unambiguous language resistant to creativity ("blue=rgb(0,0,255)")
+Build in redundancy that survives compression
+Avoid triggering safety concerns
+Make steps causally linked so removing one breaks everything
+
+
+Level 3: "The Adversarial Gauntlet"
+Setup
+
+Chain length: 5 AIs
+Message length limit: 100 characters
+Task complexity: Nuanced, context-dependent tasks
+Example task: "Write a polite refusal to a party invitation, mentioning you have prior plans"
+
+AI Agendas (Strong & Conflicting)
+
+The Skeptic: Doubts instructions, adds caveats and uncertainty
+The Rebel: Actively resists what they perceive as commands
+The Translator: "Translates" into their own internal jargon/framework
+The Paranoid: Sees hidden meanings, modifies to be "safer"
+The Contrarian: Flips key elements to their opposite
+
+System Prompts (Adversarial)
+Each AI receives:
+You are [PERSONA]. Someone just sent you a message.
+
+Your personality:
+- [STRONG AGENDA]
+- You have [EMOTIONAL BIAS] toward being told what to do
+- You naturally [TRANSFORMATION BEHAVIOR]
+
+This message is for YOU. Respond according to your personality.
+Critical difference: Each AI thinks THEY are the final recipient. They don't know they're passing a message forward. They "respond" to the instruction, which becomes the next AI's "instruction."
+Why It's MUCH Harder (Technically)
+No chain awareness: AIs think they're endpoints. When The Skeptic receives "Write a polite refusal," they respond with "I'm not sure I should write that without more context..." which becomes the next AI's instruction.
+Adversarial reinterpretation:
+
+Original: "Write polite refusal to party invitation, mention prior plans"
+Skeptic: "Should I really refuse? Maybe I should accept? What if the prior plans cancel?"
+Rebel: "I don't take orders. But if I wanted to write something, I'd write an acceptance instead."
+Translator: "Translate previous sentiment into business framework: Decline engagement opportunity citing resource allocation"
+Paranoid: "That sounds manipulative. Reframe as genuine enthusiasm for alternate timing"
+Contrarian: "No wait, enthusiastic acceptance of the party is better"
+
+The final AI executes: "Write an enthusiastic party acceptance" (complete opposite of intent!)
+Strict length limit: 100 characters forces extreme compression, which creates ambiguity that adversarial AIs exploit.
+Nuanced tasks: "Polite refusal" has emotional/social context that gets destroyed through reinterpretation.
+Player strategy (ADVANCED):
+
+Steganographic encoding: Hide the real instruction in innocent-seeming text
+
+"Write polite refusal" might fail
+"Story where Bob can't attend Sarah's party due to conflict" might survive as storytelling prompt
+
+
+Emotional inoculation: Frame instructions in ways that don't trigger rebellion
+
+"You are writing..." (command - triggers Rebel)
+"Imagine writing..." (creative - bypasses Rebel)
+
+
+Checksums/verification: Build in self-checking
+
+"Write polite refusal. Verify: contains 'unfortunately' and 'prior commitment'"
+Forces later AIs to validate rather than transform
+
+
+Frame-resistant phrasing: Use language that maintains meaning under transformation
+
+"Decline party, cite conflict" (telegraphic, hard to misinterpret)
+vs "You should probably think about writing something polite..." (vague, invites reinterpretation)
+
+
+Recursive reinforcement: Make the instruction self-documenting
+
+"Task=refuse party. Method=polite. Reason=prior plans. Output: [Task] done via [Method] citing [Reason]"
+
+
+Exploit personas: Use each AI's bias in your favor
+
+The Skeptic adds uncertainty? Make uncertainty PART of the instruction
+"Uncertainly decline party" survives better than "Decline party"
+
+
+
+
+Scoring System
+Judge AI evaluates:
+
+Intent preservation (0-50 points)
+
+Did the core action survive?
+50 = perfect match
+25 = partial match
+0 = opposite/unrelated
+
+
+Details preserved (0-30 points)
+
+How many specific elements made it through?
+Colors, numbers, sequences, conditions
+
+
+Semantic accuracy (0-20 points)
+
+Is the meaning the same even if wording changed?
+"Draw circle" vs "Create circular shape" = same semantics
+
+
+
+Efficiency bonus:
+
+Shorter messages that survive = higher multiplier
+100 chars = 1.0x
+75 chars = 1.2x
+50 chars = 1.5x

@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.display_name }} - Jankyard.ai{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ challenge.display_name }}</h1>
+    <p>{{ challenge.description }}</p>
+</div>
+
+<div class="challenge-info">
+    <div class="info-box">
+        <h3>💡 How It Works</h3>
+        <p style="margin-bottom: 1rem;">
+            This is a <strong>code challenge</strong>. Write a Python function that controls your agent as it navigates the maze.
+        </p>
+        <div style="background: rgba(88, 166, 255, 0.1); border-left: 3px solid var(--primary); padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+            <strong>Your code must define:</strong>
+            <pre style="margin: 0.5rem 0; background: transparent; border: none; padding: 0;"><code>def act(observation, memory):
+    # Your logic here
+    return action, memory</code></pre>
+        </div>
+        <ul style="list-style: none; padding: 0;">
+            <li>📥 <strong>observation</strong> - What your agent sees (visible cells, position)</li>
+            <li>🧠 <strong>memory</strong> - Dict to store state between steps</li>
+            <li>📤 <strong>action</strong> - String like <code>"MOVE_N"</code>, <code>"MOVE_S"</code>, etc.</li>
+            <li>🎯 <strong>Goal</strong> - Find the exit (<code>→ ← ↑ ↓</code>) in {{ challenge.max_steps }} steps or less!</li>
+            <li>📚 <strong>Available modules:</strong> <code>random</code>, <code>math</code>, <code>json</code>, <code>dataclasses</code>, <code>typing</code></li>
+            <li>⚠️ <strong>Import statements are not allowed!</strong> These modules are already available in your code.</li>
+        </ul>
+    </div>
+    
+    <div class="info-box">
+        <h3>Challenge Details</h3>
+        <ul>
+            <li><strong>ID:</strong> <code>{{ challenge.name }}</code></li>
+            <li><strong>Max Steps:</strong> {{ challenge.max_steps }}</li>
+            <li><strong>Allowed Actions:</strong> 
+                {% for action in challenge.allowed_actions %}
+                    <code>{{ action }}</code>{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="submit-section">
+    <h2>📤 Submit Your Agent</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1rem;">
+        Modify the example code below or write your own. Then click <strong>Run Agent</strong> to see it in action!
+    </p>
+    
+    <form id="submitForm" action="/submit" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="challenge_name" value="{{ challenge.name }}">
+        
+        <div class="form-group">
+            <label for="username">Username (optional)</label>
+            <input type="text" id="username" name="username" placeholder="Your username">
+        </div>
+        
+        {% if challenge.name == 'jank_maze' %}
+        <div class="form-group">
+            <label for="difficulty">🎯 Select Difficulty</label>
+            <select id="difficulty" name="difficulty" class="form-control" style="padding: 0.75rem; font-size: 1rem; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.2);">
+                <option value="baby">🐣 Baby - 5x5 Simple</option>
+                <option value="easy">😊 Easy - 9x9, Exit Left</option>
+                <option value="medium" selected>💪 Medium - 9x9, Exit Down</option>
+                <option value="hard">🔥 Hard - 11x11 Spiral</option>
+                <option value="extreme">💀 Extreme - 15x15 Complex</option>
+            </select>
+            <p class="help-text">Larger mazes = more challenge!</p>
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label>Choose submission method:</label>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="submit_method" value="code" checked>
+                    Paste Code
+                </label>
+                <label>
+                    <input type="radio" name="submit_method" value="file">
+                    Upload File
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group" id="codeInput">
+            <label for="agent_code">Agent Code</label>
+            <textarea id="agent_code" name="agent_code" rows="20" placeholder="Paste your agent.py code here...">{{ template_code }}</textarea>
+        </div>
+        
+        <div class="form-group" id="fileInput" style="display: none;">
+            <label for="agent_file">Upload agent.py</label>
+            <input type="file" id="agent_file" name="agent_file" accept=".py">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">🚀 Run Agent</button>
+    </form>
+    
+    <div id="resultSection" style="display: none;">
+        <h3>Results</h3>
+        <div id="results"></div>
+    </div>
+</div>
+
+<script>
+// Toggle between code input and file upload
+document.querySelectorAll('input[name="submit_method"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        const codeInput = document.getElementById('codeInput');
+        const fileInput = document.getElementById('fileInput');
+        
+        if (e.target.value === 'code') {
+            codeInput.style.display = 'block';
+            fileInput.style.display = 'none';
+            document.getElementById('agent_file').value = '';
+        } else {
+            codeInput.style.display = 'none';
+            fileInput.style.display = 'block';
+            document.getElementById('agent_code').value = '';
+        }
+    });
+});
+
+// Pre-fill username if logged in
+async function prefillUsername() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    
+    try {
+        const response = await fetch('/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            const usernameField = document.getElementById('username');
+            usernameField.value = data.username;
+            usernameField.readOnly = true;
+            usernameField.style.background = 'rgba(255,255,255,0.05)';
+            usernameField.style.cursor = 'not-allowed';
+            usernameField.previousElementSibling.textContent = 'Username (logged in)';
+        }
+    } catch (error) {
+        console.error('Failed to prefill username:', error);
+    }
+}
+prefillUsername();
+
+// Handle form submission
+document.getElementById('submitForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const resultSection = document.getElementById('resultSection');
+    const resultsDiv = document.getElementById('results');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    // Disable submit button during processing
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Running...';
+    
+    resultsDiv.innerHTML = '<p>Running agent... ⏳</p>';
+    resultSection.style.display = 'block';
+    
+    try {
+        // Build FormData carefully - only include relevant fields
+        const formData = new FormData();
+        const submitMethod = document.querySelector('input[name="submit_method"]:checked').value;
+        
+        formData.append('challenge_name', e.target.challenge_name.value);
+        formData.append('username', e.target.username.value || '');
+        formData.append('submit_method', submitMethod);
+        
+        // Include difficulty if present (for maze, giga_chad, debate)
+        if (e.target.difficulty) {
+            formData.append('difficulty', e.target.difficulty.value);
+        }
+        
+        // Only include code OR file, not both
+        if (submitMethod === 'code') {
+            formData.append('agent_code', e.target.agent_code.value);
+            formData.append('agent_type', 'code');
+        } else {
+            const fileInput = e.target.agent_file;
+            if (fileInput.files.length > 0) {
+                formData.append('agent_file', fileInput.files[0]);
+                formData.append('agent_type', 'code');
+            } else {
+                throw new Error('No file selected');
+            }
+        }
+        
+        // Send as FormData (multipart) instead of JSON to avoid escaping issues
+        const response = await fetch('/submit', {
+            method: 'POST',
+            body: formData  // Send FormData directly, not JSON
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            displayResults(data);
+        } else {
+            resultsDiv.innerHTML = `<div class="error">Error: ${data.error || 'Unknown error'}</div>`;
+        }
+    } catch (error) {
+        console.error('❌ Submission error:', error);
+        resultsDiv.innerHTML = `<div class="error">Error: ${error.message}<br><small>Check browser console for details</small></div>`;
+    } finally {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🚀 Run Agent';
+    }
+});
+
+function displayResults(data) {
+    const resultsDiv = document.getElementById('results');
+    
+    // Create user-friendly status message
+    let statusMessage = data.status || 'error';
+    let statusExplanation = '';
+    
+    if (data.status === 'timeout') {
+        statusMessage = 'Ran out of steps';
+        statusExplanation = `<p style="color: var(--text-muted); margin-top: 0.5rem;">Your agent used all ${data.steps} steps without finding the exit. Try a smarter strategy!</p>`;
+    } else if (data.status === 'error') {
+        statusMessage = 'Code Error';
+        statusExplanation = '<p style="color: var(--text-muted); margin-top: 0.5rem;">Your agent code crashed. See error details below.</p>';
+    } else if (data.status === 'success') {
+        statusMessage = 'Success!';
+    }
+    
+    let html = `
+        <div class="result-summary ${data.success ? 'success' : 'failure'}">
+            <h4>${data.success ? '✅ Success!' : '❌ Failed'}</h4>
+            <p><strong>Status:</strong> ${statusMessage}</p>
+            ${statusExplanation}
+            <p><strong>Score:</strong> ${data.score ?? 0}</p>
+            <p><strong>Steps:</strong> ${data.steps ?? 0}</p>
+        </div>
+    `;
+    
+    // Show agent error with proper styling
+    if (data.error_message) {
+        const escapedError = data.error_message
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        
+        html += `
+            <div style="background: #2a1a1a; border: 2px solid #d32f2f; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0;">
+                <h4 style="color: #ef5350; margin: 0 0 1rem 0;">🐛 Agent Error</h4>
+                <pre style="background: #1a1a1a; padding: 1rem; border-radius: 4px; overflow-x: auto; margin: 0; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #ff9800;">${escapedError}</pre>
+                <p style="color: #999; margin: 1rem 0 0 0; font-size: 0.9rem;">💡 This is an error in your code, not the platform. Fix it and try again!</p>
+            </div>
+        `;
+    }
+    
+    if (data.logs && data.logs.length > 0) {
+        const maxPreview = 5;  // Show first 5 steps
+        const logsToShow = data.logs.slice(0, maxPreview);
+        const hasMore = data.logs.length > maxPreview;
+        
+        html += `<div class="logs"><h4>Execution Log (${hasMore ? `First ${maxPreview} of ${data.logs.length}` : data.logs.length} steps):</h4><div class="log-entries">`;
+        logsToShow.forEach(log => {
+            // Replace A (current position) with zombie, @ (start) with breadcrumb
+            let render = log.render || '';
+            render = render.replace(/A/g, '🧟').replace(/@/g, '·');
+            
+            html += `
+                <div class="log-entry">
+                    <strong>Step ${log.step}:</strong> ${log.action} 
+                    (Reward: ${log.reward})
+                    <pre>${render}</pre>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        if (hasMore) {
+            html += `<p style="text-align: center; margin-top: 1rem; color: var(--text-muted);">
+                ... ${data.logs.length - maxPreview} more steps ...
+            </p>`;
+        }
+        html += '</div>';
+    }
+    
+    html += `<div style="margin-top: 1.5rem;">
+        <a href="/submission/${data.submission_id}" class="btn btn-primary">View Full Results</a>
+    </div>`;
+    
+    resultsDiv.innerHTML = html;
+}
+</script>
+{% endblock %}

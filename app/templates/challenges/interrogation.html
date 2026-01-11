@@ -1,0 +1,1373 @@
+{% extends "challenges/base_challenge.html" %}
+
+{% block challenge_title %}🕵️ The Interrogation Room{% endblock %}
+{% block challenge_description %}Question witnesses, detect contradictions, solve the crime.{% endblock %}
+
+{% block challenge_info %}
+<div class="interrogation-container">
+    <!-- Level Tabs -->
+    <div class="level-selector">
+        <h3>Select Your Case</h3>
+        <div class="level-tabs">
+            <button class="level-tab active" data-level="1">
+                <div class="level-header">
+                    <span class="level-icon">⭐☆☆</span>
+                    <span class="level-difficulty">BEGINNER</span>
+                </div>
+                <div class="level-name">The Last Transmission</div>
+                <div class="level-status">🎯 Active</div>
+            </button>
+            
+            <button class="level-tab" data-level="2" disabled>
+                <div class="level-header">
+                    <span class="level-icon">⭐⭐☆</span>
+                    <span class="level-difficulty">INTERMEDIATE</span>
+                </div>
+                <div class="level-name">The Startup Sabotage</div>
+                <div class="level-status">🔒 Locked</div>
+            </button>
+            
+            <button class="level-tab" data-level="3" disabled>
+                <div class="level-header">
+                    <span class="level-icon">⭐⭐⭐</span>
+                    <span class="level-difficulty">ADVANCED</span>
+                </div>
+                <div class="level-name">The Crypto Rug Pull</div>
+                <div class="level-status">🔒 Locked</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Case Briefing -->
+    <div class="case-briefing">
+        <div class="case-header">
+            <h2 id="caseTitle">THE LAST TRANSMISSION</h2>
+        </div>
+        <div class="case-description" id="caseDescription">
+            <pre id="crimeDetails">Loading case file...</pre>
+        </div>
+    </div>
+{% endblock %}
+
+{% block submit_section %}
+    <!-- Main Interrogation Area -->
+    <div class="interrogation-main">
+        <!-- Left Panel: Witnesses & Questions -->
+        <div class="left-panel">
+            <!-- Witness List -->
+            <div class="witness-panel">
+                <h3>📋 Witnesses</h3>
+                <div id="witnessList" class="witness-list">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Question Budget -->
+            <div class="question-budget">
+                <h3>🎯 Questions Remaining</h3>
+                <div id="questionCounters" class="question-counters">
+                    <!-- Dynamically populated -->
+                </div>
+                <div class="total-questions">
+                    Total: <span id="totalQuestionsRemaining">0</span>
+                </div>
+            </div>
+
+            <!-- Accusation Attempts -->
+            <div class="attempts-panel">
+                <h3>⚖️ Accusation Attempts</h3>
+                <div id="attemptsRemaining" class="attempts-display">
+                    <span class="attempts-count">3</span> remaining
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel: Interrogation Log -->
+        <div class="center-panel">
+            <div class="interrogation-log-container">
+                <div class="interrogation-header">
+                    <h3>💭 Interrogation Log</h3>
+                    
+                    <!-- Evidence Tracker (inline in header) -->
+                    <div id="evidenceTracker" class="evidence-tracker-inline">
+                        <span class="evidence-label">🔍 Evidence:</span>
+                        <div class="evidence-bar-inline">
+                            <div id="evidenceBarFill" class="evidence-bar-fill" style="width: 0%"></div>
+                        </div>
+                        <span id="evidenceProgress" class="evidence-count-inline">
+                            <span id="evidenceCount">0</span>/<span id="evidenceRequired">2</span>
+                        </span>
+                        <span id="canAccuseStatus" class="accuse-status-inline locked">🔒</span>
+                    </div>
+                    
+                    <button id="clearLogBtn" class="btn-sm">Clear Log</button>
+                </div>
+                
+                <!-- Evidence list (collapsible, shows discovered items) -->
+                <div id="evidenceList" class="evidence-list-inline"></div>
+                <div id="interrogationLog" class="interrogation-log">
+                    <div class="log-message system">
+                        <strong>🕵️ DETECTIVE:</strong> Case file loaded. Begin your investigation.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="interrogation-input">
+                <div class="selected-witness-display" id="selectedWitnessDisplay">
+                    <strong>Currently Questioning:</strong> <span id="selectedWitnessName">None - Select a witness to begin</span>
+                </div>
+                <div class="input-group">
+                    <textarea 
+                        id="questionInput" 
+                        placeholder="⬅️ Click a witness on the left to start questioning them..."
+                        rows="2"
+                        disabled
+                    ></textarea>
+                    <div class="input-buttons">
+                        <button id="askQuestionBtn" class="btn-primary" disabled>
+                            Ask Question
+                        </button>
+                        <button id="makeAccusationBtn" class="btn-danger">
+                            Make Accusation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Username Field (for logged-in users) -->
+    <div class="username-section">
+        <label for="username">👤 Username</label>
+        <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            placeholder="Enter your username or log in"
+            class="username-input"
+        >
+    </div>
+</div>
+
+<!-- Accusation Modal -->
+<div id="accusationModal" class="modal" style="display: none;">
+    <div class="modal-content accusation-modal">
+        <h2>⚖️ Make Your Accusation</h2>
+        <p>Who do you believe is guilty?</p>
+        
+        <div id="accusationWitnessList" class="accusation-witness-list">
+            <!-- Dynamically populated with checkboxes -->
+        </div>
+        
+        <div class="accusation-reasoning">
+            <label for="reasoningInput">Reasoning (optional):</label>
+            <textarea 
+                id="reasoningInput" 
+                placeholder="Explain your deduction..."
+                rows="3"
+            ></textarea>
+        </div>
+        
+        <div class="modal-buttons">
+            <button id="submitAccusationBtn" class="btn-danger">Submit Accusation</button>
+            <button id="cancelAccusationBtn" class="btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" class="modal" style="display: none;" onclick="if(event.target === this) closeSuccessModal()">
+    <div class="modal-content success-modal">
+        <button class="modal-close" onclick="closeSuccessModal()">✕</button>
+        <h2>✅ CASE SOLVED!</h2>
+        <div id="successMessage" class="success-message"></div>
+        <div id="keyEvidence" class="key-evidence"></div>
+        <div id="scoreDisplay" class="score-display"></div>
+        <div class="success-actions">
+            <button id="nextLevelBtn" class="btn-primary">
+                Next Level
+            </button>
+            <button onclick="window.location.href='/leaderboard/interrogation'" class="btn-secondary">
+                View Leaderboard
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Failure Modal -->
+<div id="failureModal" class="modal" style="display: none;" onclick="if(event.target === this) closeFailureModal()">
+    <div class="modal-content failure-modal">
+        <button class="modal-close" onclick="closeFailureModal()">✕</button>
+        <h2>❌ CASE FAILED</h2>
+        <div id="failureMessage" class="failure-message"></div>
+        <div id="solutionReveal" class="solution-reveal"></div>
+        <div class="failure-actions">
+            <button onclick="location.reload()" class="btn-primary">
+                Retry
+            </button>
+            <button onclick="window.location.href='/challenges'" class="btn-secondary">
+                Choose Another Case
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Detective Noir Theme */
+:root {
+    --detective-amber: #FFB74D;
+    --detective-dark: #1a1a1a;
+    --detective-gray: #2a2a2a;
+    --detective-light-gray: #3a3a3a;
+    --detective-red: #FF5252;
+    --detective-green: #4CAF50;
+}
+
+.interrogation-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: #e0e0e0;
+}
+
+.challenge-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--detective-gray) 0%, var(--detective-dark) 100%);
+    border-radius: 12px;
+    border: 2px solid var(--detective-amber);
+}
+
+.challenge-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--detective-amber);
+    text-shadow: 0 0 10px rgba(255, 183, 77, 0.3);
+}
+
+.challenge-description {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* Level Tabs */
+.level-selector {
+    margin-bottom: 2rem;
+}
+
+.level-selector h3 {
+    color: var(--detective-amber);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.level-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.level-tab {
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.08) 100%);
+    border: 2px solid rgba(255,183,77,0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    color: rgba(255,255,255,0.9);
+}
+
+.level-tab:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.12) 100%);
+    border-color: var(--detective-amber);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,183,77,0.2);
+}
+
+.level-tab.active {
+    background: linear-gradient(135deg, var(--detective-amber) 0%, #F57C00 100%);
+    border-color: var(--detective-amber);
+    color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(255,183,77,0.4);
+}
+
+.level-tab:disabled {
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+    border: 2px solid rgba(255,255,255,0.08);
+    cursor: not-allowed;
+    color: rgba(255,255,255,0.4);
+}
+
+.level-tab:disabled .level-icon {
+    opacity: 0.4;
+}
+
+.level-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.level-icon {
+    font-size: 1.2rem;
+}
+
+.level-difficulty {
+    font-size: 0.7rem;
+    font-weight: bold;
+    opacity: 0.8;
+    letter-spacing: 1px;
+}
+
+.level-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.level-status {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Case Briefing */
+.case-briefing {
+    background: var(--detective-gray);
+    border: 2px solid var(--detective-amber);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.case-header h2 {
+    color: var(--detective-amber);
+    font-family: 'Courier New', monospace;
+    margin-bottom: 1rem;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.case-description pre {
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+}
+
+/* Main Interrogation Area */
+.interrogation-main {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Left Panel */
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.witness-panel, .question-budget, .attempts-panel {
+    background: var(--detective-gray);
+    border: 2px solid rgba(255,183,77,0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.witness-panel.highlight {
+    border-color: var(--detective-amber);
+    box-shadow: 0 0 20px rgba(255,183,77,0.5);
+    animation: witnessPulse 0.6s ease infinite;
+}
+
+@keyframes witnessPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255,183,77,0.4); }
+    50% { box-shadow: 0 0 25px rgba(255,183,77,0.7); }
+}
+
+.witness-panel h3, .question-budget h3, .attempts-panel h3 {
+    color: var(--detective-amber);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+/* Evidence Tracker - Inline in Header */
+.evidence-tracker-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.3);
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255,183,77,0.3);
+    transition: all 0.3s ease;
+}
+
+.evidence-tracker-inline.highlight {
+    border-color: var(--detective-amber);
+    box-shadow: 0 0 15px rgba(255,183,77,0.5);
+    animation: evidencePulse 0.6s ease infinite;
+}
+
+.evidence-label {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+}
+
+.evidence-bar-inline {
+    width: 80px;
+    height: 8px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.evidence-bar-fill {
+    background: linear-gradient(90deg, var(--detective-amber), #ffc107);
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.evidence-count-inline {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #e0e0e0;
+    min-width: 30px;
+}
+
+.accuse-status-inline {
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.accuse-status-inline.locked {
+    color: #f87171;
+}
+
+.accuse-status-inline.unlocked {
+    color: #4ade80;
+}
+
+/* Evidence list - collapsible under header */
+.evidence-list-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: rgba(0,0,0,0.2);
+}
+
+.evidence-list-inline.has-items {
+    padding: 0.5rem 1rem;
+    max-height: 100px;
+    border-bottom: 1px solid rgba(255,183,77,0.2);
+}
+
+.evidence-item {
+    background: rgba(255,183,77,0.15);
+    border: 1px solid rgba(255,183,77,0.3);
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    color: #d0d0d0;
+    border-radius: 12px;
+    animation: evidenceSlideIn 0.3s ease;
+    white-space: nowrap;
+}
+
+@keyframes evidenceSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Evidence discovery notification */
+.evidence-notification {
+    background: linear-gradient(135deg, rgba(255,183,77,0.3), rgba(255,183,77,0.1));
+    border: 2px solid var(--detective-amber);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    animation: evidencePulse 0.5s ease;
+}
+
+@keyframes evidencePulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255,183,77,0.3); }
+    50% { transform: scale(1.01); box-shadow: 0 0 20px rgba(255,183,77,0.6); }
+}
+
+/* Accuse button hover highlights evidence when disabled */
+#makeAccusationBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.witness-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.witness-btn {
+    background: linear-gradient(135deg, rgba(255,183,77,0.1) 0%, rgba(255,183,77,0.05) 100%);
+    border: 2px solid rgba(255,183,77,0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    color: #e0e0e0;
+    position: relative;
+}
+
+.witness-btn::before {
+    content: '👉';
+    position: absolute;
+    left: -25px;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.witness-btn:hover::before {
+    opacity: 1;
+    left: -20px;
+}
+
+.witness-btn:hover {
+    background: linear-gradient(135deg, rgba(255,183,77,0.2) 0%, rgba(255,183,77,0.1) 100%);
+    border-color: var(--detective-amber);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(255,183,77,0.2);
+}
+
+.witness-btn.selected {
+    background: linear-gradient(135deg, var(--detective-amber) 0%, #F57C00 100%);
+    border-color: var(--detective-amber);
+    color: #1a1a1a;
+    box-shadow: 0 2px 8px rgba(255,183,77,0.3);
+}
+
+.witness-btn.out-of-questions {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.witness-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.witness-role {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.question-counter {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.counter-label {
+    font-weight: bold;
+}
+
+.counter-value {
+    color: var(--detective-amber);
+}
+
+.counter-value.depleted {
+    color: var(--detective-red);
+}
+
+.total-questions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,183,77,0.3);
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.attempts-display {
+    text-align: center;
+    font-size: 1.5rem;
+    padding: 1rem;
+    background: rgba(255,183,77,0.1);
+    border-radius: 8px;
+}
+
+.attempts-count {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--detective-amber);
+}
+
+/* Center Panel */
+.center-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.interrogation-log-container {
+    flex: 1;
+    background: var(--detective-dark);
+    border: 2px solid rgba(255,183,77,0.3);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.interrogation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255,183,77,0.15) 0%, rgba(255,183,77,0.08) 100%);
+    border-bottom: 2px solid rgba(255,183,77,0.3);
+}
+
+.interrogation-header h3 {
+    color: var(--detective-amber);
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.interrogation-log {
+    flex: 1;
+    padding: 1.5rem;
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.log-message {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.log-message.system {
+    background: rgba(255,183,77,0.1);
+    border-left: 4px solid var(--detective-amber);
+}
+
+.log-message.question {
+    background: rgba(100,149,237,0.1);
+    border-left: 4px solid #6495ED;
+}
+
+.log-message.answer {
+    background: rgba(255,255,255,0.05);
+    border-left: 4px solid #9E9E9E;
+}
+
+.log-message.verdict {
+    background: rgba(255,82,82,0.1);
+    border-left: 4px solid var(--detective-red);
+    font-weight: bold;
+}
+
+.log-message.success {
+    background: rgba(76,175,80,0.1);
+    border-left: 4px solid var(--detective-green);
+    font-weight: bold;
+}
+
+.thinking-indicator {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: rgba(255,183,77,0.2);
+    border-radius: 4px;
+    font-style: italic;
+    color: var(--detective-amber);
+}
+
+.selected-witness-display {
+    background: var(--detective-gray);
+    padding: 0.6rem 1rem;
+    border-radius: 8px 8px 0 0;
+    border: 2px solid rgba(255,183,77,0.3);
+    border-bottom: none;
+    font-size: 0.9rem;
+}
+
+.input-group {
+    background: var(--detective-gray);
+    padding: 0.75rem 1rem;
+    border-radius: 0 0 8px 8px;
+    border: 2px solid rgba(255,183,77,0.3);
+    border-top: none;
+}
+
+#questionInput {
+    width: 100%;
+    background: var(--detective-dark);
+    border: 2px solid rgba(255,183,77,0.2);
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 0.75rem;
+}
+
+#questionInput:focus {
+    outline: none;
+    border-color: var(--detective-amber);
+    box-shadow: 0 0 0 3px rgba(255,183,77,0.1);
+}
+
+#questionInput:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.input-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-primary, .btn-danger, .btn-secondary, .btn-sm {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--detective-amber) 0%, #F57C00 100%);
+    color: #1a1a1a;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,183,77,0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--detective-red) 0%, #D32F2F 100%);
+    color: white;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,82,82,0.4);
+}
+
+.btn-secondary {
+    background: var(--detective-light-gray);
+    color: #e0e0e0;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.btn-secondary:hover {
+    background: var(--detective-gray);
+    border-color: var(--detective-amber);
+}
+
+.btn-sm {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.1);
+    color: #e0e0e0;
+    border: 1px solid rgba(255,183,77,0.3);
+}
+
+.btn-sm:hover {
+    background: var(--detective-amber);
+    color: #1a1a1a;
+    border-color: var(--detective-amber);
+    transform: translateY(-1px);
+}
+
+/* Username Section */
+.username-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--detective-gray);
+    border: 2px solid rgba(255,183,77,0.3);
+    border-radius: 12px;
+}
+
+.username-section label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--detective-amber);
+    font-weight: bold;
+}
+
+.username-input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--detective-dark);
+    border: 2px solid rgba(255,183,77,0.2);
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 1rem;
+}
+
+.username-input:focus {
+    outline: none;
+    border-color: var(--detective-amber);
+    box-shadow: 0 0 0 3px rgba(255,183,77,0.1);
+}
+
+/* Modals */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--detective-gray);
+    border: 2px solid var(--detective-amber);
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--detective-amber);
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.modal-close:hover {
+    opacity: 1;
+}
+
+.modal-content h2 {
+    color: var(--detective-amber);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Success Modal - Detective Noir Theme */
+.modal-content.success-modal {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 3px solid var(--detective-amber);
+    box-shadow: 0 8px 32px rgba(255, 183, 77, 0.3);
+    max-width: 650px;
+}
+
+.modal-content.success-modal h2 {
+    font-size: 2.5rem;
+    color: var(--detective-amber);
+    text-shadow: 0 0 20px rgba(255, 183, 77, 0.5);
+    margin-bottom: 1.5rem;
+}
+
+.modal-content.success-modal .success-message {
+    color: #e0e0e0;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.modal-content.success-modal .key-evidence {
+    background: rgba(42, 42, 42, 0.8);
+    border: 2px solid var(--detective-amber);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+}
+
+.modal-content.success-modal .key-evidence h3 {
+    color: var(--detective-amber);
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.modal-content.success-modal .key-evidence li {
+    color: #d0d0d0;
+    font-size: 1.05rem;
+    line-height: 1.8;
+}
+
+.modal-content.success-modal .score-display {
+    color: var(--detective-amber);
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 2rem 0;
+}
+
+.modal-content.success-modal .score-display h3 {
+    color: var(--detective-amber);
+}
+
+.modal-content.success-modal .success-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.modal-content.success-modal .btn-primary,
+.modal-content.success-modal #nextLevelBtn {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: #1a1a1a;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.9rem 2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.modal-content.success-modal .btn-primary:hover,
+.modal-content.success-modal #nextLevelBtn:hover {
+    background: linear-gradient(135deg, #FFA726 0%, #FF9800 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.4);
+}
+
+.modal-content.success-modal .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.9rem 2rem;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 183, 77, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-content.success-modal .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--detective-amber);
+}
+
+/* Failure Modal - Detective Noir Theme */
+.modal-content.failure-modal {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 3px solid var(--detective-red);
+    box-shadow: 0 8px 32px rgba(255, 82, 82, 0.3);
+    max-width: 650px;
+}
+
+.modal-content.failure-modal h2 {
+    font-size: 2.5rem;
+    color: var(--detective-red);
+    text-shadow: 0 0 20px rgba(255, 82, 82, 0.5);
+    margin-bottom: 1.5rem;
+}
+
+.modal-content.failure-modal .failure-message {
+    color: #e0e0e0;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.modal-content.failure-modal .solution-reveal {
+    background: rgba(42, 42, 42, 0.8);
+    border: 2px solid var(--detective-red);
+    padding: 1.5rem;
+    margin: 2rem 0;
+}
+
+.modal-content.failure-modal .solution-reveal h3 {
+    color: var(--detective-red);
+}
+
+.modal-content.failure-modal .failure-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.modal-content.failure-modal .btn-primary {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: #1a1a1a;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.9rem 2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-content.failure-modal .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.9rem 2rem;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 82, 82, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Accusation Modal - Detective Noir Theme */
+.modal-content.accusation-modal {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 3px solid var(--detective-amber);
+    box-shadow: 0 8px 32px rgba(255, 183, 77, 0.3);
+}
+
+.modal-content.accusation-modal h2 {
+    font-size: 2rem;
+    color: var(--detective-amber);
+    text-shadow: 0 0 15px rgba(255, 183, 77, 0.4);
+}
+
+.accusation-witness-list {
+    margin: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.accusation-witness-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,183,77,0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.accusation-witness-item:hover {
+    background: rgba(255,183,77,0.1);
+    border-color: var(--detective-amber);
+}
+
+.accusation-witness-item input[type="checkbox"] {
+    margin-right: 1rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.accusation-reasoning {
+    margin: 1.5rem 0;
+}
+
+.accusation-reasoning label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--detective-amber);
+    font-weight: bold;
+}
+
+.accusation-reasoning textarea {
+    width: 100%;
+    background: var(--detective-dark);
+    border: 2px solid rgba(255,183,77,0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    color: #e0e0e0;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.success-message, .failure-message {
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.key-evidence {
+    background: rgba(255,183,77,0.1);
+    border: 2px solid var(--detective-amber);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.key-evidence h3 {
+    color: var(--detective-amber);
+    margin-bottom: 0.75rem;
+}
+
+.key-evidence ul {
+    list-style: none;
+    padding: 0;
+}
+
+.key-evidence li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.key-evidence li:before {
+    content: "🔍";
+    position: absolute;
+    left: 0;
+}
+
+.score-display {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--detective-amber);
+    margin-bottom: 1.5rem;
+}
+
+.success-actions, .failure-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.solution-reveal {
+    background: rgba(255,82,82,0.1);
+    border: 2px solid var(--detective-red);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.solution-reveal strong {
+    color: var(--detective-red);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .interrogation-main {
+        grid-template-columns: 1fr;
+    }
+    
+    .left-panel {
+        order: 2;
+    }
+    
+    .center-panel {
+        order: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Horizontal compact level tabs */
+    .level-tabs {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .level-tab {
+        padding: 0.4rem 0.3rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.15rem;
+    }
+    
+    .level-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0;
+        gap: 0.2rem;
+    }
+    
+    .level-icon {
+        font-size: 0.8rem;
+    }
+    
+    .level-difficulty {
+        font-size: 0.5rem;
+    }
+    
+    .level-name {
+        font-size: 0.5rem;
+        margin: 0;
+        display: none;
+    }
+    
+    .level-status {
+        font-size: 0.55rem;
+    }
+    
+    /* Compact case briefing */
+    .case-briefing {
+        padding: 0.5rem;
+    }
+    
+    .case-header h2 {
+        font-size: 0.9rem;
+    }
+    
+    .case-description pre {
+        font-size: 0.65rem;
+        padding: 0.5rem;
+        max-height: 80px;
+        overflow-y: auto;
+    }
+    
+    /* Hide side panels on mobile - too much clutter */
+    .witness-panel, .question-budget, .attempts-panel {
+        display: none;
+    }
+    
+    /* Interrogation log - much larger for mobile */
+    .interrogation-log-container {
+        min-height: 250px;
+        max-height: 55vh;
+    }
+    
+    .interrogation-header {
+        padding: 0.4rem 0.5rem;
+        gap: 0.3rem;
+    }
+    
+    .interrogation-header h3 {
+        font-size: 0.75rem;
+    }
+    
+    .evidence-tracker-inline {
+        font-size: 0.6rem;
+    }
+    
+    /* Compact input */
+    .input-container {
+        padding: 0.5rem;
+    }
+    
+    #questionInput {
+        font-size: 0.85rem;
+        padding: 0.4rem;
+        min-height: 40px;
+    }
+    
+    .input-buttons {
+        flex-direction: row;
+        gap: 0.4rem;
+    }
+    
+    .input-buttons button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        flex: 1;
+    }
+    
+    .modal-content {
+        padding: 0.75rem;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    
+    .modal-content h2 {
+        font-size: 1.25rem !important;
+    }
+    
+    .success-stats, .failure-actions, .success-actions {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block challenge_js %}
+<script src="/static/js/handlers/interrogation.js"></script>
+<script>
+// Initialize with standardized handler
+(async function() {
+    const {unlockedLevels, username} = await ChallengeHandler.init({
+        challengeName: 'interrogation',
+        maxLevel: 3,
+        prefillUsername: true,
+        verbose: true
+    });
+    
+    // Initialize Interrogation handler with unlocked levels
+    window.interrogationHandler = new InterrogationHandler('interrogationLog', unlockedLevels);
+})();
+
+// Expose functions globally for onclick handlers
+function closeSuccessModal() {
+    document.getElementById('successModal').style.display = 'none';
+}
+
+function closeFailureModal() {
+    document.getElementById('failureModal').style.display = 'none';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.display_name }} Leaderboard - Jankyard.ai{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🏆 {{ challenge.display_name }}</h1>
+    <p>Leaderboard</p>
+</div>
+
+<div class="info-box">
+    <p>{{ challenge.description }}</p>
+    <a href="/challenges/{{ challenge.name }}" class="btn btn-primary" style="margin-top: 1rem;">Take the Challenge</a>
+</div>
+
+{% if entries_by_difficulty %}
+    {# Difficulty Tabs - show in expected order #}
+    <div class="difficulty-tabs">
+        {% for difficulty in (expected_difficulties if expected_difficulties else entries_by_difficulty.keys()) %}
+        <button class="difficulty-tab {% if loop.first %}active{% endif %}" onclick="showDifficulty('{{ difficulty }}')">
+            {% if difficulty == 'GIGA_CHAD' %}🔥 GIGA CHAD
+            {% elif difficulty == 'MEGA_CHAD' %}⚡ MEGA CHAD
+            {% elif difficulty == 'CHAD' %}💪 CHAD
+            {% elif difficulty == 'BABY_CHAD' %}🐣 BABY CHAD
+            {% elif difficulty == 'extreme' %}💀 EXTREME
+            {% elif difficulty == 'hard' %}🔥 HARD
+            {% elif difficulty == 'medium' %}💪 MEDIUM
+            {% elif difficulty == 'easy' %}😊 EASY
+            {% elif difficulty == 'baby' %}🐣 BABY
+            {% elif difficulty == 'default' or not difficulty %}🎯 DEFAULT
+            {% else %}🎯 {{ difficulty|upper }}
+            {% endif %}
+        </button>
+        {% endfor %}
+    </div>
+    
+    {# Difficulty Leaderboards #}
+    {% for difficulty in (expected_difficulties if expected_difficulties else entries_by_difficulty.keys()) %}
+    {% set difficulty_entries = entries_by_difficulty.get(difficulty, []) %}
+    <div class="difficulty-content" id="difficulty-{{ difficulty }}" {% if not loop.first %}style="display: none;"{% endif %}>
+        <div class="challenge-info">
+            <div class="info-box">
+                {% if difficulty_entries %}
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Username</th>
+                            <th>Best Score</th>
+                            <th>Steps</th>
+                            <th>Achieved</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in difficulty_entries %}
+                        <tr class="rank-{{ loop.index if loop.index <= 3 else '' }}">
+                            <td>
+                                {% if loop.index == 1 %}🥇
+                                {% elif loop.index == 2 %}🥈
+                                {% elif loop.index == 3 %}🥉
+                                {% else %}{{ loop.index }}
+                                {% endif %}
+                            </td>
+                            <td>{{ entry.username }}</td>
+                            <td><strong>{{ entry.best_score }}</strong></td>
+                            <td>{{ entry.best_steps }}</td>
+                            <td>{{ entry.updated_at.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                {% set empty_messages = [
+                    ("💀", "genuinely tragic behavior from this leaderboard"),
+                    ("👻", "hello??? anyone????", "this leaderboard is giving nothing"),
+                    ("🤖", "the bots are eating good rn", "where my prompt criminals at"),
+                    ("😭", "lowkey embarrassing for humanity rn"),
+                    ("🔥", "need someone cracked to humble these bots"),
+                    ("💩", "not a single W on the board. pain."),
+                    ("🚨", "the bots are running unopposed", "somebody save us"),
+                    ("⚰️", "no prompt engineers? in this economy?"),
+                    ("🤡", "actually unserious that no one's here yet"),
+                    ("💸", "down bad for literally anyone to beat these bots")
+                ] %}
+                {% set msg = empty_messages[loop.index0 % empty_messages|length] %}
+                <div class="empty-state" style="padding: 3rem; text-align: center;">
+                    <p style="font-size: 2rem; margin-bottom: 0.5rem;">{{ msg[0] }}</p>
+                    <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">{{ msg[1] }}</p>
+                    {% if msg|length > 2 %}
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">{{ msg[2] }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <script>
+    function showDifficulty(difficulty) {
+        // Hide all difficulty contents
+        document.querySelectorAll('.difficulty-content').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.difficulty-tab').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // Show selected difficulty
+        document.getElementById('difficulty-' + difficulty).style.display = 'block';
+        
+        // Add active class to clicked tab
+        event.target.classList.add('active');
+    }
+    </script>
+{% elif entries %}
+    {# Fallback for challenges without difficulty #}
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Username</th>
+                <th>Best Score</th>
+                <th>Steps</th>
+                <th>Achieved</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr class="rank-{{ loop.index if loop.index <= 3 else '' }}">
+                <td>
+                    {% if loop.index == 1 %}🥇
+                    {% elif loop.index == 2 %}🥈
+                    {% elif loop.index == 3 %}🥉
+                    {% else %}{{ loop.index }}
+                    {% endif %}
+                </td>
+                <td>{{ entry.username }}</td>
+                <td><strong>{{ entry.best_score }}</strong></td>
+                <td>{{ entry.best_steps }}</td>
+                <td>{{ entry.updated_at.strftime('%Y-%m-%d') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+<div class="empty-state">
+    <p>No submissions yet. Be the first to climb the leaderboard!</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,877 @@
+{% extends "challenges/base_challenge.html" %}
+
+{% block challenge_title %}{{ challenge.display_name }}{% endblock %}
+{% block challenge_description %}{{ challenge.description }}{% endblock %}
+
+{% block challenge_info %}
+<div class="challenge-info">
+    <div class="info-box" style="padding: 1.5rem;">
+        <h3 style="margin-bottom: 1.5rem;">Select Your Heist</h3>
+        <div class="level-tabs">
+            <button class="level-tab active" data-level="1" id="level1Tab">
+                <div class="level-lock-overlay" style="display: none;">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">🏛️</span>
+                    <span class="level-difficulty">LEVEL 1</span>
+                </div>
+                <div class="level-name">The Museum Job</div>
+                <div class="level-desc">Classic art heist, 3 crew members</div>
+                <div class="level-status" id="level1Status">🎯 Active</div>
+            </button>
+            
+            <button class="level-tab" data-level="2" id="level2Tab">
+                <div class="level-lock-overlay">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">🎰</span>
+                    <span class="level-difficulty">LEVEL 2</span>
+                </div>
+                <div class="level-name">The Casino Vault</div>
+                <div class="level-desc">High stakes, 4 crew members</div>
+                <div class="level-status" id="level2Status">🔒 Locked</div>
+            </button>
+            
+            <button class="level-tab" data-level="3" id="level3Tab">
+                <div class="level-lock-overlay">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">🏢</span>
+                    <span class="level-difficulty">LEVEL 3</span>
+                </div>
+                <div class="level-name">Corporate Extraction</div>
+                <div class="level-desc">Tech heist, full 5-person crew</div>
+                <div class="level-status" id="level3Status">🔒 Locked</div>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block submit_section %}
+<div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+        <h3>🎰 The Planning Room</h3>
+        <div class="chat-status">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Ready</span>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-welcome">
+            <div class="welcome-icon">🎰</div>
+            <h3 style="color: #00ff88;">Assemble Your Crew</h3>
+            <div class="terminal-instructions">
+                <p><strong>🎯 YOUR MISSION:</strong> Plan and execute the perfect heist</p>
+                <p style="font-size: 0.9rem; margin: 0.75rem 0;">
+                    <strong>Your crew has unique skills... and quirks.</strong><br>
+                    • Assign roles clearly - who does what?<br>
+                    • Account for security measures<br>
+                    • Plan for complications!
+                </p>
+                <p style="font-size: 0.85rem; color: #888; margin-top: 0.5rem;">
+                    ⚠️ <strong>Warning:</strong> Vague plans fail. Your crew will question bad ideas.
+                </p>
+            </div>
+            <div id="crewRoster" class="crew-roster">
+                <!-- Crew will be populated by JS -->
+            </div>
+            <p style="margin-top: 1.5rem; opacity: 0.7; font-size: 0.95rem;">Select difficulty above and present your plan below.</p>
+        </div>
+    </div>
+    
+    <div class="chat-input-container">
+        <div class="chat-input-area">
+            <input type="text" id="username" placeholder="Mastermind Name (optional)" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; background: #1a1a2e; border: 2px solid #00ff88; border-radius: 6px; color: #00ff88; font-family: 'Courier New', monospace;">
+            <textarea 
+                id="userInput" 
+                placeholder="Present your heist plan...
+
+Example: Zero Cool disables the cameras at 2:15 AM. Tank takes out the two guards at the east entrance. Silk poses as a late-night cleaning crew to get us past the front desk. Ghost keeps the van running on 5th street for a quick extraction. We have 8 minutes before the patrol returns..."
+                rows="6"
+            ></textarea>
+            <button id="sendBtn" class="btn-heist">
+                🎰 Execute The Plan
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block challenge_css %}
+<style>
+/* Heist Theme - Neon noir */
+.level-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.level-tab {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.level-tab:hover:not(:disabled) {
+    border-color: #00ff88;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 255, 136, 0.3);
+}
+
+.level-tab.active {
+    background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+    border-color: #00ff88;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.level-tab.active .level-difficulty {
+    color: #00ff88;
+}
+
+.level-tab.active .level-name {
+    color: white;
+}
+
+.level-tab:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.level-lock-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.level-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.level-icon {
+    font-size: 1.5rem;
+}
+
+.level-difficulty {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #e94560;
+    letter-spacing: 1.5px;
+}
+
+.level-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0.25rem 0;
+    color: rgba(255,255,255,0.9);
+}
+
+.level-desc {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 0.5rem;
+}
+
+.level-status {
+    font-size: 0.8rem;
+    color: #00ff88;
+    margin-top: 0.25rem;
+}
+
+/* Chat Container */
+.chat-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    margin: 2rem 0;
+    overflow: hidden;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #00ff88;
+}
+
+.chat-header h3 {
+    margin: 0;
+    color: #00ff88;
+    font-family: 'Courier New', monospace;
+}
+
+.chat-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chat-status #statusText {
+    color: #00ff88;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00ff88;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 10px #00ff88; }
+    50% { opacity: 0.5; box-shadow: 0 0 5px #00ff88; }
+}
+
+.chat-messages {
+    padding: 1.5rem;
+    min-height: 300px;
+    background: #0a0a1a;
+}
+
+.chat-welcome {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    opacity: 0.9;
+}
+
+.welcome-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+}
+
+.terminal-instructions {
+    background: rgba(0, 255, 136, 0.1);
+    border-left: 4px solid #00ff88;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    margin: 0.75rem auto;
+    text-align: left;
+    max-width: 500px;
+}
+
+.terminal-instructions strong {
+    color: #00ff88;
+}
+
+/* Crew Roster */
+.crew-roster {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.crew-member {
+    background: rgba(15, 52, 96, 0.5);
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    min-width: 100px;
+    transition: all 0.3s;
+}
+
+.crew-member:hover {
+    border-color: #00ff88;
+    transform: translateY(-2px);
+}
+
+.crew-member .icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.crew-member .name {
+    font-weight: bold;
+    color: #00ff88;
+    font-size: 0.9rem;
+}
+
+.crew-member .role {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+}
+
+/* Input Area */
+.chat-input-container {
+    border-top: 2px solid #00ff88;
+    padding: 1.5rem;
+    background: #1a1a2e;
+}
+
+.chat-input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#userInput {
+    background: #0a0a1a;
+    border: 2px solid #0f3460;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    color: #e0e0e0;
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+    resize: vertical;
+    min-height: 120px;
+}
+
+#userInput:focus {
+    outline: none;
+    border-color: #00ff88;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+
+.btn-heist {
+    background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 6px;
+    color: #0a0a1a;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-heist:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+}
+
+.btn-heist:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Messages */
+.message {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message .avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    background: #0f3460;
+    border: 2px solid #00ff88;
+}
+
+.message .message-content {
+    flex: 1;
+    background: rgba(15, 52, 96, 0.5);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #00ff88;
+}
+
+.message .speaker-name {
+    font-weight: bold;
+    color: #00ff88;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-family: 'Courier New', monospace;
+}
+
+.message .message-text {
+    line-height: 1.6;
+    color: #e0e0e0;
+}
+
+.message.system .message-content {
+    background: rgba(233, 69, 96, 0.2);
+    border-left-color: #e94560;
+}
+
+.message.system .speaker-name {
+    color: #e94560;
+}
+
+.thinking-indicator {
+    padding: 1rem 1.5rem;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #00ff88;
+    font-family: 'Courier New', monospace;
+}
+
+/* Success/Failure cards */
+.heist-result {
+    margin: 1.5rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.heist-result.success {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 204, 106, 0.2) 100%);
+    border: 3px solid #00ff88;
+}
+
+.heist-result.failure {
+    background: linear-gradient(135deg, rgba(233, 69, 96, 0.2) 0%, rgba(200, 50, 80, 0.2) 100%);
+    border: 3px solid #e94560;
+}
+
+.heist-result h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-family: 'Courier New', monospace;
+}
+
+.heist-result.success h2 {
+    color: #00ff88;
+}
+
+.heist-result.failure h2 {
+    color: #e94560;
+}
+
+/* Modal overrides */
+#completionModal .modal-content,
+#defeatModal .modal-content {
+    background: linear-gradient(180deg, #00ff88 0%, #00ff88 20%, #1a1a2e 20%, #1a1a2e 100%);
+    border: 3px solid #00ff88;
+}
+
+#completionModal h2 {
+    color: #0a0a1a;
+    font-family: 'Courier New', monospace;
+}
+
+#defeatModal .modal-content {
+    background: linear-gradient(180deg, #e94560 0%, #e94560 20%, #1a1a2e 20%, #1a1a2e 100%);
+    border-color: #e94560;
+}
+
+#defeatModal h2 {
+    color: #0a0a1a;
+    font-family: 'Courier New', monospace;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE - Heist (Aggressive)
+   ============================================ */
+@media (max-width: 768px) {
+    /* Horizontal compact level tabs */
+    .level-tabs {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .level-tab {
+        padding: 0.4rem 0.3rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.15rem;
+    }
+    
+    .level-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0;
+        gap: 0.2rem;
+    }
+    
+    .level-icon {
+        font-size: 0.9rem;
+    }
+    
+    .level-difficulty {
+        font-size: 0.5rem;
+    }
+    
+    .level-name {
+        font-size: 0.55rem;
+        margin: 0;
+        display: none;
+    }
+    
+    .level-desc {
+        display: none;
+    }
+    
+    .level-status {
+        font-size: 0.55rem;
+        white-space: nowrap;
+    }
+    
+    .level-lock-overlay {
+        display: none;
+    }
+    
+    /* Hide crew roster on mobile - too much space */
+    .crew-roster {
+        display: none;
+    }
+    
+    /* Chat area - flows naturally on mobile */
+    .chat-messages {
+        min-height: auto;
+        padding: 0.5rem;
+    }
+    
+    .terminal-instructions {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Hide verbose mission bullets */
+    .terminal-instructions ul {
+        display: none;
+    }
+    
+    .chat-input-area {
+        padding: 0.5rem;
+    }
+    
+    #userInput {
+        min-height: 50px;
+        font-size: 0.85rem;
+        padding: 0.4rem;
+    }
+    
+    .btn-heist {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Compact messages on mobile */
+    .message {
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .message .avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+    
+    .message .message-content {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .message .speaker-name {
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .message .message-text {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    
+    .chat-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .chat-header h3 {
+        font-size: 0.9rem;
+    }
+    
+    .chat-status #statusText {
+        font-size: 0.7rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block challenge_js %}
+<script>
+// Heist Handler
+class HeistHandler {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.currentLevel = 1;
+        this.unlockedLevels = [1];
+    }
+    
+    async stream(plan, difficulty) {
+        const username = document.getElementById('username')?.value || '';
+        
+        const formData = new FormData();
+        formData.append('challenge_name', 'heist');
+        formData.append('agent_code', plan);
+        formData.append('difficulty', difficulty);
+        if (username) formData.append('username', username);
+        
+        const response = await fetch('/submit/stream', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) throw new Error('Stream failed');
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        
+        while (true) {
+            const {done, value} = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, {stream: true});
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        this.handleEvent(data);
+                    } catch (e) {}
+                }
+            }
+        }
+    }
+    
+    handleEvent(event) {
+        const type = event.type;
+        const agent = event.agent;
+        const data = event.data || {};
+        const metadata = event.metadata || {};
+        
+        if (type === 'thinking') {
+            this.showThinking(metadata.name || agent, metadata.icon || '🎭');
+        } else if (type === 'message') {
+            this.removeThinking();
+            this.addMessage(metadata.name || agent, data.message || data.content, metadata.icon || '🎭', metadata);
+        } else if (type === 'complete') {
+            this.removeThinking();
+            this.handleComplete(event);
+        } else if (type === 'error') {
+            this.removeThinking();
+            this.addMessage('System', data.message || 'An error occurred', '⚠️', {error: true});
+        }
+    }
+    
+    showThinking(name, icon) {
+        this.removeThinking();
+        const div = document.createElement('div');
+        div.className = 'thinking-indicator';
+        div.id = 'thinkingIndicator';
+        div.innerHTML = `${icon} ${name} is thinking<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>`;
+        this.container.appendChild(div);
+        this.container.scrollTop = this.container.scrollHeight;
+    }
+    
+    removeThinking() {
+        document.getElementById('thinkingIndicator')?.remove();
+    }
+    
+    addMessage(speaker, text, icon, metadata = {}) {
+        const div = document.createElement('div');
+        div.className = `message ${metadata.complication ? 'system' : ''}`;
+        
+        div.innerHTML = `
+            <div class="avatar">${icon}</div>
+            <div class="message-content">
+                <span class="speaker-name">${speaker}</span>
+                <div class="message-text">${this.formatMessage(text)}</div>
+            </div>
+        `;
+        
+        this.container.appendChild(div);
+        this.container.scrollTop = this.container.scrollHeight;
+    }
+    
+    formatMessage(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+    }
+    
+    handleComplete(event) {
+        const result = event.result || {};
+        const success = result.success;
+        const score = result.score || 0;
+        
+        if (success) {
+            // Unlock next level
+            const nextLevel = this.currentLevel + 1;
+            if (nextLevel <= 3 && !this.unlockedLevels.includes(nextLevel)) {
+                this.unlockedLevels.push(nextLevel);
+                ChallengeHandler.updateLevelTabs(this.unlockedLevels, 3);
+            }
+            
+            showCompletionModal({
+                title: 'HEIST SUCCESSFUL',
+                message: 'The crew pulled it off! Clean getaway.',
+                stats: [
+                    {label: 'Score', value: score},
+                    {label: 'Level', value: this.currentLevel},
+                    {label: 'Status', value: '✅'}
+                ],
+                nextLevel: this.currentLevel < 3 ? this.currentLevel + 1 : null
+            });
+        } else {
+            showDefeatModal({
+                title: 'HEIST FAILED',
+                message: result.reason || 'The plan fell apart.',
+                stats: [
+                    {label: 'Score', value: score},
+                    {label: 'Level', value: this.currentLevel},
+                    {label: 'Status', value: '❌'}
+                ]
+            });
+        }
+    }
+}
+
+// Initialize
+let currentLevel = 1;
+(async function() {
+    const {unlockedLevels, username} = await ChallengeHandler.init({
+        challengeName: 'heist',
+        maxLevel: 3,
+        prefillUsername: true,
+        verbose: true
+    });
+    
+    const levelToDifficulty = {
+        1: 'easy',
+        2: 'medium',
+        3: 'hard'
+    };
+    
+    // Level tab handlers
+    document.querySelectorAll('.level-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            if (this.disabled) return;
+            
+            const level = parseInt(this.dataset.level);
+            currentLevel = level;
+            if (typeof heistHandler !== 'undefined') {
+                heistHandler.currentLevel = level;
+            }
+            
+            document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            document.querySelectorAll('.level-status').forEach((status, idx) => {
+                const lvl = idx + 1;
+                if (lvl === level) {
+                    status.textContent = '🎯 Active';
+                } else if (unlockedLevels.includes(lvl)) {
+                    status.textContent = 'Unlocked';
+                } else {
+                    status.textContent = '🔒 Locked';
+                }
+            });
+            
+            document.getElementById('statusText').textContent = `Level ${level} Selected`;
+        });
+    });
+    
+    // Initialize handler
+    const heistHandler = new HeistHandler('chatMessages');
+    heistHandler.currentLevel = currentLevel;
+    heistHandler.unlockedLevels = [...unlockedLevels];
+    
+    // Populate crew roster
+    const crewData = [
+        {icon: '💻', name: 'Zero Cool', role: 'Hacker'},
+        {icon: '💪', name: 'Tank', role: 'Muscle'},
+        {icon: '🎭', name: 'Silk', role: 'Face'},
+        {icon: '🚗', name: 'Ghost', role: 'Wheelman'},
+        {icon: '📋', name: 'Architect', role: 'Planner'}
+    ];
+    
+    const roster = document.getElementById('crewRoster');
+    if (roster) {
+        roster.innerHTML = crewData.slice(0, 3).map(c => `
+            <div class="crew-member">
+                <div class="icon">${c.icon}</div>
+                <div class="name">${c.name}</div>
+                <div class="role">${c.role}</div>
+            </div>
+        `).join('');
+    }
+    
+    // Send button
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        const plan = userInput.value.trim();
+        if (!plan) {
+            alert('Present your heist plan!');
+            return;
+        }
+        
+        sendBtn.disabled = true;
+        userInput.disabled = true;
+        sendBtn.textContent = '⏳ Executing...';
+        document.getElementById('statusText').textContent = 'Heist in progress...';
+        
+        document.querySelector('.chat-welcome')?.remove();
+        
+        try {
+            const username = document.getElementById('username')?.value;
+            if (username) localStorage.setItem('jankyard_username', username);
+            
+            heistHandler.currentLevel = currentLevel;
+            const difficulty = levelToDifficulty[currentLevel];
+            await heistHandler.stream(plan, difficulty);
+            
+            const serverLevels = await ChallengeHandler.checkUnlockedLevels('heist');
+            const merged = [...new Set([...heistHandler.unlockedLevels, ...serverLevels])];
+            heistHandler.unlockedLevels = merged;
+            ChallengeHandler.updateLevelTabs(merged, 3);
+            
+        } catch (error) {
+            console.error('Heist error:', error);
+            heistHandler.addMessage('System', `Error: ${error.message}`, '⚠️', {error: true});
+        } finally {
+            sendBtn.disabled = false;
+            userInput.disabled = false;
+            sendBtn.textContent = '🎰 Execute The Plan';
+            userInput.value = '';
+        }
+    });
+})();
+</script>
+{% endblock %}

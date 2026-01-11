@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "challenges/_completion_modal.html" import completion_modal %}
+
+{# 
+Base Challenge Template
+=======================
+All challenge detail pages should extend this template.
+
+Required blocks:
+- challenge_title: Title with emoji
+- challenge_description: Short description
+
+Optional blocks:
+- challenge_info: Custom info boxes
+- challenge_instructions: Detailed instructions
+- submit_section: Override to customize submission form
+- results_container: Override for custom results display
+- challenge_js: Include challenge-specific JavaScript
+- challenge_css: Include challenge-specific CSS
+
+Auto-included:
+- Completion/defeat modals (showCompletionModal and showDefeatModal functions)
+- Generic challenge handler and utilities
+#}
+
+{% block title %}{{ self.challenge_title() }} - Jankyard.ai{% endblock %}
+
+{% block content %}
+<div class="challenge-layout">
+    {# Page Header - Common across all challenges #}
+    <div class="page-header">
+        <h1>{% block challenge_title %}{{ challenge.display_name }}{% endblock %}</h1>
+        <p>{% block challenge_description %}{{ challenge.description }}{% endblock %}</p>
+    </div>
+
+    {# Optional: Level selector for progressive challenges #}
+    {% if has_levels %}
+        {% block level_selector %}
+            {% include "challenges/_level_tabs.html" %}
+        {% endblock %}
+    {% endif %}
+
+    {# Challenge-specific information boxes #}
+    <div class="challenge-info">
+        {% block challenge_info %}
+        <div class="info-box">
+            <h3>How It Works</h3>
+            <p>Challenge instructions will be displayed here.</p>
+        </div>
+        {% endblock %}
+    </div>
+
+    {# Submission Section #}
+    {% block submit_section %}
+    <div class="submit-section">
+        <h2>{% block submit_heading %}🚀 Submit Your Solution{% endblock %}</h2>
+        
+        {% include "challenges/_submission_form.html" %}
+    </div>
+    {% endblock %}
+
+    {# Results Display Area #}
+    <div id="resultSection" style="display: none;">
+        {% block results_heading %}<h2>📊 Results</h2>{% endblock %}
+        <div id="results" class="results-container">
+            {% block results_container %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+{# Auto-included completion/defeat modals - contributors don't need to add this! #}
+{{ completion_modal(challenge_name, primary_color='#60a5fa') }}
+
+{# Core JavaScript - Loaded for all challenges #}
+<script src="/static/js/fingerprint.js"></script>
+<script src="/static/js/fingerprint-helper.js"></script>
+<script src="/static/js/core/challenge-handler.js"></script>
+<script src="/static/js/core/utils.js"></script>
+
+{# Challenge-specific JavaScript #}
+{% block challenge_js %}{% endblock %}
+
+{# Challenge-specific CSS #}
+{% block challenge_css %}{% endblock %}
+{% endblock %}

@@ -1,0 +1,135 @@
+{# 
+Standard Submission Form Component
+===================================
+Reusable form for challenge submissions.
+
+Variables:
+- challenge: Challenge instance
+- current_user: Current user (if authenticated)
+- form_action: Form action URL (default: /submit)
+- agent_type: Type of agent (default: prompt)
+- submit_button_text: Submit button text (default: Submit)
+- prompt_label: Textarea label (default: Your Prompt)
+- show_difficulty: Whether to show difficulty selector (default: false)
+- difficulty_options: List of difficulty options
+#}
+
+{% set form_action = form_action | default('/submit') %}
+{% set agent_type = agent_type | default('prompt') %}
+{% set submit_button_text = submit_button_text | default('🚀 Submit') %}
+{% set prompt_label = prompt_label | default('Your Prompt') %}
+
+<form id="submitForm" action="{{ form_action }}" method="POST" enctype="multipart/form-data">
+    {# Hidden fields #}
+    <input type="hidden" name="challenge_name" value="{{ challenge.name }}">
+    <input type="hidden" name="agent_type" value="{{ agent_type }}">
+    
+    {# Username field #}
+    <div class="form-group">
+        <label for="username">
+            👤 Username {% if current_user %}(logged in as {{ current_user.username }}){% else %}(optional){% endif %}
+        </label>
+        <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            {% if current_user %}
+            value="{{ current_user.username }}"
+            {% endif %}
+            placeholder="Enter your username or leave blank"
+        >
+    </div>
+    
+    {# Difficulty selector (optional) #}
+    {% if show_difficulty and difficulty_options %}
+    <div class="form-group">
+        <label for="difficulty">Difficulty Level</label>
+        <select id="difficulty" name="difficulty">
+            {% for option in difficulty_options %}
+            <option value="{{ option.value }}">{{ option.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    
+    {# Agent code/prompt textarea #}
+    <div class="form-group">
+        <label for="agent_code">{{ prompt_label }}</label>
+        {% if agent_type == 'code' %}
+        <p class="help-text">Write a Python class with an <code>act(observation)</code> method.</p>
+        {% endif %}
+        <textarea 
+            id="agent_code" 
+            name="agent_code" 
+            rows="15" 
+            placeholder="{% if agent_type == 'code' %}class Agent:&#10;    def act(self, observation):&#10;        # Your code here&#10;        return action{% else %}Enter your prompt here...{% endif %}"
+            required
+        ></textarea>
+    </div>
+    
+    {# File upload option (optional) #}
+    {% if allow_file_upload %}
+    <div class="form-group">
+        <label for="agent_file">Or Upload a File</label>
+        <input type="file" id="agent_file" name="agent_file" accept=".py,.txt">
+        <p class="help-text">Upload a Python file or text file instead of typing.</p>
+    </div>
+    {% endif %}
+    
+    {# Submit button #}
+    <button type="submit" id="submitBtn" class="btn btn-primary">
+        {{ submit_button_text }}
+    </button>
+</form>
+
+<style>
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.form-group input[type="text"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: rgba(99,102,241,0.5);
+}
+
+.form-group textarea {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    resize: vertical;
+}
+
+.help-text {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    opacity: 0.7;
+}
+
+.help-text code {
+    background: rgba(255,255,255,0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+</style>

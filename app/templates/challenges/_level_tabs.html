@@ -1,0 +1,151 @@
+{# 
+Level Tabs Component
+=====================
+Reusable level selection tabs for progressive challenges.
+
+Variables:
+- levels: List of level dicts with:
+  - number: Level number (1, 2, 3)
+  - name: Display name
+  - difficulty: Text label (BEGINNER, INTERMEDIATE, ADVANCED)
+  - stars: Star rating (⭐☆☆, ⭐⭐☆, ⭐⭐⭐)
+  - locked: Boolean - whether level is locked
+  - active: Boolean - whether this is the current level
+#}
+
+<div class="challenge-info">
+    <div class="info-box" style="padding: 1.5rem;">
+        <h3 style="margin-bottom: 1.5rem;">Select Your Level</h3>
+        <div class="level-tabs">
+            {% for level in levels %}
+            <button 
+                class="level-tab {% if level.active %}active{% endif %}" 
+                data-level="{{ level.number }}"
+                {% if level.locked %}disabled{% endif %}
+            >
+                <div class="level-header">
+                    <span class="level-icon">{{ level.stars }}</span>
+                    <span class="level-difficulty">{{ level.difficulty }}</span>
+                </div>
+                <div class="level-name">{{ level.name }}</div>
+                <div class="level-status">
+                    {% if level.locked %}
+                        🔒 Locked
+                    {% elif level.active %}
+                        🎯 Active
+                    {% else %}
+                        🔓 Unlocked
+                    {% endif %}
+                </div>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.level-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.level-tab {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.level-tab:not(:disabled):hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(99,102,241,0.5);
+    transform: translateY(-2px);
+}
+
+.level-tab.active {
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
+    border-color: rgba(99,102,241,0.5);
+}
+
+.level-tab:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.level-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.level-icon {
+    font-size: 1.25rem;
+}
+
+.level-difficulty {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+}
+
+.level-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+.level-status {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .level-tabs {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .level-tab {
+        padding: 1rem;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+        gap: 1rem;
+    }
+    
+    .level-header {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 0;
+        min-width: 60px;
+    }
+    
+    .level-icon {
+        font-size: 1rem;
+    }
+    
+    .level-difficulty {
+        font-size: 0.65rem;
+    }
+    
+    .level-name {
+        flex: 1;
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+    
+    .level-status {
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+}
+</style>

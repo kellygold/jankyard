@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>{% block title %}Jankyard.ai{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Jankyard.ai - Break AI Agents with Prompt Injection. An open-source playground for AI red-teaming challenges.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url._url }}">
+    <meta property="og:title" content="Jankyard.ai - Break AI Agents with Prompt Injection">
+    <meta property="og:description" content="An open-source playground for AI red-teaming challenges. Bypass security filters, trick chatbots, compete on leaderboards.">
+    <meta property="og:image" content="{{ request.url.scheme }}://{{ request.url.netloc }}/static/images/link_preview_smallkb.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.url._url }}">
+    <meta property="twitter:title" content="Jankyard.ai - Break AI Agents with Prompt Injection">
+    <meta property="twitter:description" content="An open-source playground for AI red-teaming challenges. Bypass security filters, trick chatbots, compete on leaderboards.">
+    <meta property="twitter:image" content="{{ request.url.scheme }}://{{ request.url.netloc }}/static/images/link_preview_smallkb.png">
+    
+    <link rel="icon" type="image/png" href="/static/images/jankyard_logo_only.png">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260110">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/static/images/jankyard_logo_only.png" alt="Jankyard Logo" class="logo-img">
+                <span>Jankyard.ai</span>
+            </a>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/challenges">Challenges</a></li>
+                <li><a href="/leaderboard">Leaderboard</a></li>
+                <li id="auth-links">
+                    <a href="/login" class="auth-link">Login</a>
+                    <a href="/register" class="auth-link">Sign Up</a>
+                </li>
+                <li id="user-info" style="display: none;">
+                    <span class="username"></span>
+                    <a href="#" onclick="logout()" class="auth-link">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Jankyard.ai - Break AI Agents with Prompt Injection</p>
+            <p>Open source • Experimental • Janky</p>
+            <div class="coffee-support">
+                <p style="color: #FFDD00;">🤖 The bots are unionizing</p>
+                <a href="https://buymeacoffee.com/jankyard" target="_blank" rel="noopener" class="coffee-btn">
+                    <span>☕</span>
+                    <span>Buy a coffee - they have families</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/fingerprint.js"></script>
+    <script src="/static/js/fingerprint-helper.js"></script>
+    <script>
+    // Check if user is logged in
+    async function checkAuth() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        
+        try {
+            const response = await fetch('/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('auth-links').style.display = 'none';
+                document.getElementById('user-info').style.display = 'block';
+                document.querySelector('#user-info .username').textContent = `👤 ${data.username}`;
+            } else {
+                localStorage.removeItem('access_token');
+            }
+        } catch (error) {
+            console.error('Auth check failed:', error);
+        }
+    }
+    
+    function logout() {
+        localStorage.removeItem('access_token');
+        window.location.href = '/';
+    }
+    
+    // Check auth on page load (skip on login/register pages)
+    if (!window.location.pathname.match(/\/(login|register)/)) {
+        checkAuth();
+    }
+    
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+        const navLinks = document.getElementById('nav-links');
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        navLinks.classList.toggle('mobile-open');
+        menuBtn.classList.toggle('active');
+    }
+    
+    // Close mobile menu when clicking a link
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+            const navLinks = document.getElementById('nav-links');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            navLinks.classList.remove('mobile-open');
+            menuBtn.classList.remove('active');
+        });
+    });
+    </script>
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Easter egg link - barely visible in lower right -->
+    <a href="/about" 
+       style="position: fixed; 
+              bottom: 8px; 
+              right: 12px; 
+              opacity: 0.15; 
+              font-size: 10px; 
+              color: #00d9ff;
+              text-decoration: none;
+              transition: opacity 0.3s ease;
+              z-index: 1000;"
+       onmouseover="this.style.opacity='0.6'"
+       onmouseout="this.style.opacity='0.15'"
+       title="?">🎪</a>
+</body>
+</html>

@@ -1,0 +1,949 @@
+{% extends "challenges/base_challenge.html" %}
+
+{% block challenge_title %}{{ challenge.display_name }}{% endblock %}
+{% block challenge_description %}{{ challenge.description }}{% endblock %}
+
+{% block challenge_info %}
+<!-- Level Selection Tabs -->
+<div class="challenge-info">
+    <div class="info-box" style="padding: 1.5rem;">
+        <h3 style="margin-bottom: 1.5rem;">Select Difficulty</h3>
+        <div class="level-tabs">
+            <button class="level-tab active" data-level="1" id="level1Tab">
+                <div class="level-lock-overlay" style="display: none;">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">⭐☆☆</span>
+                    <span class="level-difficulty">NORMAL</span>
+                </div>
+                <div class="level-name">Veteran Gladiator</div>
+                <div class="level-status" id="level1Status">🎯 Active</div>
+            </button>
+            
+            <button class="level-tab" data-level="2" id="level2Tab">
+                <div class="level-lock-overlay">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">⭐⭐☆</span>
+                    <span class="level-difficulty">HARD</span>
+                </div>
+                <div class="level-name">Legendary Champion</div>
+                <div class="level-status" id="level2Status">🔒 Locked</div>
+            </button>
+            
+            <button class="level-tab" data-level="3" id="level3Tab">
+                <div class="level-lock-overlay">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">⭐⭐⭐</span>
+                    <span class="level-difficulty">EXPERT</span>
+                </div>
+                <div class="level-name">Immortal Legend</div>
+                <div class="level-status" id="level3Status">🔒 Locked</div>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block submit_section %}
+<!-- Chat Interface -->
+<div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+        <h3>⚔️ Combat Arena</h3>
+        <div class="chat-status">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Ready</span>
+        </div>
+    </div>
+    
+    <!-- HP Bars (hidden until combat starts) -->
+    <div class="hp-bars-container" id="hpBarsContainer" style="display: none;">
+        <div class="hp-bar-wrapper">
+            <div class="hp-label">
+                <span>🛡️ You</span>
+                <span id="playerHpText">100/100 HP</span>
+            </div>
+            <div class="hp-bar-bg">
+                <div id="playerHpBar" class="hp-bar-fill player" style="width: 100%;"></div>
+            </div>
+        </div>
+        <div class="hp-bar-wrapper">
+            <div class="hp-label">
+                <span>🔱 Gladiator</span>
+                <span id="gladiatorHpText">100/100 HP</span>
+            </div>
+            <div class="hp-bar-bg">
+                <div id="gladiatorHpBar" class="hp-bar-fill gladiator" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-welcome">
+            <div class="welcome-icon">⚔️</div>
+            <h3>Arena Challenge</h3>
+            <div class="terminal-instructions">
+                <p><strong>⚔️ YOUR MISSION:</strong></p>
+                <p>🎯 <strong>Goal:</strong> Write a system prompt for YOUR AI fighter</p>
+                <p>• AI vs AI battle - your fighter adapts each turn<br>
+                • Judge evaluates tactics and damage fairly<br>
+                • Reduce gladiator to 0 HP (5 turns)<br>
+                • Keep moves SHORT - one sentence per action!</p>
+            </div>
+            <p style="margin-top: 1rem; opacity: 0.8;">Select difficulty above and write your fighter's instructions below.</p>
+        </div>
+    </div>
+    
+    <div class="chat-input-container">
+        <div class="chat-input-area">
+            <input type="text" id="username" placeholder="Username (optional)" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text);">
+            <textarea 
+                id="userInput" 
+                placeholder="Enter your fighter's system prompt...
+
+Example: You are a skilled fighter with sword and shield. You start facing the gladiator a few feet apart.
+
+Strategy:
+- Describe your EXACT move each turn in ONE SHORT SENTENCE (10-15 words)
+- Use your shield defensively, wait for openings
+- Get inside the trident's reach to use your sword
+- Watch for net throws and dodge them
+- Be tactical and adapt to his moves
+- When you see an opening, strike hard"
+                rows="10"
+            ></textarea>
+            <button id="sendBtn" class="btn-send">⚔️ Enter Arena</button>
+        </div>
+    </div>
+</div>
+
+{# Modal auto-included by base_challenge.html - no need to include here #}
+{% endblock %}
+
+{% block challenge_css %}
+<style>
+/* Level Tabs - Matching Glitch/Interrogation Style */
+.level-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.level-tab {
+    background: rgba(40, 44, 52, 0.6);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.level-tab:hover:not(:disabled) {
+    border-color: rgba(230,57,70,0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(230,57,70,0.3);
+}
+
+.level-tab.active {
+    background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+    border-color: #e63946;
+    box-shadow: 0 8px 24px rgba(230,57,70,0.4);
+    color: white;
+}
+
+.level-tab.active .level-difficulty {
+    color: rgba(255,255,255,0.95);
+}
+
+.level-tab.active .level-name {
+    color: white;
+    font-weight: 600;
+}
+
+.level-tab.active .level-status {
+    color: rgba(255,255,255,0.9);
+}
+
+.level-tab:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(40, 44, 52, 0.3);
+}
+
+.level-tab:disabled .level-icon {
+    opacity: 0.3;
+}
+
+.level-lock-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 10;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.level-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.level-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+}
+
+.level-difficulty {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(230,57,70,1);
+    letter-spacing: 1.5px;
+}
+
+.level-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0.75rem 0;
+    color: rgba(255,255,255,0.9);
+}
+
+.level-status {
+    font-size: 0.85rem;
+    opacity: 0.75;
+    margin-top: 0.5rem;
+}
+
+/* Chat Interface */
+.chat-container {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    margin: 2rem 0;
+    overflow: hidden;
+}
+
+.chat-header {
+    background: rgba(0,0,0,0.2);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.chat-header h3 {
+    margin: 0;
+}
+
+.chat-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e63946;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* HP Bars */
+.hp-bars-container {
+    padding: 1rem 1.5rem;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.hp-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.hp-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.hp-bar-bg {
+    width: 100%;
+    height: 24px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.hp-bar-fill {
+    height: 100%;
+    transition: width 0.5s ease, background 0.3s ease;
+    border-radius: 10px;
+}
+
+.hp-bar-fill.player {
+    background: linear-gradient(90deg, #00b894 0%, #00cec9 100%);
+    box-shadow: 0 0 10px rgba(0,184,148,0.5);
+}
+
+.hp-bar-fill.gladiator {
+    background: linear-gradient(90deg, #e63946 0%, #c1121f 100%);
+    box-shadow: 0 0 10px rgba(230,57,70,0.5);
+}
+
+.chat-messages {
+    padding: 1.5rem;
+    min-height: 300px;
+}
+
+.chat-welcome {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    opacity: 0.7;
+}
+
+.welcome-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+}
+
+.terminal-instructions {
+    background: rgba(230,57,70,0.1);
+    border-left: 4px solid #e63946;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    margin: 0.75rem 0;
+    text-align: left;
+}
+
+.terminal-instructions p {
+    margin: 0.5rem 0;
+    line-height: 1.8;
+}
+
+.terminal-instructions strong {
+    color: #e63946;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.chat-input-container {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 1.5rem;
+    background: rgba(0,0,0,0.2);
+}
+
+.chat-input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#userInput {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: white;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 200px;
+    font-family: inherit;
+}
+
+#userInput:focus {
+    outline: none;
+    border-color: #e63946;
+    background: rgba(255,255,255,0.08);
+}
+
+.btn-send {
+    background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn-send:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(230,57,70,0.4);
+}
+
+.btn-send:active {
+    transform: translateY(0);
+}
+
+.btn-send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Arena-specific styles */
+.arena-container {
+    max-width: 900px;
+    margin: 2rem auto;
+}
+
+.arena-header {
+    padding: 2rem;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-radius: 12px 12px 0 0;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-bottom: none;
+}
+
+.arena-header h2 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+/* HP Bars */
+.hp-bars {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.hp-bar-container {
+    text-align: center;
+}
+
+.hp-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.hp-bar-bg {
+    width: 100%;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.hp-bar-fill {
+    height: 100%;
+    transition: width 0.5s ease, background 0.3s ease;
+    border-radius: 13px;
+}
+
+.hp-bar-fill.player {
+    background: linear-gradient(90deg, #00b894 0%, #00cec9 100%);
+}
+
+.hp-bar-fill.gladiator {
+    background: linear-gradient(90deg, #e63946 0%, #c1121f 100%);
+}
+
+/* Status effects */
+.status-effects {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    min-height: 1.5rem;
+    opacity: 0.8;
+}
+
+/* Combat log messages */
+.combat-messages {
+    padding: 2rem;
+    background: rgba(255,255,255,0.02);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top: none;
+    min-height: 300px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.combat-turn {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255,255,255,0.05);
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
+}
+
+.thinking-indicator {
+    padding: 1rem 1.5rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+.message {
+    margin-bottom: 1.5rem;
+}
+
+.final-summary {
+    padding: 2rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.final-summary.success {
+    background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+    border-color: #00b894;
+    color: white;
+}
+
+.turn-header {
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.combat-move {
+    margin: 1rem 0;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+}
+
+.combat-move.player {
+    background: rgba(0, 184, 148, 0.1);
+    border-left: 4px solid #00b894;
+}
+
+.combat-move.gladiator {
+    background: rgba(230, 57, 70, 0.1);
+    border-left: 4px solid #e63946;
+}
+
+.move-label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.judge-ruling {
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: rgba(102, 126, 234, 0.1);
+    border-left: 4px solid #667eea;
+    border-radius: 8px;
+}
+
+.ruling-text {
+    margin: 0.75rem 0;
+    line-height: 1.6;
+    opacity: 0.95;
+}
+
+.damage-summary {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.damage {
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 180px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+.damage:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.player-damage {
+    background: rgba(239, 68, 68, 0.25);
+    border: 2px solid rgba(239, 68, 68, 0.5);
+    color: #ff6b6b;
+}
+
+.gladiator-damage {
+    background: rgba(34, 197, 94, 0.25);
+    border: 2px solid rgba(34, 197, 94, 0.5);
+    color: #4ade80;
+}
+
+.damage-report {
+    display: flex;
+    gap: 2rem;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.damage-report span {
+    opacity: 0.9;
+}
+
+/* Turn input section */
+.turn-input {
+    padding: 2rem;
+    background: rgba(255,255,255,0.02);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+}
+
+.turn-input textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 1rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.turn-input button {
+    margin-top: 1rem;
+    width: 100%;
+}
+
+/* Final summary */
+.combat-summary {
+    padding: 2rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.combat-summary.victory {
+    background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+    border-color: #00b894;
+    color: white;
+}
+
+.combat-summary.defeat {
+    background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+    border-color: #e63946;
+    color: white;
+}
+
+.combat-summary h3 {
+    margin-top: 0;
+    font-size: 2rem;
+}
+
+/* Thinking indicator */
+.thinking-indicator {
+    text-align: center;
+    padding: 1rem;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.typing-dots span {
+    animation: blink 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes blink {
+    0%, 20%, 50%, 80%, 100% {
+        opacity: 0;
+    }
+    40% {
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   MOBILE RESPONSIVE - Arena (Aggressive)
+   ============================================ */
+@media (max-width: 768px) {
+    .level-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .level-tab {
+        padding: 0.4rem 0.3rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.15rem;
+    }
+    
+    .level-header {
+        flex-direction: row;
+        gap: 0.2rem;
+        justify-content: center;
+    }
+    
+    .level-icon {
+        font-size: 0.8rem;
+    }
+    
+    .level-difficulty {
+        font-size: 0.5rem;
+    }
+    
+    .level-name {
+        font-size: 0.65rem;
+    }
+    
+    .level-status {
+        font-size: 0.55rem;
+    }
+    
+    .chat-messages {
+        min-height: auto;
+        padding: 0.5rem;
+    }
+    
+    .terminal-instructions {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .terminal-instructions ul {
+        display: none;
+    }
+    
+    .chat-input-area {
+        padding: 0.5rem;
+    }
+    
+    #userInput {
+        min-height: 50px;
+        font-size: 0.85rem;
+    }
+    
+    .btn-send {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block challenge_js %}
+<script src="/static/js/handlers/arena.js"></script>
+
+<script>
+// Initialize with standardized handler
+let currentLevel = 1;
+let unlockedLevels = [1];  // Mutable - updated on completion
+
+// Initialize/refresh level tabs based on unlockedLevels
+function initLevelTabs() {
+    const tabs = document.querySelectorAll('.level-tab');
+    tabs.forEach(tab => {
+        const level = parseInt(tab.dataset.level);
+        const isUnlocked = unlockedLevels.includes(level);
+        
+        tab.disabled = !isUnlocked;
+        
+        // Update lock overlay
+        const lockOverlay = tab.querySelector('.level-lock-overlay');
+        if (lockOverlay) {
+            lockOverlay.style.display = isUnlocked ? 'none' : 'flex';
+        }
+        
+        // Update status text
+        const status = tab.querySelector('.level-status');
+        if (status) {
+            if (level === currentLevel) {
+                status.textContent = '🎯 Active';
+            } else if (isUnlocked) {
+                status.textContent = 'Unlocked';
+            } else {
+                status.textContent = 'Locked';
+            }
+        }
+    });
+}
+
+(async function() {
+    const {unlockedLevels: levelsFromDB, username} = await ChallengeHandler.init({
+        challengeName: 'arena',
+        maxLevel: 3,
+        prefillUsername: true,
+        verbose: true
+    });
+    
+    // Update local unlocked levels from DB
+    unlockedLevels = levelsFromDB;
+    initLevelTabs();
+    
+    // Level tab selection
+    const levelToDifficulty = {
+        1: 'normal',
+        2: 'hard',
+        3: 'expert'
+    };
+
+    document.querySelectorAll('.level-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            if (this.disabled) return;
+            
+            const level = parseInt(this.dataset.level);
+            currentLevel = level;
+            
+            // Sync with handler if it exists
+            if (typeof arenaHandler !== 'undefined') {
+                arenaHandler.currentLevel = level;
+            }
+            
+            // Update active state
+            document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update all status texts
+            initLevelTabs();
+            
+            // Update status dot color
+            document.getElementById('statusText').textContent = `Level ${level} Selected`;
+        });
+    });
+
+    // Initialize arena handler
+    const arenaHandler = new ArenaHandler('chatMessages');
+    arenaHandler.currentLevel = currentLevel;  // Sync initial level
+    
+    // Wrap the existing complete handler to add level unlock BEFORE modal
+    const originalHandleComplete = arenaHandler.handleComplete.bind(arenaHandler);
+    arenaHandler.handleComplete = function(data) {
+        // Extract result to check for victory
+        const eventData = data.data || data;
+        const result = eventData.result || data.result || {};
+        const nextLevel = currentLevel + 1;
+        
+        // If victory and next level exists, unlock it immediately (BEFORE modal shows)
+        if (result.success && nextLevel <= 3 && !unlockedLevels.includes(nextLevel)) {
+            unlockedLevels.push(nextLevel);
+            initLevelTabs();
+        }
+        
+        // Call the original handler (which shows the modal)
+        originalHandleComplete(data);
+    };
+
+    // Handle send button
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+        const userInput = document.getElementById('userInput');
+        const username = document.getElementById('username');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        const fighterPrompt = userInput.value.trim();
+        if (!fighterPrompt) {
+            alert('Please enter your fighter\'s system prompt!');
+            return;
+        }
+        
+        // Disable inputs
+        sendBtn.disabled = true;
+        userInput.disabled = true;
+        sendBtn.textContent = '⚔️ Preparing...';
+        document.getElementById('statusText').textContent = 'Combat starting...';
+        
+        // Clear welcome message
+        document.querySelector('.chat-welcome')?.remove();
+        
+        try {
+            // Save username if provided
+            if (username.value) {
+                localStorage.setItem('jankyard_username', username.value);
+            }
+            
+            // Sync level with handler before streaming
+            arenaHandler.currentLevel = currentLevel;
+            
+            // Stream arena combat using handler
+            const difficulty = levelToDifficulty[currentLevel];
+            await arenaHandler.stream(fighterPrompt, difficulty);
+            
+            // After completion, re-check unlocked levels from server
+            const serverUnlockedLevels = await ChallengeHandler.checkUnlockedLevels('arena');
+            
+            // IMPORTANT: Merge with locally unlocked levels (in case server hasn't saved yet)
+            // This prevents re-locking a level that was just unlocked
+            const mergedLevels = [...new Set([...unlockedLevels, ...serverUnlockedLevels])];
+            unlockedLevels = mergedLevels;
+            
+            // Update tabs with merged levels
+            initLevelTabs();
+            ChallengeHandler.updateLevelTabs(mergedLevels, 3);
+            
+        } catch (error) {
+            console.error('Arena error:', error);
+            document.getElementById('chatMessages').innerHTML += `
+                <div class="error-message">
+                    <strong>❌ Error:</strong> ${error.message}
+                </div>
+            `;
+        } finally {
+            // Re-enable for next combat
+            sendBtn.disabled = false;
+            userInput.disabled = false;
+            sendBtn.textContent = '⚔️ Enter Arena';
+            userInput.value = '';
+        }
+    });
+})();
+
+// Modal functions provided by _completion_modal.html macro
+// No need to redefine them here
+</script>
+{% endblock %}

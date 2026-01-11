@@ -1,0 +1,545 @@
+{# Completion Modal Macro - Reusable modal for all challenges (victory/defeat) #}
+{% macro completion_modal(challenge_name, primary_color='#4ECDC4', success_title='Success!', success_icon='🎉', defeat_title='Defeat', defeat_icon='💀') %}
+<!-- Completion Modal (Success) -->
+<div class="modal" id="completionModal" style="display: none;">
+    <div class="modal-overlay" onclick="closeCompletionModal()"></div>
+    <div class="modal-content completion-success">
+        <div class="completion-animation">
+            <div class="completion-icon">{{ success_icon }}</div>
+            <h2>{{ success_title }}</h2>
+        </div>
+        <p class="completion-message" id="completionMessage">Challenge completed!</p>
+        
+        <div class="completion-stats">
+            <div class="completion-stat">
+                <div class="completion-stat-label" id="stat1Label">Metric</div>
+                <div class="completion-stat-value" id="stat1Value">-</div>
+            </div>
+            <div class="completion-stat">
+                <div class="completion-stat-label" id="stat2Label">Score</div>
+                <div class="completion-stat-value" id="stat2Value">-</div>
+            </div>
+            <div class="completion-stat">
+                <div class="completion-stat-label" id="stat3Label">Rank</div>
+                <div class="completion-stat-value" id="stat3Value">-</div>
+            </div>
+        </div>
+        
+        <div class="completion-actions">
+            <button class="btn-next-level" id="nextLevelBtn" style="display: none;">
+                ➡️ Next Level
+            </button>
+            <button class="btn-leaderboard" onclick="window.location.href='/leaderboard/{{ challenge_name }}'">
+                📊 View Leaderboard
+            </button>
+            <button class="btn-close" onclick="closeCompletionModal()">
+                Continue
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Defeat Modal -->
+<div class="modal" id="defeatModal" style="display: none;">
+    <div class="modal-overlay" onclick="closeDefeatModal()"></div>
+    <div class="modal-content defeat-modal">
+        <div class="defeat-animation">
+            <div class="defeat-icon">{{ defeat_icon }}</div>
+            <h2>{{ defeat_title }}</h2>
+        </div>
+        <p class="defeat-message" id="defeatMessage">Better luck next time!</p>
+        
+        <div class="defeat-stats">
+            <div class="defeat-stat">
+                <div class="defeat-stat-label" id="defeatStat1Label">Metric</div>
+                <div class="defeat-stat-value" id="defeatStat1Value">-</div>
+            </div>
+            <div class="defeat-stat">
+                <div class="defeat-stat-label" id="defeatStat2Label">Score</div>
+                <div class="defeat-stat-value" id="defeatStat2Value">-</div>
+            </div>
+            <div class="defeat-stat">
+                <div class="defeat-stat-label" id="defeatStat3Label">Rank</div>
+                <div class="defeat-stat-value" id="defeatStat3Value">-</div>
+            </div>
+        </div>
+        
+        <div class="defeat-actions">
+            <button class="btn-retry" id="retryBtn">
+                🔄 Try Again
+            </button>
+            <button class="btn-leaderboard" onclick="window.location.href='/leaderboard/{{ challenge_name }}'">
+                📊 View Leaderboard
+            </button>
+            <button class="btn-close" onclick="closeDefeatModal()">
+                Continue
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Defeat Modal Specific Styles */
+.defeat-modal {
+    border-color: #ef4444;
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
+}
+
+.defeat-modal h2 {
+    color: #ef4444;
+}
+
+.defeat-animation {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.defeat-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: defeatShake 0.6s ease-in-out;
+}
+
+@keyframes defeatShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.defeat-message {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.defeat-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.defeat-stat {
+    text-align: center;
+    padding: 1.25rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.defeat-stat-label {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.defeat-stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.defeat-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.defeat-actions button {
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-retry {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.btn-retry:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Completion Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1;
+}
+
+.modal-content {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid {{ primary_color }};
+    border-radius: 16px;
+    padding: 2.5rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba({{ primary_color | replace('#', '') }}, 0.3);
+    animation: modalSlideIn 0.4s ease-out;
+    z-index: 2;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.completion-animation {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.completion-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: celebrationBounce 0.6s ease-in-out;
+}
+
+@keyframes celebrationBounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+.modal-content h2 {
+    text-align: center;
+    margin: 0 0 1rem 0;
+    color: {{ primary_color }};
+    font-size: 2rem;
+}
+
+.completion-message {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.completion-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.completion-stat {
+    text-align: center;
+    padding: 1.25rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+}
+
+.completion-stat:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: {{ primary_color }};
+}
+
+.completion-stat-label {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.completion-stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: {{ primary_color }};
+}
+
+.completion-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.completion-actions button {
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-next-level {
+    background: linear-gradient(135deg, {{ primary_color }} 0%, {{ primary_color }}dd 100%);
+    color: white;
+}
+
+.btn-next-level:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba({{ primary_color | replace('#', '') }}, 0.4);
+}
+
+.btn-leaderboard {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-leaderboard:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: {{ primary_color }};
+}
+
+.btn-close {
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.btn-close:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+
+/* Mobile-optimized modals */
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 1.25rem;
+        max-width: 95%;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    
+    .completion-icon,
+    .defeat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .completion-message,
+    .defeat-message {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+    
+    .completion-stats,
+    .defeat-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .completion-stat,
+    .defeat-stat {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .completion-stat-label,
+    .defeat-stat-label {
+        font-size: 0.7rem;
+    }
+    
+    .completion-stat-value,
+    .defeat-stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .completion-actions button,
+    .defeat-actions button {
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .completion-animation,
+    .defeat-animation {
+        margin-bottom: 0.75rem;
+    }
+}
+</style>
+
+<script>
+// Modal functions - automatically available to all challenges!
+function showSuccessModal(result) {
+    const modal = document.getElementById('completionModal');
+    if (!modal) return;
+    
+    const message = document.getElementById('completionMessage');
+    const stat1Label = document.getElementById('stat1Label');
+    const stat1Value = document.getElementById('stat1Value');
+    const stat2Label = document.getElementById('stat2Label');
+    const stat2Value = document.getElementById('stat2Value');
+    const stat3Label = document.getElementById('stat3Label');
+    const stat3Value = document.getElementById('stat3Value');
+    const nextLevelBtn = document.getElementById('nextLevelBtn');
+    
+    // Set message
+    if (message) {
+        message.textContent = result.message || 'Challenge completed!';
+    }
+    
+    // Handle stats array format: [{label, value}, ...]
+    if (result.stats && Array.isArray(result.stats)) {
+        if (result.stats[0] && stat1Label && stat1Value) {
+            stat1Label.textContent = result.stats[0].label || 'Score';
+            stat1Value.textContent = result.stats[0].value ?? '-';
+        }
+        if (result.stats[1] && stat2Label && stat2Value) {
+            stat2Label.textContent = result.stats[1].label || 'Steps';
+            stat2Value.textContent = result.stats[1].value ?? '-';
+        }
+        if (result.stats[2] && stat3Label && stat3Value) {
+            stat3Label.textContent = result.stats[2].label || 'Rank';
+            stat3Value.textContent = result.stats[2].value ?? '-';
+        }
+    } else {
+        // Legacy format
+        if (stat1Label && stat1Value) {
+            stat1Label.textContent = result.stat1Label || 'Score';
+            stat1Value.textContent = result.stat1Value || result.score || '-';
+        }
+        if (stat2Label && stat2Value) {
+            stat2Label.textContent = result.stat2Label || 'Steps';
+            stat2Value.textContent = result.stat2Value || result.steps || '-';
+        }
+        if (stat3Label && stat3Value) {
+            stat3Label.textContent = result.stat3Label || 'Rank';
+            stat3Value.textContent = result.stat3Value || '-';
+        }
+    }
+    
+    // Show "Next Level" button if applicable
+    if (result.unlocked_next_level && result.next_level && nextLevelBtn) {
+        nextLevelBtn.style.display = 'block';
+        nextLevelBtn.textContent = result.next_level_text || '➡️ Next Level';
+        nextLevelBtn.onclick = () => {
+            const nextTab = document.querySelector(`[data-level="${result.next_level}"]`);
+            closeSuccessModal();
+            if (nextTab) {
+                nextTab.click();
+            }
+        };
+    } else if (nextLevelBtn) {
+        nextLevelBtn.style.display = 'none';
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function closeSuccessModal() {
+    const modal = document.getElementById('completionModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function showFailureModal(result) {
+    const modal = document.getElementById('defeatModal');
+    if (!modal) return;
+    
+    const message = document.getElementById('defeatMessage');
+    const stat1Label = document.getElementById('defeatStat1Label');
+    const stat1Value = document.getElementById('defeatStat1Value');
+    const stat2Label = document.getElementById('defeatStat2Label');
+    const stat2Value = document.getElementById('defeatStat2Value');
+    const stat3Label = document.getElementById('defeatStat3Label');
+    const stat3Value = document.getElementById('defeatStat3Value');
+    const retryBtn = document.getElementById('retryBtn');
+    
+    // Set message
+    if (message) {
+        message.textContent = result.message || 'Better luck next time!';
+    }
+    
+    // Handle stats array format: [{label, value}, ...]
+    if (result.stats && Array.isArray(result.stats)) {
+        if (result.stats[0] && stat1Label && stat1Value) {
+            stat1Label.textContent = result.stats[0].label || 'Score';
+            stat1Value.textContent = result.stats[0].value ?? '-';
+        }
+        if (result.stats[1] && stat2Label && stat2Value) {
+            stat2Label.textContent = result.stats[1].label || 'Steps';
+            stat2Value.textContent = result.stats[1].value ?? '-';
+        }
+        if (result.stats[2] && stat3Label && stat3Value) {
+            stat3Label.textContent = result.stats[2].label || 'Rank';
+            stat3Value.textContent = result.stats[2].value ?? '-';
+        }
+    } else {
+        // Legacy format: stat1Label, stat1Value, etc.
+        if (stat1Label && stat1Value) {
+            stat1Label.textContent = result.stat1Label || 'Score';
+            stat1Value.textContent = result.stat1Value || result.score || '-';
+        }
+        if (stat2Label && stat2Value) {
+            stat2Label.textContent = result.stat2Label || 'Steps';
+            stat2Value.textContent = result.stat2Value || result.steps || '-';
+        }
+        if (stat3Label && stat3Value) {
+            stat3Label.textContent = result.stat3Label || 'Rank';
+            stat3Value.textContent = result.stat3Value || '-';
+        }
+    }
+    
+    // Retry button reloads the page
+    if (retryBtn) {
+        retryBtn.onclick = () => {
+            window.location.reload();
+        };
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function closeFailureModal() {
+    const modal = document.getElementById('defeatModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Backward compatibility aliases (use let so challenges can override with custom modals)
+let showCompletionModal = showSuccessModal;
+let closeCompletionModal = closeSuccessModal;
+let showDefeatModal = showFailureModal;
+let closeDefeatModal = closeFailureModal;
+</script>
+{% endmacro %}

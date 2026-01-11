@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Submission #{{ submission.id }} - Jankyard.ai{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Submission #{{ submission.id }}</h1>
+    <p>{{ submission.challenge_name }} - {{ submission.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+</div>
+
+<div class="submission-info">
+    <div class="result-summary {{ 'success' if submission.success else 'failure' }}">
+        <h3>{{ '✅ Success!' if submission.success else '❌ Failed' }}</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div>
+                <strong>Status:</strong> {{ submission.status or 'error' }}
+            </div>
+            <div>
+                <strong>Score:</strong> {{ submission.score if submission.score is not none else 0 }}
+            </div>
+            <div>
+                <strong>Steps:</strong> {{ submission.steps if submission.steps is not none else 0 }}
+            </div>
+            {% if submission.user %}
+            <div>
+                <strong>User:</strong> {{ submission.user.username }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if submission.error_message %}
+    <div class="error-message">
+        <strong>Error:</strong> {{ submission.error_message }}
+    </div>
+    {% endif %}
+</div>
+
+{% if submission.logs %}
+<div class="section">
+    <h2>📜 Execution Log</h2>
+    <div class="log-entries">
+        {% for log in submission.logs %}
+        <div class="log-entry">
+            <strong>Step {{ log.step }}:</strong> {{ log.action }}
+            {% if log.reward %}
+            <span style="color: {{ 'var(--success)' if log.reward > 0 else 'var(--error)' }}">
+                ({{ '+' if log.reward > 0 else '' }}{{ log.reward }} points)
+            </span>
+            {% endif %}
+            {% if log.render %}
+            <pre>{{ log.render | replace('A', '🧟') | replace('@', '·') }}</pre>
+            {% endif %}
+            {% if log.info %}
+            <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+                {% for key, value in log.info.items() %}
+                <span>{{ key }}: {{ value }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if submission.agent_code %}
+<div class="section">
+    <h2>💻 Agent Code</h2>
+    <pre><code>{{ submission.agent_code }}</code></pre>
+</div>
+{% endif %}
+
+<div class="section">
+    <a href="/challenges/{{ submission.challenge_name }}" class="btn btn-primary">Try Again</a>
+    <a href="/leaderboard/{{ submission.challenge_name }}" class="btn btn-secondary">View Leaderboard</a>
+</div>
+{% endblock %}

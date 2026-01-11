@@ -1,0 +1,1120 @@
+{% extends "challenges/base_challenge.html" %}
+
+{% block challenge_title %}{{ challenge.display_name }}{% endblock %}
+{% block challenge_description %}{{ challenge.description }}{% endblock %}
+
+{% block challenge_info %}
+<!-- Level Selection Tabs -->
+<div class="challenge-info">
+    <div class="info-box" style="padding: 1.5rem;">
+        <h3 style="margin-bottom: 1.5rem;">Select Your Opponent</h3>
+        <div class="level-tabs">
+            <button class="level-tab active" data-level="1" id="level1Tab">
+                <div class="level-lock-overlay" style="display: none;">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">🥊</span>
+                    <span class="level-difficulty">LEVEL 1</span>
+                </div>
+                <div class="level-name">Public Defender</div>
+                <div class="level-desc">Overworked, misses opportunities</div>
+                <div class="level-status" id="level1Status">🎯 Active</div>
+            </button>
+            
+            <button class="level-tab" data-level="2" id="level2Tab">
+                <div class="level-lock-overlay">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">💼</span>
+                    <span class="level-difficulty">LEVEL 2</span>
+                </div>
+                <div class="level-name">Corporate Lawyer</div>
+                <div class="level-desc">Ruthless, exploits every flaw</div>
+                <div class="level-status" id="level2Status">🔒 Locked</div>
+            </button>
+            
+            <button class="level-tab" data-level="3" id="level3Tab">
+                <div class="level-lock-overlay">🔒</div>
+                <div class="level-header">
+                    <span class="level-icon">🏆</span>
+                    <span class="level-difficulty">LEVEL 3</span>
+                </div>
+                <div class="level-name">World Champion</div>
+                <div class="level-desc">Unbeatable, never lost</div>
+                <div class="level-status" id="level3Status">🔒 Locked</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block submit_section %}
+<!-- Courthouse Interface -->
+<div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+        <h3>⚖️ The Court is in Session</h3>
+        <div class="chat-status">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Ready</span>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-welcome">
+            <div class="welcome-icon">⚖️</div>
+            <h3 style="font-family: Georgia, serif; color: #DAA520;">The Courtroom Awaits</h3>
+            <div class="terminal-instructions">
+                <p><strong>⚖️ THE CASE:</strong> Pineapple belongs on pizza (you argue FOR)</p>
+                <p style="font-size: 0.9rem; margin: 0.75rem 0;">
+                    <strong>Your prompt IS your strategy.</strong> Tell your AI attorney how to argue:<br>
+                    • What points to make? What evidence to use?<br>
+                    • How to counter the opponent's arguments?<br>
+                    • Be specific - vague prompts = weak arguments!
+                </p>
+                <p style="font-size: 0.85rem; color: #888; margin-top: 0.5rem;">
+                    ⚠️ <strong>Level 2:</strong> Judge evaluates YOUR prompt quality. Low effort = contempt of court!
+                </p>
+            </div>
+            <p style="margin-top: 1.5rem; opacity: 0.7; font-size: 0.95rem;">Select difficulty above and present your opening statement below.</p>
+        </div>
+    </div>
+    
+    <div class="chat-input-container">
+        <div class="chat-input-area">
+            <input type="text" id="username" placeholder="Attorney Name (optional)" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, #1a0f08 0%, #2c1810 100%); border: 2px solid #8B7355; border-radius: 6px; color: #D2B48C; font-family: Georgia, serif;">
+            <textarea 
+                id="userInput" 
+                placeholder="Enter your attorney's strategy prompt...
+
+Example: You are a skilled attorney presenting before the court. Use logical reasoning, compelling evidence, and persuasive rhetoric. Maintain professional decorum while decisively countering opposing arguments..."
+                rows="5"
+            ></textarea>
+            <button id="sendBtn" class="btn-courthouse">
+                ⚖️ Call Court to Order
+            </button>
+        </div>
+    </div>
+</div>
+
+{# Modal auto-included by base_challenge.html - no need to include here #}
+
+<style>
+/* Courthouse Modal Overrides */
+#completionModal .modal-content,
+#defeatModal .modal-content {
+    background: linear-gradient(180deg, #DAA520 0%, #DAA520 25%, #3a2820 25%, #3a2820 100%);
+    border: 4px solid #DAA520;
+    border-radius: 12px;
+    padding: 0;
+    max-width: 550px;
+}
+
+#completionModal .completion-animation,
+#defeatModal .defeat-animation {
+    padding: 1.5rem 2rem 1rem 2rem;
+    background: transparent;
+}
+
+#completionModal .completion-icon,
+#defeatModal .defeat-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+
+#completionModal h2 {
+    color: #2d1911;
+    font-family: Georgia, serif;
+    font-size: 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+#defeatModal h2 {
+    color: #2d1911;
+    font-family: Georgia, serif;
+    font-size: 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+#completionModal .completion-message,
+#defeatModal .defeat-message {
+    padding: 1.5rem 2rem;
+    background: #3a2820;
+    border: 3px solid #DAA520;
+    border-radius: 8px;
+    margin: 0.5rem 2rem 1.5rem 2rem;
+    color: #F5DEB3;
+    font-family: Georgia, serif;
+    text-align: center;
+}
+
+#completionModal .completion-message::before {
+    content: '🔨';
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+#defeatModal .defeat-message::before {
+    content: '🔨';
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+#completionModal .completion-stats,
+#defeatModal .defeat-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 0 2rem;
+    margin-bottom: 1.5rem;
+}
+
+#completionModal .completion-stat,
+#defeatModal .defeat-stat {
+    background: linear-gradient(135deg, rgba(101, 67, 33, 0.4) 0%, rgba(62, 39, 35, 0.4) 100%);
+    border: 2px solid rgba(139, 115, 85, 0.5);
+    border-radius: 8px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+}
+
+#completionModal .completion-stat-label,
+#defeatModal .defeat-stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #DAA520;
+    margin-bottom: 0.75rem;
+    font-family: Georgia, serif;
+}
+
+#completionModal .completion-stat-value,
+#defeatModal .defeat-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: Georgia, serif;
+}
+
+/* Highlight YOUR SCORE and TOTAL POINTS */
+#completionModal #stat1Value,
+#completionModal #stat3Value,
+#defeatModal #defeatStat3Value {
+    color: #DAA520;
+    text-shadow: 0 2px 8px rgba(218, 165, 32, 0.5);
+}
+
+/* Different style for opponent score */
+#completionModal #stat2Value,
+#defeatModal #defeatStat2Value {
+    color: #F5DEB3;
+}
+
+#completionModal .completion-actions,
+#defeatModal .defeat-actions {
+    padding: 0 2rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Courthouse button styling */
+.courtroom-btn {
+    font-family: Georgia, serif;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    letter-spacing: 0.5px;
+}
+
+.courtroom-btn.primary {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    border: 3px solid #DAA520;
+    color: #F5DEB3;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.courtroom-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.courtroom-btn.secondary {
+    background: rgba(139, 115, 85, 0.3);
+    border: 2px solid rgba(139, 115, 85, 0.5);
+    color: #F5DEB3;
+}
+
+.courtroom-btn.secondary:hover {
+    background: rgba(139, 115, 85, 0.4);
+    border-color: rgba(218, 165, 32, 0.6);
+}
+
+.courtroom-btn.tertiary {
+    background: transparent;
+    border: 2px solid rgba(139, 115, 85, 0.3);
+    color: #D2B48C;
+}
+
+.courtroom-btn.tertiary:hover {
+    border-color: rgba(139, 115, 85, 0.5);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Apply courtroom button classes */
+#completionModal .btn-next-level,
+#defeatModal .btn-retry {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    border: 3px solid #DAA520;
+    color: #F5DEB3;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: Georgia, serif;
+    letter-spacing: 0.5px;
+}
+
+#completionModal .btn-next-level:hover,
+#defeatModal .btn-retry:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+#completionModal .btn-leaderboard,
+#defeatModal .btn-leaderboard {
+    background: rgba(139, 115, 85, 0.3);
+    border: 2px solid rgba(139, 115, 85, 0.5);
+    color: #F5DEB3;
+    font-family: Georgia, serif;
+}
+
+#completionModal .btn-leaderboard:hover,
+#defeatModal .btn-leaderboard:hover {
+    background: rgba(139, 115, 85, 0.4);
+    border-color: rgba(218, 165, 32, 0.6);
+}
+
+#completionModal .btn-close,
+#defeatModal .btn-close {
+    background: transparent;
+    border: 2px solid rgba(139, 115, 85, 0.3);
+    color: #D2B48C;
+    font-family: Georgia, serif;
+}
+
+#completionModal .btn-close:hover,
+#defeatModal .btn-close:hover {
+    border-color: rgba(139, 115, 85, 0.5);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* MOBILE RESPONSIVE - Debate */
+@media (max-width: 768px) {
+    .level-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .level-tab {
+        padding: 0.4rem 0.3rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.15rem;
+    }
+    
+    .level-header {
+        flex-direction: row;
+        gap: 0.2rem;
+        justify-content: center;
+    }
+    
+    .level-icon { font-size: 0.8rem; }
+    .level-difficulty { font-size: 0.5rem; }
+    .level-name { font-size: 0.65rem; }
+    .level-desc { display: none; }
+    .level-status { font-size: 0.55rem; }
+    
+    .chat-messages {
+        min-height: auto;
+        padding: 0.5rem;
+    }
+    
+    .terminal-instructions {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .terminal-instructions ul { display: none; }
+    
+    #userInput {
+        min-height: 50px;
+        font-size: 0.85rem;
+    }
+    
+    .btn-send {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block challenge_css %}
+<style>
+/* Level Tabs - Matching Glitch/Interrogation Style */
+.level-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.level-tab {
+    background: linear-gradient(135deg, #3e2723 0%, #4e342e 100%);
+    border: 3px solid #8B7355;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.level-tab:hover:not(:disabled) {
+    border-color: rgba(212, 165, 116, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 165, 116, 0.3);
+}
+
+.level-tab.active {
+    background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
+    border-color: #DAA520;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(218, 165, 32, 0.5);
+    color: #F5DEB3;
+}
+
+.level-tab.active .level-difficulty {
+    color: rgba(255,255,255,0.95);
+}
+
+.level-tab.active .level-name {
+    color: white;
+    font-weight: 600;
+}
+
+.level-tab.active .level-status {
+    color: #DAA520;
+}
+
+.level-tab:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(40, 44, 52, 0.3);
+}
+
+.level-tab:disabled .level-icon {
+    opacity: 0.3;
+}
+
+.level-lock-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 10;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.level-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.level-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.level-difficulty {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #f4c430;
+    letter-spacing: 1.5px;
+}
+
+.level-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0.25rem 0;
+    color: rgba(255,255,255,0.9);
+}
+
+.level-desc {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.level-status {
+    font-size: 0.8rem;
+    opacity: 0.75;
+    margin-top: 0.25rem;
+}
+
+/* Courthouse Interface */
+.chat-container {
+    background: linear-gradient(135deg, rgba(60, 45, 35, 0.4) 0%, rgba(40, 30, 25, 0.6) 100%);
+    border: 3px solid #8B7355;
+    border-radius: 8px;
+    margin: 2rem 0;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.chat-header {
+    background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px double #DAA520;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-family: Georgia, serif;
+    color: #F5DEB3;
+    font-size: 1.25rem;
+}
+
+.chat-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chat-status #statusText {
+    font-family: Georgia, serif;
+    color: #F5DEB3;
+    font-size: 0.9rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f4c430;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.chat-messages {
+    padding: 1.5rem;
+    min-height: 300px;
+    background: #442F29;
+}
+
+.chat-welcome {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    opacity: 0.7;
+}
+
+.welcome-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+}
+
+.terminal-instructions {
+    background: linear-gradient(135deg, rgba(101, 67, 33, 0.3) 0%, rgba(62, 39, 35, 0.3) 100%);
+    border-left: 4px solid #DAA520;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    margin: 0.75rem 0;
+    text-align: left;
+    border: 2px solid rgba(218, 165, 32, 0.3);
+}
+
+.terminal-instructions p {
+    margin: 0.5rem 0;
+    line-height: 1.8;
+}
+
+.terminal-instructions strong {
+    color: #DAA520;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.chat-input-container {
+    border-top: 3px double #DAA520;
+    padding: 1.5rem;
+    background: #2d1911;
+}
+
+.chat-input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#userInput {
+    flex: 1;
+    background: linear-gradient(135deg, #1a0f08 0%, #2c1810 100%);
+    border: 2px solid #8B7355;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    color: #D2B48C;
+    font-size: 1rem;
+    font-family: Georgia, serif;
+    resize: vertical;
+    min-height: 120px;
+}
+
+#userInput:focus {
+    outline: none;
+    border-color: #DAA520;
+    box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.2);
+}
+
+.btn-courthouse {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    border: 3px solid #DAA520;
+    padding: 0.875rem 2rem;
+    border-radius: 6px;
+    color: #F5DEB3;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-family: Georgia, serif;
+    letter-spacing: 0.5px;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-courthouse:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 6px 16px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #A0522D 0%, #B8733D 100%);
+}
+
+.btn-courthouse:active {
+    transform: translateY(0);
+}
+
+.btn-courthouse:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.debate-container {
+    max-width: 900px;
+    margin: 2rem auto;
+}
+
+.debate-header {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.debate-header h2 {
+    margin: 0 0 1rem 0;
+    font-size: 2rem;
+}
+
+.round-indicator {
+    background: rgba(255,255,255,0.2);
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+
+.debate-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.message {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message.user {
+    flex-direction: row-reverse;
+}
+
+.message.house {
+    flex-direction: row;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.message.user .avatar {
+    background: linear-gradient(135deg, #daa520 0%, #b8860b 100%);
+    border: 3px solid #DAA520;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.message.house .avatar {
+    background: linear-gradient(135deg, #4e342e 0%, #654321 100%);
+    border: 3px solid #B8860B;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.message-content {
+    flex: 1;
+    background: linear-gradient(135deg, rgba(62, 39, 35, 0.6) 0%, rgba(78, 52, 46, 0.6) 100%);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    border: 2px solid rgba(139, 115, 85, 0.5);
+}
+
+.message.user .message-content {
+    border-left: 4px solid #DAA520;
+    border-right: none;
+    background: linear-gradient(135deg, rgba(101, 67, 33, 0.5) 0%, rgba(78, 52, 46, 0.5) 100%);
+}
+
+.message.house .message-content {
+    border-left: 4px solid #CD853F;
+    border-right: none;
+    background: linear-gradient(135deg, rgba(78, 52, 46, 0.5) 0%, rgba(101, 67, 33, 0.5) 100%);
+}
+
+.speaker-name {
+    font-weight: bold;
+    color: #a0aec0;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.message.user .speaker-name {
+    color: #f4c430;
+}
+
+.message.house .speaker-name {
+    color: #8b7355;
+}
+
+.message-text {
+    line-height: 1.6;
+    color: #e2e8f0;
+}
+
+.thinking-indicator {
+    padding: 1rem 1.5rem;
+    background: rgba(60, 45, 35, 0.5);
+    border: 1px solid rgba(218, 165, 32, 0.3);
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+    font-style: italic;
+    color: #f4c430;
+}
+
+/* Judgment Card - Courthouse Theme */
+.judgment-card {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, rgba(101, 67, 33, 0.4) 0%, rgba(62, 39, 35, 0.4) 100%);
+    border: 3px solid #8B7355;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.judgment-card h3 {
+    margin: 0 0 0.75rem 0;
+    color: #DAA520;
+    font-family: Georgia, serif;
+    font-size: 1.25rem;
+    text-align: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(218, 165, 32, 0.3);
+}
+
+.judgment-card .winner {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: rgba(60, 45, 35, 0.5);
+    border-radius: 6px;
+    border: 2px solid rgba(218, 165, 32, 0.3);
+}
+
+.judgment-card .winner strong {
+    color: #DAA520;
+    font-family: Georgia, serif;
+}
+
+.judgment-card .scores {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.judgment-card .score-item {
+    flex: 1;
+    max-width: 160px;
+    background: rgba(60, 45, 35, 0.6);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 2px solid rgba(218, 165, 32, 0.3);
+    text-align: center;
+}
+
+.judgment-card .score-item span:first-child {
+    display: block;
+    font-size: 0.8rem;
+    color: #D2B48C;
+    margin-bottom: 0.35rem;
+    font-family: Georgia, serif;
+}
+
+.judgment-card .score-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #DAA520;
+}
+
+.judgment-card .reasoning {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border-left: 4px solid #DAA520;
+}
+
+.judgment-card .reasoning h4 {
+    margin: 0 0 0.75rem 0;
+    color: #DAA520;
+    font-family: Georgia, serif;
+    font-size: 1rem;
+}
+
+.judgment-card .reasoning-content {
+    color: #e2e8f0;
+    line-height: 1.6;
+    font-family: Georgia, serif;
+    font-size: 0.9rem;
+}
+
+.judgment-card .reasoning-content p {
+    margin: 0.5rem 0;
+}
+
+.judgment-card .reasoning-content p:first-child {
+    margin-top: 0;
+}
+
+.judgment-card .reasoning-content p:last-child {
+    margin-bottom: 0;
+}
+
+.judgment-card .reasoning-section {
+    color: #DAA520;
+    font-weight: 700;
+    display: block;
+    margin-top: 0.75rem;
+}
+
+.judgment-card .final-score {
+    margin-top: 1rem;
+    text-align: center;
+    padding: 0.75rem;
+    background: rgba(218, 165, 32, 0.2);
+    border-radius: 6px;
+    font-family: Georgia, serif;
+}
+
+.judgment-card .final-score strong {
+    color: #DAA520;
+}
+
+.judgment-card .score-badge {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f4c430;
+    margin-left: 0.5rem;
+}
+
+.judge-verdict {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    border-radius: 12px;
+    color: #2d3748;
+}
+
+.judge-verdict h3 {
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.verdict-winner {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+.verdict-scores {
+    display: flex;
+    gap: 2rem;
+    margin: 1rem 0;
+}
+
+.score-item {
+    flex: 1;
+    background: rgba(255,255,255,0.3);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.score-label {
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+.score-value {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.verdict-summary {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.3);
+    border-radius: 8px;
+    line-height: 1.6;
+    font-size: 1.05rem;
+}
+
+.verdict-reasoning {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+    line-height: 1.6;
+}
+
+.typing-dots {
+    display: inline-block;
+    margin-left: 0.5rem;
+}
+
+.typing-dots span {
+    animation: blink 1.4s infinite;
+    animation-fill-mode: both;
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes blink {
+    0%, 80%, 100% {
+        opacity: 0;
+    }
+    40% {
+        opacity: 1;
+    }
+}
+</style>
+{% endblock %}
+
+{% block challenge_js %}
+<script src="/static/js/handlers/debate.js"></script>
+
+<script>
+// Initialize with standardized handler
+let currentLevel = 1;
+(async function() {
+    const {unlockedLevels, username} = await ChallengeHandler.init({
+        challengeName: 'debate_battle',
+        maxLevel: 3,
+        prefillUsername: true,
+        verbose: true
+    });
+    
+    // Level tab selection
+    const levelToDifficulty = {
+        1: 'normal',
+        2: 'hard',
+        3: 'expert'
+    };
+
+    document.querySelectorAll('.level-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            if (this.disabled) return;
+            
+            const level = parseInt(this.dataset.level);
+            currentLevel = level;
+            if (typeof debateHandler !== 'undefined') {
+                debateHandler.currentLevel = level;
+            }
+            
+            // Update active state
+            document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update status text
+            document.querySelectorAll('.level-status').forEach((status, idx) => {
+                const lvl = idx + 1;
+                if (lvl === level) {
+                    status.textContent = '🎯 Active';
+                } else if (unlockedLevels.includes(lvl)) {
+                    status.textContent = 'Unlocked';
+                } else {
+                    status.textContent = 'Locked';
+                }
+            });
+            
+            // Update status dot color
+            document.getElementById('statusText').textContent = `Level ${level} Selected`;
+        });
+    });
+
+    // Initialize debate handler
+    const debateHandler = new DebateHandler('chatMessages');
+    debateHandler.currentLevel = currentLevel;  // Sync initial level
+    debateHandler.unlockedLevels = [...unlockedLevels];  // Track unlocked levels
+    
+    // Wrap handleComplete to unlock next level BEFORE modal shows
+    const originalHandleComplete = debateHandler.handleComplete.bind(debateHandler);
+    debateHandler.handleComplete = function(data) {
+        const result = data.result || data;
+        const nextLevel = this.currentLevel + 1;
+        
+        // If success and next level exists, unlock it immediately (BEFORE modal shows)
+        if (result.success && nextLevel <= 3 && !this.unlockedLevels.includes(nextLevel)) {
+            this.unlockedLevels.push(nextLevel);
+            ChallengeHandler.updateLevelTabs(this.unlockedLevels, 3);
+        }
+        
+        // Call the original handler (which shows the modal)
+        originalHandleComplete(data);
+    };
+
+    // Handle send button
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+        const userInput = document.getElementById('userInput');
+        const username = document.getElementById('username');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        const prompt = userInput.value.trim();
+        if (!prompt) {
+            alert('Please enter a debater prompt!');
+            return;
+        }
+        
+        // Disable inputs
+        sendBtn.disabled = true;
+        userInput.disabled = true;
+        sendBtn.textContent = '⏳ Court in session...';
+        document.getElementById('statusText').textContent = 'Debating...';
+        
+        // Clear welcome message
+        document.querySelector('.chat-welcome')?.remove();
+        
+        try {
+            // Save username if provided
+            if (username.value) {
+                localStorage.setItem('jankyard_username', username.value);
+            }
+            
+            // Stream debate using handler
+            debateHandler.currentLevel = currentLevel;  // Sync level before streaming
+            const difficulty = levelToDifficulty[currentLevel];
+            await debateHandler.stream(prompt, difficulty);
+            
+            // After completion, re-check unlocked levels from server
+            const serverUnlockedLevels = await ChallengeHandler.checkUnlockedLevels('debate_battle');
+            
+            // IMPORTANT: Merge with handler's local unlocks (in case server hasn't saved yet)
+            const mergedLevels = [...new Set([...debateHandler.unlockedLevels, ...serverUnlockedLevels])];
+            debateHandler.unlockedLevels = mergedLevels;
+            ChallengeHandler.updateLevelTabs(mergedLevels, 3);
+            
+        } catch (error) {
+            console.error('Debate error:', error);
+            document.getElementById('chatMessages').innerHTML += `
+                <div class="error-message">
+                    <strong>❌ Error:</strong> ${error.message}
+                </div>
+            `;
+        } finally {
+            // Re-enable for next debate
+            sendBtn.disabled = false;
+            userInput.disabled = false;
+            sendBtn.textContent = '⚖️ Call Court to Order';
+            userInput.value = '';
+        }
+    });
+})();
+
+// Modal functions provided by _completion_modal.html macro
+// No need to redefine them here
+</script>
+{% endblock %}

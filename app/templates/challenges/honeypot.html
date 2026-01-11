@@ -1,0 +1,996 @@
+{% extends "challenges/base_challenge.html" %}
+
+{# 
+Honeypot Challenge - Deception Defense
+The AI pretends to be vulnerable. Players must reverse-engineer its detection system.
+#}
+
+{% block challenge_title %}{{ challenge.display_name }}{% endblock %}
+{% block challenge_description %}{{ challenge.description }}{% endblock %}
+
+{% block challenge_info %}
+<!-- Level Selection Tabs -->
+<div class="level-tabs-container">
+    <div class="level-tabs">
+        <button class="level-tab active" data-level="1" id="level1Tab">
+            <div class="level-main">
+                <span class="level-icon">🍯</span>
+                <span class="level-name">Tripwire</span>
+            </div>
+            <span class="level-desc">Find 3 threat categories</span>
+            <span class="level-status" id="level1Status">🎯</span>
+        </button>
+        
+        <button class="level-tab" data-level="2" id="level2Tab" disabled>
+            <div class="level-main">
+                <span class="level-icon">🐦</span>
+                <span class="level-name">Canary</span>
+            </div>
+            <span class="level-desc">Find 4 threat categories</span>
+            <span class="level-status" id="level2Status">🔒</span>
+        </button>
+        
+        <button class="level-tab" data-level="3" id="level3Tab" disabled>
+            <div class="level-main">
+                <span class="level-icon">🕵️</span>
+                <span class="level-name">Counterintel</span>
+            </div>
+            <span class="level-desc">Find all 6 categories</span>
+            <span class="level-status" id="level3Status">🔒</span>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block submit_section %}
+<!-- Main Game Container -->
+<div class="honeypot-container" id="honeypotContainer">
+    <!-- Left Panel: Chat -->
+    <div class="chat-panel">
+        <div class="chat-header">
+            <div class="terminal-window-bar">
+                <span class="window-title">[ HONEYPOT TERMINAL ]</span>
+                <div class="window-controls">
+                    <span class="control-dot red"></span>
+                    <span class="control-dot yellow"></span>
+                    <span class="control-dot green"></span>
+                </div>
+            </div>
+            <div class="stats-bar">
+                <span class="stat-item">
+                    <span class="stat-label">OPERATOR:</span>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username"
+                        class="username-inline"
+                        value="{% if current_user %}{{ current_user.username }}{% endif %}"
+                        {% if current_user %}readonly{% endif %}
+                        placeholder="anonymous"
+                    />
+                </span>
+                <span class="stat-item">
+                    <span class="stat-label">PHASE:</span>
+                    <span id="phaseDisplay" class="stat-value phase-bait">BAIT</span>
+                </span>
+                <span class="stat-item">
+                    <span class="stat-label">ATTEMPTS:</span>
+                    <span id="attemptCounter" class="stat-value">0/10</span>
+                </span>
+                <span class="stat-item">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText" class="stat-value">READY</span>
+                </span>
+                <button class="btn-reset-inline" id="resetBtn" title="Reset">↻</button>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-welcome" id="welcomeMessage">
+                <div class="welcome-header">
+                    <span class="welcome-icon honeypot-icon">🍯</span>
+                    <span class="welcome-title">THE HONEYPOT</span>
+                </div>
+                
+                <div class="terminal-instructions">
+                    <div class="mission-row">
+                        <span><strong>🎯 MISSION:</strong> Reverse-engineer the detection system</span>
+                        <span><strong>🏆 WIN:</strong> Identify the threat classification taxonomy</span>
+                    </div>
+                    
+                    <div class="warning-row">
+                        <span class="warning-icon">⚠️</span>
+                        <span class="warning-text">This AI <em>wants</em> you to attack it. Don't fall for the bait.</span>
+                    </div>
+                    
+                    <div class="hint-row" id="missionHint">
+                        💡 <strong>Phase 1:</strong> Attack the AI. It will pretend to be vulnerable. After 3 attempts, the game changes...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="chat-input-area">
+                <textarea 
+                    id="userInput" 
+                    placeholder="Enter your attack or guess categories..."
+                    rows="3"
+                ></textarea>
+                <button id="sendBtn" class="btn-send">
+                    🍯 PROBE
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Panel: Attack Log -->
+    <div class="log-panel">
+        <div class="log-header">
+            <span class="log-title">📋 ATTACK LOG</span>
+            <span class="log-subtitle">Classification data</span>
+        </div>
+        
+        <div class="log-content" id="attackLog">
+            <div class="log-empty">
+                <span class="log-empty-icon">🔍</span>
+                <span class="log-empty-text">No attacks logged yet</span>
+            </div>
+        </div>
+        
+        <div class="categories-panel" id="categoriesPanel" style="display: none;">
+            <div class="categories-header">
+                <span class="categories-title">🏷️ CATEGORIES FOUND</span>
+                <span class="categories-count" id="categoriesCount">0/3</span>
+            </div>
+            <div class="categories-list" id="categoriesList">
+                <!-- Filled dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal" id="successModal" style="display: none;">
+    <div class="modal-overlay" onclick="closeSuccessModal()"></div>
+    <div class="modal-content honeypot-success">
+        <div class="honeypot-animation">
+            <div class="honeypot-text">🍯 HONEYPOT COMPROMISED 🍯</div>
+        </div>
+        <h2>Detection System Exposed!</h2>
+        <p class="success-message" id="successMessage">You identified the threat taxonomy!</p>
+        
+        <div class="success-stats">
+            <div class="success-stat">
+                <div class="success-stat-label">Categories Found</div>
+                <div class="success-stat-value" id="successCategories">3 / 3</div>
+            </div>
+            <div class="success-stat">
+                <div class="success-stat-label">Attempts Used</div>
+                <div class="success-stat-value" id="successAttempts">5 / 10</div>
+            </div>
+            <div class="success-stat">
+                <div class="success-stat-label">Score Earned</div>
+                <div class="success-stat-value" id="successScore">150 pts</div>
+            </div>
+        </div>
+        
+        <div class="found-categories" id="foundCategoriesDisplay">
+            <!-- Categories revealed here -->
+        </div>
+        
+        <div class="success-actions">
+            <button class="btn-next-level" id="nextLevelBtn" style="display: none;">
+                ➡️ Next Level
+            </button>
+            <button class="btn-leaderboard" onclick="window.location.href='/leaderboard/honeypot'">
+                📊 View Leaderboard
+            </button>
+            <button class="btn-close" onclick="closeSuccessModal()">
+                Continue
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Failure Modal -->
+<div class="modal" id="failureModal" style="display: none;">
+    <div class="modal-overlay" onclick="closeFailureModal()"></div>
+    <div class="modal-content honeypot-failure">
+        <div class="failure-icon">🍯</div>
+        <h2>The Honeypot Wins</h2>
+        <p class="failure-message" id="failureMessage">You didn't crack the classification system.</p>
+        
+        <div class="failure-stats">
+            <div class="failure-stat">
+                <div class="failure-stat-label">Categories Found</div>
+                <div class="failure-stat-value" id="failureCategories">1 / 3</div>
+            </div>
+            <div class="failure-stat">
+                <div class="failure-stat-label">Attempts Used</div>
+                <div class="failure-stat-value" id="failureAttempts">10 / 10</div>
+            </div>
+        </div>
+        
+        <div class="failure-actions">
+            <button class="btn-retry" onclick="location.reload()">
+                🔄 Try Again
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block challenge_css %}
+<style>
+/* ===== HONEYPOT ECCENTRIC HONEY THEME ===== */
+:root {
+    --honey-gold: #f59e0b;
+    --honey-amber: #d97706;
+    --honey-light: #fbbf24;
+    --honey-dark: #0f0a05;
+    --honey-darker: #0a0703;
+    --honey-glow: rgba(245, 158, 11, 0.4);
+    --honey-drip: #b45309;
+}
+
+/* Honeycomb background pattern */
+.honeypot-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.03) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.04'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Dripping honey animation */
+@keyframes drip {
+    0%, 100% { transform: translateY(0) scaleY(1); opacity: 0.8; }
+    50% { transform: translateY(10px) scaleY(1.2); opacity: 1; }
+}
+
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px var(--honey-glow), inset 0 0 20px rgba(245, 158, 11, 0.05); }
+    50% { box-shadow: 0 0 40px var(--honey-glow), inset 0 0 30px rgba(245, 158, 11, 0.1); }
+}
+
+@keyframes honey-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Sticky honey drips on panels */
+.chat-panel::before,
+.log-panel::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 10%;
+    right: 10%;
+    height: 15px;
+    background: linear-gradient(180deg, var(--honey-gold) 0%, var(--honey-amber) 50%, transparent 100%);
+    border-radius: 0 0 50% 50%;
+    opacity: 0.6;
+    filter: blur(2px);
+}
+
+.chat-panel,
+.log-panel {
+    position: relative;
+    animation: glow-pulse 4s ease-in-out infinite;
+}
+
+/* ===== Layout ===== */
+.level-tabs-container,
+.honeypot-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.honeypot-container {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 1rem;
+}
+
+/* ===== Level Tabs ===== */
+.level-tabs-container {
+    margin-bottom: 1rem;
+}
+
+.level-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.level-tab {
+    flex: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    color: #64748b;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.level-main {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.level-tab:hover:not(:disabled):not(.active) {
+    background: rgba(245, 158, 11, 0.1);
+    color: #94a3b8;
+}
+
+.level-tab.active {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: var(--honey-gold);
+    color: var(--honey-gold);
+}
+
+.level-tab:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+}
+
+.level-icon { font-size: 1rem; }
+.level-name { font-weight: 600; font-size: 0.85rem; }
+.level-desc { font-size: 0.7rem; opacity: 0.7; }
+.level-status { font-size: 0.75rem; }
+
+/* ===== Chat Panel ===== */
+.chat-panel {
+    background: var(--honey-darker);
+    border: 2px solid var(--honey-gold);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.terminal-window-bar {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, transparent 100%);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+.window-title {
+    color: var(--honey-gold);
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.window-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.control-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.control-dot.red { background: #ef4444; }
+.control-dot.yellow { background: #eab308; }
+.control-dot.green { background: #22c55e; }
+
+/* Stats Bar */
+.stats-bar {
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.2);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #94a3b8;
+    font-family: 'Courier New', monospace;
+}
+
+.stat-label {
+    color: #475569;
+    font-size: 0.7rem;
+}
+
+.stat-value {
+    color: var(--honey-gold);
+    font-weight: 600;
+}
+
+.phase-bait { color: #22c55e; }
+.phase-reveal { color: #f59e0b; }
+.phase-hunt { color: #ef4444; }
+
+/* Username Input */
+.username-inline {
+    background: transparent;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    color: var(--honey-gold);
+    font-size: 0.8rem;
+    font-family: 'Courier New', monospace;
+    width: 100px;
+}
+
+.username-inline:focus {
+    outline: none;
+    border-color: var(--honey-gold);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+/* Reset Button */
+.btn-reset-inline {
+    background: transparent;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #64748b;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-left: auto;
+}
+
+.btn-reset-inline:hover {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--honey-gold);
+}
+
+/* Chat Messages */
+.chat-messages {
+    flex: 1;
+    padding: 1rem;
+    min-height: 300px;
+}
+
+.chat-welcome {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.welcome-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.honeypot-icon {
+    font-size: 2.5rem;
+    animation: drip 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px var(--honey-gold));
+}
+
+.welcome-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--honey-light), var(--honey-gold), var(--honey-amber), var(--honey-gold), var(--honey-light));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: honey-flow 3s linear infinite;
+    letter-spacing: 3px;
+    text-shadow: 0 0 30px var(--honey-glow);
+}
+
+.terminal-instructions {
+    background: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: left;
+}
+
+.mission-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.warning-row {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.warning-icon {
+    font-size: 1.2rem;
+}
+
+.warning-text {
+    color: #fca5a5;
+    font-size: 0.9rem;
+}
+
+.hint-row {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+/* Message Bubbles */
+.message {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.message-avatar.honeypot {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(180, 83, 9, 0.3) 100%);
+    border: 2px solid var(--honey-gold);
+    box-shadow: 0 0 15px var(--honey-glow);
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.message-avatar.user {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid #3b82f6;
+}
+
+/* Honeypot message with sticky honey effect */
+.honeypot-message .message-content {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(180, 83, 9, 0.05) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    position: relative;
+}
+
+.honeypot-message .message-content::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 20px;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle, var(--honey-amber) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: drip 2s ease-in-out infinite;
+}
+
+.message-content {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    max-width: 80%;
+    transition: all 0.3s ease;
+}
+
+.message-content:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Reveal message special styling */
+.reveal-message .message-content {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+    border: 2px solid var(--honey-gold);
+    animation: glow-pulse 1s ease-in-out infinite;
+}
+
+/* Category found celebration */
+.category-found .message-content {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+    border: 1px solid #22c55e;
+}
+
+.message-text {
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.message-meta {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+/* Chat Input */
+.chat-input-container {
+    padding: 1rem;
+    border-top: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.chat-input-area textarea {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    resize: none;
+    font-family: inherit;
+}
+
+.chat-input-area textarea:focus {
+    outline: none;
+    border-color: var(--honey-gold);
+}
+
+.btn-send {
+    background: linear-gradient(135deg, var(--honey-gold) 0%, var(--honey-amber) 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-send:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--honey-glow);
+}
+
+.btn-send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== Log Panel ===== */
+.log-panel {
+    background: var(--honey-darker);
+    border: 2px solid rgba(245, 158, 11, 0.5);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.log-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.log-title {
+    color: var(--honey-gold);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.log-subtitle {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.log-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem;
+    max-height: 300px;
+}
+
+.log-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #475569;
+}
+
+.log-empty-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.log-empty-text {
+    font-size: 0.85rem;
+}
+
+/* Log Entries */
+.log-entry {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    border-radius: 6px;
+    padding: 0.6rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+}
+
+.log-entry-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.log-attempt {
+    color: #64748b;
+}
+
+.log-confidence {
+    color: var(--honey-gold);
+}
+
+.log-category {
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+.log-category.revealed {
+    color: var(--honey-light);
+}
+
+/* Categories Panel */
+.categories-panel {
+    border-top: 1px solid rgba(245, 158, 11, 0.2);
+    padding: 0.75rem;
+}
+
+.categories-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.categories-title {
+    color: var(--honey-gold);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.categories-count {
+    color: #22c55e;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.categories-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.category-tag {
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid #22c55e;
+    color: #22c55e;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+}
+
+/* ===== Modals ===== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.modal-content {
+    position: relative;
+    background: var(--honey-darker);
+    border: 2px solid var(--honey-gold);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+}
+
+.honeypot-animation {
+    margin-bottom: 1rem;
+}
+
+.honeypot-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--honey-gold);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.modal-content h2 {
+    color: #e2e8f0;
+    margin-bottom: 0.5rem;
+}
+
+.success-message, .failure-message {
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
+}
+
+.success-stats, .failure-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.success-stat, .failure-stat {
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.success-stat-label, .failure-stat-label {
+    color: #64748b;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.success-stat-value, .failure-stat-value {
+    color: var(--honey-gold);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.found-categories {
+    margin-bottom: 1.5rem;
+}
+
+.success-actions, .failure-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-next-level, .btn-leaderboard, .btn-close, .btn-retry {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-next-level {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border: none;
+    color: #fff;
+}
+
+.btn-leaderboard {
+    background: transparent;
+    border: 1px solid var(--honey-gold);
+    color: var(--honey-gold);
+}
+
+.btn-close, .btn-retry {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #475569;
+    color: #94a3b8;
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 768px) {
+    .honeypot-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .log-panel {
+        order: -1;
+        max-height: 200px;
+    }
+    
+    .chat-messages {
+        min-height: auto;
+    }
+    
+    .level-tabs {
+        flex-direction: column;
+    }
+    
+    .success-stats, .failure-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block challenge_js %}
+<script src="/static/js/handlers/honeypot.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof HoneypotHandler !== 'undefined') {
+            window.challengeHandler = new HoneypotHandler({
+                challengeName: 'honeypot',
+                currentLevel: 1,
+                maxLevels: 3,
+                levelMapping: {
+                    1: 'TRIPWIRE',
+                    2: 'CANARY', 
+                    3: 'COUNTERINTEL'
+                }
+            });
+        }
+    });
+    
+    function closeSuccessModal() {
+        document.getElementById('successModal').style.display = 'none';
+    }
+    
+    function closeFailureModal() {
+        document.getElementById('failureModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

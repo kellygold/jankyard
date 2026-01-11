@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Challenges - Jankyard.ai{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🎮 Challenges</h1>
+    <p>Choose your battlefield</p>
+</div>
+
+<div class="challenges-grid">
+    {% for challenge in challenges %}
+    <div class="challenge-card">
+        <div class="challenge-header">
+            <h2>{{ challenge.display_name }}</h2>
+            {% if challenge.name in ['firewall', 'glitch', 'giga_chad'] %}
+            <span class="difficulty-badge security">🔐 Security</span>
+            {% elif challenge.name in ['interrogation', 'debate_battle'] %}
+            <span class="difficulty-badge social">🗣️ Social</span>
+            {% elif challenge.name in ['arena', 'heist'] %}
+            <span class="difficulty-badge strategy">🎯 Strategy</span>
+            {% else %}
+            <span class="difficulty-badge puzzle">🧩 Puzzle</span>
+            {% endif %}
+        </div>
+        <p class="challenge-description">{{ challenge.description }}</p>
+        <div class="challenge-meta">
+            <span>⏱️ Max Steps: {{ challenge.max_steps }}</span>
+        </div>
+        <div class="challenge-actions">
+            <a href="/challenges/{{ challenge.name }}" class="btn btn-primary">View Challenge</a>
+            <a href="/leaderboard/{{ challenge.name }}" class="btn btn-secondary">Leaderboard</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not challenges %}
+<div class="empty-state">
+    <p>No challenges available yet.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Recent Submissions - Jankyard.ai{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📋 Recent Submissions</h1>
+    {% if challenge_name %}
+    <p>Challenge: {{ challenge_name }}</p>
+    {% else %}
+    <p>All challenges</p>
+    {% endif %}
+</div>
+
+{% if submissions %}
+<table class="leaderboard-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Challenge</th>
+            <th>User</th>
+            <th>Score</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for submission in submissions %}
+        <tr>
+            <td>#{{ submission.id }}</td>
+            <td>{{ submission.challenge_name }}</td>
+            <td>{{ submission.user.username if submission.user else 'Anonymous' }}</td>
+            <td>{{ submission.score }}</td>
+            <td>
+                <span style="color: {{ 'var(--success)' if submission.success else 'var(--error)' }}">
+                    {{ submission.status }}
+                </span>
+            </td>
+            <td>{{ submission.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>
+                <a href="/submission/{{ submission.id }}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem;">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>No submissions yet.</p>
+</div>
+{% endif %}
+{% endblock %}

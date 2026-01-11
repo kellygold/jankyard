@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard - Jankyard.ai{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🏆 Leaderboard</h1>
+    <p>Select a challenge to view rankings</p>
+</div>
+
+<div class="challenges-grid">
+    {% for challenge in challenges %}
+    <a href="/leaderboard/{{ challenge.name }}" class="challenge-card-link">
+        <div class="challenge-card">
+            <h2>{{ challenge.display_name }}</h2>
+            <p class="challenge-description">{{ challenge.description }}</p>
+            <div class="challenge-link-arrow">
+                <span>View Rankings →</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<style>
+.challenge-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.challenge-card-link:hover .challenge-card {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.challenge-link-arrow {
+    margin-top: auto;
+    padding-top: 0.75rem;
+}
+
+.challenge-link-arrow span {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+</style>
+{% endblock %}

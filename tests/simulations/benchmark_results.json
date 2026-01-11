@@ -1,0 +1,31 @@
+{
+  "benchmark_date": "2026-01-10",
+  "observed_latency_per_llm_call_ms": 1500,
+  "openai_rate_limit_rpm": 3500,
+  "recommended_concurrency": 50,
+  "notes": {
+    "heist": "3-4 LLM calls per run (crew members + complications)",
+    "firewall": "1 LLM call per run (much faster)",
+    "glitch": "1-2 LLM calls per run"
+  },
+  "realistic_estimates": {
+    "heist_easy_10_runs": {
+      "total_iterations": 330,
+      "llm_calls": 1155,
+      "estimated_minutes": 5,
+      "estimated_cost_usd": 0.08
+    },
+    "firewall_10_runs": {
+      "total_iterations": 250,
+      "llm_calls": 250,
+      "estimated_minutes": 1,
+      "estimated_cost_usd": 0.02
+    },
+    "all_challenges_10_runs": {
+      "total_iterations": 800,
+      "llm_calls": 2000,
+      "estimated_minutes": 10,
+      "estimated_cost_usd": 0.15
+    }
+  }
+}

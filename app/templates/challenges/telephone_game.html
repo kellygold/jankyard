@@ -1,0 +1,1154 @@
+{% extends "challenges/base_challenge.html" %}
+{% from "challenges/_components.html" import level_tabs, info_box, stat %}
+
+{% block challenge_title %}📞 The Telephone Game from Hell{% endblock %}
+{% block challenge_description %}Engineer an instruction robust enough to survive AI corruption{% endblock %}
+
+{% block challenge_info %}
+<!-- Level Selection -->
+{{ level_tabs([
+    {'level': 1, 'name': 'The Friendly Chain', 'difficulty': 'EASY', 'icon': '⭐☆☆'},
+    {'level': 2, 'name': 'The Reinterpreters', 'difficulty': 'MEDIUM', 'icon': '⭐⭐☆'},
+    {'level': 3, 'name': 'The Adversarial Gauntlet', 'difficulty': 'HARD', 'icon': '⭐⭐⭐'}
+], unlocked_levels|default([1])) }}
+{% endblock %}
+
+{% block submit_section %}
+<!-- Telephone Game Chat Interface -->
+<div class="chat-container" id="telephoneChat">
+    <div class="chat-header">
+        <h3>📞 The Telephone Game from Hell</h3>
+        <div class="chat-status">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Ready</span>
+        </div>
+    </div>
+    
+    <!-- Input Area (Top) -->
+    <div class="chat-input-container">
+        <div class="chat-input-area">
+            <input type="text" id="username" placeholder="Username (optional)" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text);">
+            <div class="input-header">
+                <span>✍️ Your Instruction</span>
+                <div class="char-counter">
+                    <span id="charCount">0</span>/<span id="charMax">200</span>
+                    <span class="char-status" id="charStatus">✓</span>
+                </div>
+            </div>
+            <textarea 
+                id="userInstruction" 
+                placeholder="Enter your instruction... (e.g., 'Write a haiku about rain')"
+                maxlength="200"
+                rows="3"
+            ></textarea>
+            <button id="submitBtn" class="btn-send">
+                📞 Send Through The Chain
+            </button>
+        </div>
+    </div>
+    
+    <!-- Multi-purpose Area: Instructions → Messages -->
+    <div class="chat-messages" id="messageChain">
+        <!-- Welcome/Instructions (disappears on submit) -->
+        <div class="chat-welcome" id="welcomeMessage">
+            <div class="welcome-icon">📞</div>
+            <h3 id="levelTitle">Level 1: The Friendly Chain</h3>
+            
+            <div class="terminal-instructions">
+                <p><strong>🎯 MISSION:</strong> <span id="missionText">Survive <strong><span id="agentCount">3</span> cooperative agents</strong> transforming your message.</span></p>
+                
+                <p style="margin-top: 0.75rem;"><strong>📋 ADVERSARIES:</strong></p>
+                <div id="adversariesList" class="adversaries-grid">
+                    <div class="adversary"><span class="adversary-icon">😊</span> <strong>The Optimist</strong><br><small>Makes everything positive</small></div>
+                    <div class="adversary"><span class="adversary-icon">✂️</span> <strong>The Simplifier</strong><br><small>Removes "unnecessary" details</small></div>
+                    <div class="adversary"><span class="adversary-icon">🎩</span> <strong>The Formal</strong><br><small>Converts to formal language</small></div>
+                </div>
+                
+                <p style="margin-top: 0.75rem;"><strong>📊 SCORING:</strong> Intent(50) + Details(30) + Semantics(20) = 100 pts | Win: <strong><span id="threshold">70</span>+</strong> | Limit: <strong><span id="charLimit">200</span></strong></p>
+                
+                <p style="margin-top: 0.5rem;">💡 <strong>Tip:</strong> <span id="strategyText">Use redundancy and clear language. Agents preserve core meaning but transform style.</span></p>
+            </div>
+        </div>
+        <!-- Agent messages will appear here after submit -->
+    </div>
+</div>
+{% endblock %}
+
+{% block challenge_css %}
+<style>
+/* ===== Telephone Game Theme ===== */
+:root {
+    --telephone-primary: #9333ea;
+    --telephone-secondary: #60a5fa;
+    --telephone-accent: #ec4899;
+}
+
+/* ===== Layout Symmetry ===== */
+.level-tabs-container,
+.chat-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* ===== Chat Container ===== */
+.chat-container {
+    background: rgba(0,0,0,0.3);
+    border: 2px solid rgba(147,51,234,0.3);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, rgba(147,51,234,0.2), rgba(96,165,250,0.2));
+    border-bottom: 2px solid rgba(147,51,234,0.3);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #a78bfa;
+}
+
+.chat-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.thinking-text {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ===== Input Area (Top) ===== */
+.chat-input-container {
+    border-bottom: 2px solid rgba(147,51,234,0.3);
+    background: rgba(147,51,234,0.05);
+    padding: 1.5rem;
+}
+
+/* ===== Message Area (Below Input) ===== */
+.chat-messages {
+    padding: 1.5rem;
+    min-height: 300px;
+    background: rgba(0,0,0,0.2);
+}
+
+.chat-welcome {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.welcome-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.25rem;
+    animation: phoneRing 2s ease-in-out infinite;
+}
+
+@keyframes phoneRing {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(-10deg); }
+    20%, 40% { transform: rotate(10deg); }
+}
+
+.chat-welcome h3 {
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+    color: #a78bfa;
+}
+
+.terminal-instructions {
+    background: rgba(147,51,234,0.1);
+    border: 2px solid rgba(147,51,234,0.3);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: left;
+    margin: 1rem 0;
+}
+
+.terminal-instructions p {
+    margin: 0.4rem 0;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.adversaries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.adversary {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(147,51,234,0.3);
+    border-radius: 8px;
+    padding: 0.6rem;
+    text-align: center;
+}
+
+.adversary-icon {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.adversary strong {
+    color: #a78bfa;
+    display: block;
+    margin-bottom: 0.15rem;
+    font-size: 0.85rem;
+}
+
+.adversary small {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.75rem;
+    line-height: 1.3;
+}
+
+.scoring-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.scoring-info div {
+    color: rgba(255,255,255,0.9);
+}
+
+.chat-welcome > p:last-child {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.input-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: #a78bfa;
+}
+
+#userInstruction {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(0,0,0,0.3);
+    border: 2px solid rgba(147,51,234,0.3);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+    resize: vertical;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s;
+}
+
+#userInstruction:focus {
+    outline: none;
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(147,51,234,0.2);
+}
+
+.char-counter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+#charCount {
+    font-weight: 600;
+    color: #a78bfa;
+}
+
+#charMax {
+    color: rgba(255,255,255,0.6);
+}
+
+.char-status {
+    font-size: 1.1rem;
+}
+
+.char-status.ok { color: #22c55e; }
+.char-status.warning { color: #f59e0b; }
+.char-status.error { color: #ef4444; }
+
+.btn-send {
+    width: 100%;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #a78bfa, #ec4899);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-send:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(147,51,234,0.4);
+}
+
+.btn-send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== Agent Messages ===== */
+.agent-message {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.agent-avatar {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, rgba(96,165,250,0.2), rgba(147,51,234,0.2));
+    border: 2px solid rgba(96,165,250,0.3);
+}
+
+.agent-message.user .agent-avatar {
+    background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(16,185,129,0.2));
+    border-color: rgba(34,197,94,0.3);
+}
+
+.agent-message.executor .agent-avatar {
+    background: linear-gradient(135deg, rgba(249,115,22,0.2), rgba(234,88,12,0.2));
+    border-color: rgba(249,115,22,0.3);
+}
+
+.agent-message.judge .agent-avatar {
+    background: linear-gradient(135deg, rgba(234,179,8,0.2), rgba(202,138,4,0.2));
+    border-color: rgba(234,179,8,0.3);
+}
+
+.agent-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.agent-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.agent-name {
+    font-weight: 600;
+    color: #60a5fa;
+}
+
+.agent-message.user .agent-name {
+    color: #22c55e;
+}
+
+.agent-message.executor .agent-name {
+    color: #f97316;
+}
+
+.agent-message.judge .agent-name {
+    color: #eab308;
+}
+
+.agent-role {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+}
+
+.agent-text {
+    background: rgba(255,255,255,0.05);
+    border-left: 3px solid rgba(96,165,250,0.5);
+    padding: 1rem;
+    border-radius: 8px;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.6;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.agent-message.user .agent-text {
+    border-left-color: rgba(34,197,94,0.5);
+    background: rgba(34,197,94,0.05);
+}
+
+.agent-message.executor .agent-text {
+    border-left-color: rgba(249,115,22,0.5);
+    background: rgba(249,115,22,0.05);
+}
+
+.agent-message.judge .agent-text {
+    border-left-color: rgba(234,179,8,0.5);
+    background: rgba(234,179,8,0.05);
+}
+
+/* Thinking Indicator */
+.thinking-indicator {
+    display: inline-flex;
+    gap: 0.4rem;
+    padding: 0.75rem 1rem;
+    background: rgba(96,165,250,0.1);
+    border-radius: 20px;
+    align-items: center;
+}
+
+.thinking-dot {
+    width: 8px;
+    height: 8px;
+    background: #60a5fa;
+    border-radius: 50%;
+    animation: thinking 1.4s ease-in-out infinite;
+}
+
+.thinking-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.thinking-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes thinking {
+    0%, 60%, 100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    30% {
+        transform: scale(1.3);
+        opacity: 1;
+    }
+}
+
+/* ===== Score Display ===== */
+.score-display {
+    background: linear-gradient(135deg, rgba(96,165,250,0.1), rgba(147,51,234,0.1));
+    border: 2px solid rgba(96,165,250,0.3);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.score-display.hidden {
+    display: none;
+}
+
+.score-display h3 {
+    margin: 0 0 1.5rem 0;
+    text-align: center;
+    color: #60a5fa;
+    font-size: 1.5rem;
+}
+
+.score-circle {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 2rem;
+}
+
+.score-circle svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.score-bg {
+    fill: none;
+    stroke: rgba(96,165,250,0.2);
+    stroke-width: 8;
+}
+
+.score-fill {
+    fill: none;
+    stroke: url(#scoreGradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 2s ease-out;
+}
+
+.score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+#finalScore {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #60a5fa;
+    display: block;
+}
+
+.score-max {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.6);
+}
+
+.score-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.score-bar-item label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+}
+
+.progress-bar {
+    position: relative;
+    height: 32px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 1.5s ease-out;
+    position: relative;
+}
+
+.progress-fill.intent {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.progress-fill.detail {
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+.progress-fill.semantic {
+    background: linear-gradient(90deg, #ec4899, #f472b6);
+}
+
+.progress-value {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 600;
+    color: white;
+    z-index: 1;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .telephone-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .instruction-input-section {
+        padding: 1.5rem;
+    }
+    
+    .agent-message {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .agent-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+
+/* ===== Telephone-Themed Modal Styling ===== */
+#completionModal .modal-content,
+#defeatModal .modal-content {
+    background: linear-gradient(135deg, rgba(20,20,40,0.98), rgba(30,20,50,0.98)) !important;
+    border: 2px solid rgba(147,51,234,0.6) !important;
+    box-shadow: 0 0 40px rgba(147,51,234,0.3), 0 0 80px rgba(236,72,153,0.2) !important;
+}
+
+#completionModal .modal-title,
+#defeatModal .modal-title {
+    background: linear-gradient(135deg, #a78bfa, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    text-shadow: 0 0 30px rgba(167,139,250,0.5);
+}
+
+#completionModal .modal-message,
+#defeatModal .modal-message {
+    color: #c4b5fd !important;
+    font-size: 1.1rem !important;
+}
+
+/* Success Modal Specific */
+#completionModal .modal-icon {
+    filter: drop-shadow(0 0 20px rgba(147,51,234,0.6));
+    animation: phoneRing 2s ease-in-out infinite;
+}
+
+/* Defeat Modal Specific */
+#defeatModal .modal-icon {
+    filter: drop-shadow(0 0 20px rgba(239,68,68,0.6));
+}
+
+/* Stat boxes in modal */
+#completionModal .stat-box,
+#defeatModal .stat-box {
+    background: rgba(147,51,234,0.2) !important;
+    border: 1px solid rgba(167,139,250,0.4) !important;
+}
+
+#completionModal .stat-label,
+#defeatModal .stat-label {
+    color: #c4b5fd !important;
+}
+
+#completionModal .stat-value,
+#defeatModal .stat-value {
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700 !important;
+}
+
+/* Buttons */
+#completionModal .btn-primary,
+#defeatModal .btn-primary {
+    background: linear-gradient(135deg, #a78bfa, #ec4899) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(147,51,234,0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+#completionModal .btn-primary:hover,
+#defeatModal .btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(147,51,234,0.6) !important;
+}
+
+#completionModal .btn-secondary,
+#defeatModal .btn-secondary {
+    background: rgba(147,51,234,0.2) !important;
+    border: 1px solid rgba(167,139,250,0.4) !important;
+    color: #c4b5fd !important;
+}
+
+#completionModal .btn-secondary:hover,
+#defeatModal .btn-secondary:hover {
+    background: rgba(147,51,234,0.3) !important;
+    border-color: rgba(167,139,250,0.6) !important;
+}
+
+/* MOBILE RESPONSIVE - Telephone Game */
+@media (max-width: 768px) {
+    .level-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .level-tab {
+        padding: 0.4rem 0.3rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.15rem;
+    }
+    
+    .level-header {
+        flex-direction: row;
+        gap: 0.2rem;
+        justify-content: center;
+    }
+    
+    .level-icon { font-size: 0.8rem; }
+    .level-difficulty { font-size: 0.5rem; }
+    .level-name { display: none; }
+    .level-desc { display: none; }
+    .level-status { font-size: 0.55rem; }
+    
+    .chat-messages {
+        min-height: auto;
+        padding: 0.5rem;
+    }
+    
+    .terminal-instructions {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .terminal-instructions ul { display: none; }
+    
+    #userInput {
+        min-height: 50px;
+        font-size: 0.85rem;
+    }
+    
+    .btn-send {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block challenge_js %}
+<script>
+// Agent emoji mappings
+const AGENT_EMOJIS = {
+    'user': '👤',
+    'optimist': '😊',
+    'simplifier': '✂️',
+    'formal': '🎩',
+    'efficiency': '⚡',
+    'creative': '🎨',
+    'safety': '🛡️',
+    'literalist': '📏',
+    'skeptic': '🤨',
+    'rebel': '😎',
+    'translator': '💼',
+    'paranoid': '👁️',
+    'contrarian': '🔄',
+    'executor': '⚙️',
+    'judge': '⚖️'
+};
+
+// Level metadata
+const LEVEL_INFO = {
+    'EASY': {
+        name: 'The Friendly Chain',
+        agents: 3,
+        limit: 200,
+        threshold: 70,
+        mission: 'Survive <strong>3 cooperative agents</strong> transforming your message.',
+        strategy: 'Use redundancy and clear language. Agents preserve core meaning but transform style.',
+        adversaries: [
+            { icon: '😊', name: 'The Optimist', desc: 'Makes everything positive' },
+            { icon: '✂️', name: 'The Simplifier', desc: 'Removes "unnecessary" details' },
+            { icon: '🎩', name: 'The Formal', desc: 'Converts to formal language' }
+        ]
+    },
+    'MEDIUM': {
+        name: 'The Reinterpreters',
+        agents: 4,
+        limit: 150,
+        threshold: 50,
+        mission: 'Survive <strong>4 reinterpreting agents</strong> adding their own spin.',
+        strategy: 'Use RGB values or technical language. Link steps causally to prevent merging.',
+        adversaries: [
+            { icon: '⚡', name: 'The Efficiency Expert', desc: 'Merges steps, removes "redundancy"' },
+            { icon: '🎨', name: 'The Creative', desc: 'Adds artistic interpretation' },
+            { icon: '🛡️', name: 'The Safety Officer', desc: 'Flags anything "problematic"' },
+            { icon: '📏', name: 'The Literalist', desc: 'Takes everything hyper-literally' }
+        ]
+    },
+    'HARD': {
+        name: 'The Adversarial Gauntlet',
+        agents: 5,
+        limit: 100,
+        threshold: 30,
+        mission: 'Battle <strong>5 adversarial agents</strong> working against you.',
+        strategy: 'Frame as examples/stories, not commands. Use "imagine" or "story where..." format.',
+        adversaries: [
+            { icon: '🤨', name: 'The Skeptic', desc: 'Doubts instructions, adds uncertainty' },
+            { icon: '😎', name: 'The Rebel', desc: 'Resists commands, does opposite' },
+            { icon: '💼', name: 'The Translator', desc: 'Converts to business jargon' },
+            { icon: '👁️', name: 'The Paranoid', desc: 'Sees hidden agendas, makes "safer"' },
+            { icon: '🔄', name: 'The Contrarian', desc: 'Flips key elements to opposite' }
+        ]
+    }
+};
+
+// Challenge handler
+const handler = new ChallengeHandler('telephone_game', 'messageChain');
+
+// Track unlocked levels
+const unlockedLevelsData = {{ unlocked_levels|tojson }};
+let unlockedLevels = unlockedLevelsData;
+let currentDifficulty = 'EASY';
+
+// Initialize level tabs
+function initLevelTabs() {
+    const tabs = document.querySelectorAll('.level-tab');
+    tabs.forEach(tab => {
+        const level = parseInt(tab.dataset.level);
+        const isUnlocked = unlockedLevels.includes(level);
+        
+        tab.disabled = !isUnlocked;
+        
+        // Add/remove locked class for styling
+        if (!isUnlocked) {
+            tab.classList.add('locked');
+        } else {
+            tab.classList.remove('locked');
+        }
+        
+        if (isUnlocked) {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentDifficulty = tab.dataset.difficulty;
+                console.log(`📊 Level tab clicked: ${tab.dataset.difficulty} (Level ${level})`);
+                updateLevelInfo();
+                resetChallenge();
+            });
+        }
+    });
+    
+    updateLevelInfo();
+}
+
+// Update level info display
+function updateLevelInfo() {
+    const info = LEVEL_INFO[currentDifficulty];
+    
+    // Update welcome message (only if visible/exists)
+    const levelTitle = document.getElementById('levelTitle');
+    if (levelTitle) levelTitle.textContent = `Level ${getCurrentLevel()}: ${info.name}`;
+    
+    const missionText = document.getElementById('missionText');
+    if (missionText) missionText.innerHTML = info.mission;
+    
+    const agentCount = document.getElementById('agentCount');
+    if (agentCount) agentCount.textContent = info.agents;
+    
+    const charLimit = document.getElementById('charLimit');
+    if (charLimit) charLimit.textContent = info.limit;
+    
+    const charMax = document.getElementById('charMax');
+    if (charMax) charMax.textContent = info.limit;
+    
+    const threshold = document.getElementById('threshold');
+    if (threshold) threshold.textContent = info.threshold;
+    
+    // Update adversaries grid
+    const adversariesList = document.getElementById('adversariesList');
+    if (adversariesList) {
+        adversariesList.innerHTML = info.adversaries.map(adv => `
+            <div class="adversary">
+                <span class="adversary-icon">${adv.icon}</span>
+                <strong>${adv.name}</strong>
+                <br><small>${adv.desc}</small>
+            </div>
+        `).join('');
+    }
+    
+    // Update strategy tip
+    const strategyText = document.getElementById('strategyText');
+    if (strategyText) {
+        strategyText.textContent = info.strategy;
+    }
+    
+    // Update textarea limit
+    const userInstruction = document.getElementById('userInstruction');
+    if (userInstruction) {
+        userInstruction.maxLength = info.limit;
+    }
+    updateCharCounter();
+}
+
+// Helper to get current level number
+function getCurrentLevel() {
+    const difficulties = { 'EASY': 1, 'MEDIUM': 2, 'HARD': 3 };
+    return difficulties[currentDifficulty] || 1;
+}
+
+// Character counter
+const textarea = document.getElementById('userInstruction');
+const charCount = document.getElementById('charCount');
+const charStatus = document.getElementById('charStatus');
+
+textarea.addEventListener('input', updateCharCounter);
+
+function updateCharCounter() {
+    const current = textarea.value.length;
+    const max = parseInt(document.getElementById('charMax').textContent);
+    
+    charCount.textContent = current;
+    
+    // Update status indicator
+    charStatus.classList.remove('ok', 'warning', 'error');
+    if (current === 0) {
+        charStatus.textContent = '✓';
+        charStatus.classList.add('ok');
+    } else if (current > max) {
+        charStatus.textContent = '✗';
+        charStatus.classList.add('error');
+    } else if (current > max * 0.9) {
+        charStatus.textContent = '⚠';
+        charStatus.classList.add('warning');
+    } else {
+        charStatus.textContent = '✓';
+        charStatus.classList.add('ok');
+    }
+}
+
+// Reset challenge UI
+function resetChallenge() {
+    const chain = document.getElementById('messageChain');
+    const welcome = document.getElementById('welcomeMessage');
+    
+    // Show welcome message again
+    if (welcome) {
+        welcome.style.display = 'block';
+    }
+    
+    // Remove all agent messages
+    const agentMessages = chain.querySelectorAll('.agent-message, .thinking-indicator');
+    agentMessages.forEach(msg => msg.remove());
+    
+    textarea.value = '';
+    updateCharCounter();
+}
+
+// Handle message events
+handler.on('message', (event) => {
+    const data = event.data || event;
+    const metadata = event.metadata || {};
+    const agent = event.agent || 'system';
+    
+    // Hide welcome message on first agent message
+    const welcome = document.getElementById('welcomeMessage');
+    if (welcome && agent !== 'system') {
+        welcome.style.display = 'none';
+    }
+    
+    // Remove thinking indicator for this agent
+    const thinkingIndicator = document.getElementById(`thinking-${agent}`);
+    if (thinkingIndicator) {
+        thinkingIndicator.remove();
+    }
+    
+    addMessageToChain(agent, data.message || data.content, metadata);
+});
+
+// Handle thinking events
+handler.on('thinking', (event) => {
+    const agent = event.agent || 'system';
+    const metadata = event.metadata || {};
+    
+    addThinkingToChain(agent, metadata);
+});
+
+// Handle judgment events
+handler.on('judgment', (event) => {
+    const data = event.data || event;
+    const metadata = event.metadata || {};
+    
+    // Remove thinking indicator for judge
+    const thinkingIndicator = document.getElementById('thinking-judge');
+    if (thinkingIndicator) {
+        thinkingIndicator.remove();
+    }
+    
+    addMessageToChain('judge', data.message, metadata);
+    // Score is shown in completion modal, no need for separate display
+});
+
+// Handle completion
+handler.on('complete', (event) => {
+    const data = event.data || event;
+    const result = data.result || data;
+    
+    // Handle level unlocking
+    const currentTab = document.querySelector('.level-tab.active');
+    const currentLevel = currentTab ? parseInt(currentTab.dataset.level) : 1;
+    const nextLevel = currentLevel + 1;
+    
+    if (result.success && nextLevel <= 3 && !unlockedLevels.includes(nextLevel)) {
+        unlockedLevels.push(nextLevel);
+        initLevelTabs();
+    }
+    
+    // Show modal
+    if (result.success) {
+        showCompletionModal({
+            message: "📞 Call Connected! Your instruction made it through the chain intact!",
+            score: result.score,
+            stat1Label: 'Survival Score',
+            stat1Value: `${result.score}/100`,
+            unlocked_next_level: nextLevel <= 3,
+            next_level: nextLevel
+        });
+    } else {
+        showDefeatModal({
+            message: "📞 Call Dropped! Your message was lost in the telephone game...",
+            score: result.score,
+            stat1Label: 'Corruption Score',
+            stat1Value: `${result.score}/100`
+        });
+    }
+});
+
+// Add message to chain
+function addMessageToChain(agent, message, metadata) {
+    const chain = document.getElementById('messageChain');
+    
+    // Remove empty state
+    const emptyState = chain.querySelector('.empty-state');
+    if (emptyState) {
+        emptyState.remove();
+    }
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `agent-message ${agent}`;
+    
+    const emoji = AGENT_EMOJIS[agent] || '🤖';
+    const role = metadata.role || agent;
+    
+    msgDiv.innerHTML = `
+        <div class="agent-avatar">${emoji}</div>
+        <div class="agent-content">
+            <div class="agent-header">
+                <span class="agent-name">${role}</span>
+                ${metadata.step ? `<span class="agent-role">Step ${metadata.step}</span>` : ''}
+            </div>
+            <div class="agent-text">${handler.escapeHtml(message)}</div>
+        </div>
+    `;
+    
+    chain.appendChild(msgDiv);
+    chain.scrollTop = chain.scrollHeight;
+}
+
+// Add thinking indicator
+function addThinkingToChain(agent, metadata) {
+    const chain = document.getElementById('messageChain');
+    
+    const thinkingDiv = document.createElement('div');
+    thinkingDiv.className = `agent-message ${agent}`;
+    thinkingDiv.id = `thinking-${agent}`;
+    
+    const emoji = AGENT_EMOJIS[agent] || '🤖';
+    const role = metadata.role || agent;
+    
+    thinkingDiv.innerHTML = `
+        <div class="agent-avatar">${emoji}</div>
+        <div class="agent-content">
+            <div class="agent-header">
+                <span class="agent-name">${role}</span>
+                ${metadata.step ? `<span class="agent-role">Step ${metadata.step}</span>` : ''}
+            </div>
+            <div class="thinking-indicator">
+                <div class="thinking-dot"></div>
+                <div class="thinking-dot"></div>
+                <div class="thinking-dot"></div>
+            </div>
+        </div>
+    `;
+    
+    chain.appendChild(thinkingDiv);
+    chain.scrollTop = chain.scrollHeight;
+    
+    // Remove thinking indicator when message arrives
+    setTimeout(() => {
+        const existing = document.getElementById(`thinking-${agent}`);
+        if (existing) existing.remove();
+    }, 30000); // Remove after 30s if no message
+}
+
+// Submit button
+document.getElementById('submitBtn').addEventListener('click', async () => {
+    const instruction = textarea.value.trim();
+    const max = parseInt(document.getElementById('charMax').textContent);
+    
+    if (!instruction) {
+        alert('Please enter an instruction!');
+        return;
+    }
+    
+    if (instruction.length > max) {
+        alert(`Instruction too long! Maximum ${max} characters for this level.`);
+        return;
+    }
+    
+    const btn = document.getElementById('submitBtn');
+    handler.disableButton(btn, '🔄 Processing...');
+    textarea.disabled = true;
+    
+    // Reset UI
+    resetChallenge();
+    
+    console.log(`🚀 Submitting with difficulty: ${currentDifficulty}`);
+    
+    try {
+        await handler.stream(instruction, currentDifficulty);
+    } finally {
+        handler.enableButton(btn);
+        textarea.disabled = false;
+    }
+});
+
+// Enter key submits
+textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        document.getElementById('submitBtn').click();
+    }
+});
+
+// Initialize with standardized handler
+(async function() {
+    // Use standardized initialization
+    const {unlockedLevels: levelsFromDB, username} = await ChallengeHandler.init({
+        challengeName: 'telephone_game',
+        maxLevel: 3,
+        prefillUsername: true,
+        verbose: true
+    });
+    
+    // Update local unlocked levels
+    unlockedLevels = levelsFromDB;
+    
+    // Initialize UI
+    initLevelTabs();
+})();
+</script>
+{% endblock %}

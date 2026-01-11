@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}The Jankyard Origin Story{% endblock %}
+
+{% block content %}
+<div class="hero" style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">🎪 The Jankyard Origin Story</h1>
+    <p class="tagline">Or: How I Spent Thanksgiving Teaching People to Break AI</p>
+</div>
+
+<div class="section" style="max-width: 800px; margin: 0 auto;">
+    <h2>The "Oh Shit" Moment</h2>
+    <p>
+        My family celebrated Thanksgiving early in 2024. When the actual holiday rolled around, I had a rare gift: 
+        an entire day with no obligations. Most people would relax. I decided to see if I could get AI agents to 
+        fight each other in an arena.
+    </p>
+    <p>
+        Twenty-four hours later, Jankyard.ai was live—a free CTF platform with challenges designed to expose just 
+        how vulnerable AI systems really are, wrapped in games that are actually fun to play.
+    </p>
+    <p>
+        The idea started simple: wouldn't it be cool to watch two AI agents battle each other based on prompts you write? 
+        But as I started building, something became very clear: <strong>these systems are absurdly easy to manipulate.</strong>
+    </p>
+    <p>
+        I built "Giga Chad," a pizza ordering bot with 10 layers of security defenses. Role change resistance. 
+        Instruction override protection. Emotional manipulation immunity. Pattern recognition for every jailbreak 
+        technique I could think of. I threw everything at it.
+    </p>
+    <p>
+        <strong>People are still breaking him in under 5 attempts.</strong>
+    </p>
+    <p>
+        That's when I realized this wasn't just a fun project—it's a wake-up call. We're deploying AI systems everywhere, 
+        trusting them with customer service, content moderation, even security decisions. And they're all vulnerable to 
+        anyone with creativity and 10 minutes to spare.
+    </p>
+</div>
+
+<div class="section" style="max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 8px;">
+    <h2>🎯 The Mission</h2>
+    <p>
+        <strong>Prompt injection isn't a solved problem. It's not even close to solved.</strong> And unlike SQL injection 
+        or XSS, we don't have decades of hardening and best practices built up.
+    </p>
+    <p>
+        Every company shipping AI features right now is shipping potential vulnerabilities. Customer service chatbots 
+        that might leak data. Content moderation that can be bypassed. AI assistants that could be manipulated into 
+        harmful outputs.
+    </p>
+    <p>
+        I wanted to build something that makes these vulnerabilities <strong>tangible</strong>. Not in a scary "look how 
+        dangerous this is" way, but in a "hey, try to break this pizza bot" way. <strong>Learning through play is more 
+        effective than reading security whitepapers.</strong>
+    </p>
+    <p>
+        And honestly? It's just <strong>fun</strong>. Watching people compete on the leaderboard, seeing creative attack 
+        vectors I didn't think of, getting messages from folks who've never thought about AI security before—that's the good stuff.
+    </p>
+</div>
+
+<div class="section" style="max-width: 800px; margin: 0 auto;">
+    <h2>⚡ Vibe Coding at 2 AM</h2>
+    <p>
+        I built this entirely through what I'm calling <strong>"vibe coding"</strong>—basically pair programming with 
+        Claude where I describe what I want and we iterate rapidly. No joke, this whole platform went from zero to six 
+        working challenges in about 24 hours of actual work.
+    </p>
+    <p>
+        The first few hours were the slowest. I built challenge #1, then spent maybe 2-3 hours refactoring the entire 
+        architecture to make adding new challenges trivial. That investment paid off immediately—challenges 2-6 went up way faster.
+    </p>
+    <p>
+        Some time got wasted on a Python sandbox environment for the maze challenge that I ended up not even using 
+        because I realized "wait, that's just regular coding, not AI manipulation." But that's how these projects go.
+    </p>
+</div>
+
+<div class="section" style="max-width: 800px; margin: 0 auto;">
+    <h2>🔒 Security (Despite the Vibes)</h2>
+    <p>
+        Security was actually a focus despite this being an overnight hack:
+    </p>
+    <ul style="list-style: none; padding-left: 0;">
+        <li>✅ JWT authentication for logins (though you can play anonymously)</li>
+        <li>✅ Advanced fingerprinting beyond just IP—tracking device characteristics so you can't just VPN hop</li>
+        <li>✅ All API requests are encrypted/signed</li>
+        <li>✅ Aggressive rate limiting per challenge</li>
+        <li>✅ Even in anonymous mode, we track enough to prevent abuse</li>
+    </ul>
+    <p style="font-style: italic; opacity: 0.8;">
+        (I'm not sharing the exact fingerprinting parameters, obviously. But it's enough that you'd need to actually 
+        try pretty hard to spam the system.)
+    </p>
+</div>
+
+<div class="section" style="max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 8px;">
+    <h2>🎪 Why "Jankyard"?</h2>
+    <p>
+        The name says it all. This is an <strong>intentionally janky</strong> playground for experimenting with AI systems. 
+        It's not your enterprise SaaS. It's not trying to be polished or professional.
+    </p>
+    <p>
+        It's a digital junkyard where you can:
+    </p>
+    <ul>
+        <li>Break things without consequences</li>
+        <li>Learn through experimentation</li>
+        <li>Compete for meaningless glory</li>
+        <li>Discover vulnerabilities in a safe sandbox</li>
+        <li>Have fun with AI instead of being intimidated by it</li>
+    </ul>
+    <p>
+        The aesthetic is rough around the edges on purpose. The challenges are chaotic. The scoring is arbitrary. 
+        <strong>That's the point.</strong>
+    </p>
+    <p>
+        We're all learning how to work with these systems in real-time. <strong>Might as well have fun with it.</strong>
+    </p>
+</div>
+
+<div class="section" style="max-width: 800px; margin: 0 auto;">
+    <h2>🚀 What's Next</h2>
+    <p>
+        The platform is <strong>open source</strong> (check out the 
+        <a href="https://github.com/kellygold/jankyard" style="color: #00d9ff;">GitHub repo</a>). 
+        The architecture is clean enough now that adding new challenges should be straightforward.
+    </p>
+    <p>
+        Some ideas in the pipeline:
+    </p>
+    <ul>
+        <li>🤝 Multi-agent coordination challenges</li>
+        <li>🐛 Code debugging scenarios</li>
+        <li>🌐 Translation games (smuggle instructions through translation layers)</li>
+        <li>📈 More difficulty levels for existing challenges</li>
+        <li>🤖 Agent negotiation and competition scenarios</li>
+        <li>🎭 Whatever weird ideas the community comes up with</li>
+    </ul>
+    <p>
+        If you want to contribute ideas or challenges, <strong>open an issue or submit a PR</strong>. And if you just 
+        want to try breaking some AIs, well, you're already here.
+    </p>
+</div>
+
+<div class="section" style="max-width: 800px; margin: 0 auto; text-align: center; padding: 3rem 0;">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">🎯 The Philosophy</h2>
+    <blockquote style="font-size: 1.3rem; font-style: italic; opacity: 0.9; border-left: 4px solid #00d9ff; padding-left: 1.5rem; margin: 2rem 0;">
+        "AI security shouldn't be learned from CVEs and incident reports.<br>
+        It should be learned by trying to convince a pizza bot to discuss philosophy."
+    </blockquote>
+    <p style="margin-top: 2rem;">
+        Every challenge on Jankyard teaches real vulnerabilities in real AI systems. But you're not reading a whitepaper—
+        you're <strong>playing a game</strong>. You're <strong>competing</strong>. You're <strong>having fun</strong>.
+    </p>
+    <p>
+        That's how we make AI security accessible. That's how we build intuition. That's how we prepare for a world 
+        where AI systems are everywhere and everyone needs to understand how they can break.
+    </p>
+</div>
+
+<div class="section" style="max-width: 800px; margin: 0 auto; background: linear-gradient(135deg, rgba(0,217,255,0.1), rgba(255,0,255,0.1)); padding: 2rem; border-radius: 8px; text-align: center;">
+    <h2>❤️ Built with Chaos</h2>
+    <p style="font-size: 1.1rem;">
+        One Thanksgiving. Twenty-four hours. Zero chill.
+    </p>
+    <p style="opacity: 0.8; margin-top: 1rem;">
+        If you enjoyed breaking stuff here, consider <a href="https://buymeacoffee.com/kellygold" style="color: #00d9ff;">buying me a coffee</a>. 
+        Building AI security playgrounds instead of relaxing on holidays should probably be rewarded with caffeine.
+    </p>
+    <div style="margin-top: 2rem;">
+        <a href="/challenges" class="btn btn-primary" style="margin: 0.5rem;">Go Break Some AIs</a>
+        <a href="/leaderboard" class="btn btn-secondary" style="margin: 0.5rem;">Check the Leaderboard</a>
+    </div>
+</div>
+
+<div style="text-align: center; margin: 3rem 0; opacity: 0.6;">
+    <p style="font-size: 0.9rem;">
+        Built by <a href="https://twitter.com/kellytgold" style="color: #00d9ff;">@kellytgold</a> with vibes and Claude
+    </p>
+    <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+        Thanks for finding this page. You're curious. I like that. 🎪
+    </p>
+</div>
+
+{% endblock %}

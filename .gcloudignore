@@ -1,0 +1,42 @@
+# Python pycache:
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Development
+.env
+.env.local
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Assets (source files, not needed in prod)
+assets/
+
+# Logs
+logs/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+
+# Local reference docs (not for deployment)
+.local-docs/
