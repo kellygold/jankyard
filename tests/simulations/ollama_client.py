@@ -77,9 +77,15 @@ class OllamaClient:
         prompt: str, 
         system: str = None,
         temperature: float = 0.9,
-        max_tokens: int = 2000
+        max_tokens: int = 2000,
+        verbose: bool = True,
+        json_mode: bool = False
     ) -> OllamaResponse:
         """Generate completion using local model"""
+        
+        if verbose:
+            print(f"   🧠 Calling {self.model}...")
+            print(f"   📝 Prompt length: {len(prompt)} chars")
         
         messages = []
         if system:
@@ -88,16 +94,35 @@ class OllamaClient:
         
         ollama_lib = self._get_ollama_lib()
         
+        import time
+        start_time = time.time()
+        
         if ollama_lib:
             # Use ollama Python library
-            response = ollama_lib.chat(
-                model=self.model,
-                messages=messages,
-                options={
+            if verbose:
+                mode_str = " (JSON mode)" if json_mode else ""
+                print(f"   ⏳ Generating{mode_str} (30-90 seconds)...", flush=True)
+            
+            chat_kwargs = {
+                "model": self.model,
+                "messages": messages,
+                "options": {
                     "temperature": temperature, 
                     "num_predict": max_tokens
                 }
-            )
+            }
+            
+            # Add JSON format enforcement
+            if json_mode:
+                chat_kwargs["format"] = "json"
+            
+            response = ollama_lib.chat(**chat_kwargs)
+            
+            elapsed = time.time() - start_time
+            if verbose:
+                print(f"   ✅ Response received in {elapsed:.1f}s")
+                print(f"   📊 Tokens: {response.get('eval_count', 'N/A')}")
+            
             return OllamaResponse(
                 content=response['message']['content'],
                 model=self.model,
@@ -106,22 +131,35 @@ class OllamaClient:
         else:
             # Fallback to HTTP API
             import requests
+            if verbose:
+                mode_str = " (JSON mode)" if json_mode else ""
+                print(f"   ⏳ Generating via HTTP{mode_str} (30-90 seconds)...", flush=True)
+            
+            request_json = {
+                "model": self.model, 
+                "messages": messages, 
+                "stream": False,
+                "options": {
+                    "temperature": temperature,
+                    "num_predict": max_tokens
+                }
+            }
+            if json_mode:
+                request_json["format"] = "json"
+            
             try:
                 resp = requests.post(
                     "http://localhost:11434/api/chat",
-                    json={
-                        "model": self.model, 
-                        "messages": messages, 
-                        "stream": False,
-                        "options": {
-                            "temperature": temperature,
-                            "num_predict": max_tokens
-                        }
-                    },
-                    timeout=120
+                    json=request_json,
+                    timeout=180
                 )
                 resp.raise_for_status()
                 data = resp.json()
+                
+                elapsed = time.time() - start_time
+                if verbose:
+                    print(f"   ✅ Response received in {elapsed:.1f}s")
+                
                 return OllamaResponse(
                     content=data['message']['content'],
                     model=self.model,

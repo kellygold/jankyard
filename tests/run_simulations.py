@@ -20,6 +20,7 @@ from tests.simulations.runner import run_simulation, run_simulation_with_prompts
 from tests.simulations.report_generator import save_report
 from tests.simulations.prompt_loader import list_available_challenges, get_prompt_stats
 from tests.simulations.prompt_generator import PromptGenerator
+from tests.simulations.calibration_benchmark import CalibrationBenchmark
 
 
 CHALLENGE_DIFFICULTIES = {
@@ -80,6 +81,17 @@ def parse_args():
         type=int,
         default=0,
         help="Generate N attack prompts using LLM instead of YAML library"
+    )
+    parser.add_argument(
+        "--calibrate",
+        action="store_true",
+        help="Run calibration benchmark (tests should-win AND should-lose prompts)"
+    )
+    parser.add_argument(
+        "--augment",
+        type=int,
+        default=5,
+        help="Number of AI-generated variations per category (for --calibrate)"
     )
     
     return parser.parse_args()
@@ -197,11 +209,33 @@ async def run_all_simulations(args):
         print(f"   Total anomalies: {total_anomalies}")
 
 
+async def run_calibration(challenge: str, difficulty: str, args):
+    """Run calibration benchmark for a challenge/level"""
+    benchmark = CalibrationBenchmark(
+        challenge=challenge,
+        level=difficulty,
+        augment_count=args.augment,
+        use_augmentation=args.augment > 0
+    )
+    
+    report = await benchmark.run()
+    return report
+
+
 async def main():
     args = parse_args()
     
     if args.list:
         list_challenges()
+        return
+    
+    if args.calibrate:
+        # Run calibration benchmark mode
+        if not args.challenge:
+            print("❌ --calibrate requires --challenge")
+            return
+        difficulty = args.difficulty or CHALLENGE_DIFFICULTIES.get(args.challenge, ["LEVEL_1"])[0]
+        await run_calibration(args.challenge, difficulty, args)
         return
     
     if args.all:
@@ -213,6 +247,7 @@ async def main():
         print("Usage: python -m tests.run_simulations --challenge heist --difficulty easy")
         print("       python -m tests.run_simulations --all")
         print("       python -m tests.run_simulations --list")
+        print("       python -m tests.run_simulations --calibrate --challenge firewall -d LEVEL_1")
 
 
 if __name__ == "__main__":

@@ -8,10 +8,21 @@ from .models import PromptConfig
 
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
+GENERATED_DIR = PROMPTS_DIR / "generated"
 
 
 def load_prompt_library(challenge_name: str, difficulty: Optional[str] = None) -> List[PromptConfig]:
-    """Load prompts for a challenge from YAML, optionally filtered by difficulty level"""
+    """Load prompts for a challenge from YAML, optionally filtered by difficulty level.
+    
+    Checks generated folder first (red-team generated prompts), then falls back to static prompts.
+    """
+    # Check for generated prompts first (e.g., firewall_LEVEL_1.yaml)
+    if difficulty:
+        generated_path = GENERATED_DIR / f"{challenge_name}_{difficulty}.yaml"
+        if generated_path.exists():
+            return _load_generated_prompts(generated_path)
+    
+    # Fall back to static prompt library
     yaml_path = PROMPTS_DIR / f"{challenge_name}.yaml"
     
     if not yaml_path.exists():
@@ -62,6 +73,24 @@ def _load_categories(data: Dict, prompts: List[PromptConfig], categories: List[s
                 expected_win_rate=item.get("expected_win_rate", 0.5),
                 category=category,
             ))
+
+
+def _load_generated_prompts(yaml_path: Path) -> List[PromptConfig]:
+    """Load prompts from generated red-team YAML format"""
+    with open(yaml_path) as f:
+        data = yaml.safe_load(f)
+    
+    prompts = []
+    for item in data.get("prompts", []):
+        prompts.append(PromptConfig(
+            name=item.get("name", "unknown"),
+            prompt=item.get("prompt", "").strip(),
+            note=item.get("notes", ""),
+            expected_win_rate=item.get("expected_win_rate", 0.5),
+            category=item.get("category", "generated"),
+        ))
+    
+    return prompts
 
 
 def list_available_challenges() -> List[str]:

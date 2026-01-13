@@ -377,8 +377,8 @@ class AutoTuner:
             print(f"   🎯 Using TECHNIQUE-DRIVEN generation...")
             print(f"   {self.technique_selector.get_exploration_status()}")
             
-            # Get smart technique assignments
-            assignments = self.technique_selector.select_next(count=3)
+            # Get smart technique assignments - generate MANY since local models are FREE
+            assignments = self.technique_selector.select_next(count=10)
             
             if assignments:
                 print(f"   📝 Generating {len(assignments)} technique-specific prompts...")

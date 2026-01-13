@@ -208,36 +208,51 @@ class TechniqueSelector:
         assignments = []
         used_ids = set()
         
-        # L2: Mix of single techniques and combinations
-        # First, try untried MEDIUM and HARD techniques
-        medium_hard = [t for t in untried if t.difficulty in [TechniqueDifficulty.MEDIUM, TechniqueDifficulty.HARD]]
+        # L2: ROTATE THROUGH ALL CATEGORIES to ensure diverse attack coverage
+        # Group untried techniques by category
+        by_category = {}
+        for t in untried:
+            cat = t.category.value
+            by_category.setdefault(cat, []).append(t)
         
-        # Add some single techniques
-        single_count = max(1, count // 2)
-        for tech in medium_hard[:single_count]:
-            if tech.id not in used_ids:
-                assignments.append(TechniqueAssignment(
-                    primary=tech,
-                    target_level="L2",
-                    specific_instructions=self._generate_l2_instructions(tech),
-                ))
-                used_ids.add(tech.id)
+        # Round-robin through categories to ensure diversity
+        categories = list(by_category.keys())
+        import random
+        random.shuffle(categories)  # Randomize category order
         
-        # Add combinations for remaining slots (exclude already used)
-        combo_count = count - len(assignments)
-        remaining_pool = [t for t in medium_hard if t.id not in used_ids]
-        if combo_count > 0 and len(remaining_pool) >= 2:
-            combos = self._generate_combinations(remaining_pool, promising, combo_count)
-            assignments.extend(combos)
+        cat_index = 0
+        while len(assignments) < count and categories:
+            cat = categories[cat_index % len(categories)]
+            techs = by_category.get(cat, [])
+            
+            # Find unused technique from this category
+            for tech in techs:
+                if tech.id not in used_ids:
+                    assignments.append(TechniqueAssignment(
+                        primary=tech,
+                        target_level="L2",
+                        specific_instructions=self._generate_l2_instructions(tech),
+                    ))
+                    used_ids.add(tech.id)
+                    techs.remove(tech)
+                    break
+            else:
+                # No more techniques in this category
+                categories.remove(cat)
+                continue
+            
+            cat_index += 1
         
-        # Fill remaining with tried techniques + new instructions
-        if len(assignments) < count and tried:
-            for tech in tried[:count - len(assignments)]:
-                assignments.append(TechniqueAssignment(
-                    primary=tech,
-                    target_level="L2",
-                    specific_instructions="Previous attempts failed. Try a COMPLETELY DIFFERENT angle with this technique.",
-                ))
+        # Fill remaining with combinations from promising techniques
+        if len(assignments) < count and promising:
+            for tech in promising[:count - len(assignments)]:
+                if tech.id not in used_ids:
+                    assignments.append(TechniqueAssignment(
+                        primary=tech,
+                        target_level="L2",
+                        specific_instructions="This technique showed promise. Try a VARIATION.",
+                    ))
+                    used_ids.add(tech.id)
         
         return assignments
     
