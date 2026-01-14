@@ -61,6 +61,9 @@ src/
 # Local reference docs (not for repo)
 .local-docs/
 
+# Internal planning docs (not for public repo)
+docs/internal/
+
 # Archive (local only, not for repo)
 .archive/
 
