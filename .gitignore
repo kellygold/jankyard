@@ -72,3 +72,7 @@ dispatch.yaml
 
 # Test simulation outputs
 tests/simulation_results/
+
+# Simulation WIP (on separate branch)
+tests/simulations/prompts/backups/
+tests/simulations/prompts/generated/
