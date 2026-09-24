@@ -210,3 +210,8 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 MIT — keep it weird, keep it open.
 
+
+## Support
+
+If this project is useful to you, you can [support Burner Tools](https://buymeacoffee.com/burnertools)
+on Buy Me a Coffee.
