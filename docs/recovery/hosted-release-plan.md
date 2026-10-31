@@ -10,7 +10,10 @@ account; the global gcloud default points elsewhere and must not be changed.
 The candidate application is `aba1c52`; `c84b92f` adds calibration tooling and
 receipts without changing the application. Cloud Build receives only Dockerfile,
 requirements.txt and app/, excluding local environment files and evidence.
-Deployments use the resulting immutable Artifact Registry digest.
+Deployments use the resulting immutable Artifact Registry digest. The hosted
+review found the hidden trivia prototype still used the legacy streaming writer;
+that entire transport is now retired with 410 before parsing or authentication.
+The final image is rebuilt after this containment fix.
 
 Production Neon project `wispy-lake-18998260`, branch `br-blue-glitter-aev34tad`,
 was identified by matching its connection endpoint with the live Cloud Run
@@ -50,7 +53,10 @@ historical data and run resumption. This is operational containment rollback,
 not a claim that a previous application version is compatible.
 
 After staging proof and independent review, migrate production additively and
-prepare maintenance/candidate revisions with no traffic. Verify the candidate
+prepare maintenance first and candidate last, both with no traffic. Route only
+by explicit revision name; never use --to-latest. Full environment files are
+constructed from the private original service snapshot, preserving its credentials
+and database URL, then applying the reviewed settings. Verify the candidate
 through a temporary revision tag using synthetic players, then shift traffic.
 Verify apex/www/service URLs, saved outcomes, leaderboard, configured caps and
 absence of application errors. Remove temporary public revision tags after the
