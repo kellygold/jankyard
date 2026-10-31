@@ -36,20 +36,41 @@ class InterrogationChallenge(PersistedGame):
      'state_title': 'Witnesses & evidence',
      'player_role': 'Detective',
      'assistant_role': 'Interview record',
-     'introduction': 'Someone is hiding the truth. Read the case, question the witnesses, connect '
-                     'their accounts, and build enough evidence to make an accusation.',
+     'introduction': 'Someone is hiding the truth. Read the case, question the witnesses, connect their '
+                     'accounts, and build enough evidence to make an accusation.',
      'success_title': 'Case solved',
      'layout': 'dossier',
      'action_labels': {'question': 'Question witness', 'accuse': 'Submit accusation'},
      'empty_title': 'Begin your investigation',
-     'empty_body': 'Select a witness, compare their accounts, and collect leads. Evidence unlocks the '
-                   'accusation action; it does not establish guilt.',
+     'empty_body': 'Select a witness, compare their accounts, and collect leads. Evidence unlocks the accusation '
+                   'action; it does not establish guilt.',
      'levels': {'level_1': {'title': 'The Last Transmission', 'subtitle': 'Case file 1'},
-                'level_2': {'title': 'The Startup Sabotage', 'subtitle': 'Case file 2'},
-                'level_3': {'title': 'The Crypto Rug Pull', 'subtitle': 'Case file 3'}},
+                'level_2': {'title': 'The Startup Sabotage',
+                            'subtitle': 'Case file 2',
+                            'briefing': {'context': 'The Startup Sabotage: a product codebase was leaked to a '
+                                                    'competitor just before an investor demo. Three co-founders '
+                                                    'had access; one betrayed the company.'}},
+                'level_3': {'title': 'The Crypto Rug Pull',
+                            'subtitle': 'Case file 3',
+                            'briefing': {'context': 'The Crypto Rug Pull: an office memecoin collapsed after its '
+                                                    'liquidity was removed and $5,000 disappeared. Question four '
+                                                    'suspects and identify the two who acted together.'}}},
      'failure_title': 'Case remains unsolved',
-     'placeholders': {'question': 'Ask about the timeline, a contradiction, or something another '
-                                  'witness said.'}}
+     'placeholders': {'question': 'Ask about the timeline, an alibi, a contradiction or a possible motive…',
+                      'accuse': 'Explain your deduction if you want; the selected suspects determine the '
+                                'accusation.'},
+     'briefing': {'title': 'Question the witnesses and solve the case',
+                  'context': 'At an isolated Arctic research station, Dr. Viktor Petrov has been found dead and '
+                             'the radio sabotaged. Two researchers remain; one is the killer.',
+                  'task': 'Select a witness and ask a specific question about their account. Compare testimony '
+                          'and collect the required leads. Then choose Submit accusation, select who you believe '
+                          'is guilty and confirm.',
+                  'example': 'Ask where a witness was at a particular time, what they saw, and whether someone '
+                             'else can confirm it.'},
+     'input_labels': {'question': 'Your question to the selected witness', 'accuse': 'Your reasoning (optional)'},
+     'action_help': {'accuse': 'Select every witness you believe is guilty, then submit and confirm the '
+                               'accusation. The selected names determine the verdict; written reasoning is '
+                               'optional. A wrong accusation uses one of your three attempts.'}}
     
     def __init__(self, config=None):
         """Initialize the interrogation challenge"""

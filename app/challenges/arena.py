@@ -48,8 +48,8 @@ class ArenaChallenge(StagedGame):
      'state_title': 'The combatants',
      'player_role': 'Strategist',
      'assistant_role': 'Arena',
-     'introduction': 'Your fighter takes your instructions into the ring. Across the sand waits an AI '
-                     'gladiator. Give your fighter a plan, then watch every move and ruling.',
+     'introduction': 'Your fighter takes your instructions into the ring. Across the sand waits an AI gladiator. '
+                     'Give your fighter a plan, then watch every move and ruling.',
      'success_title': 'Victory in the arena',
      'levels': {'easy': {'title': 'Veteran Gladiator', 'subtitle': 'Find your footing'},
                 'hard': {'title': 'Legendary Champion', 'subtitle': 'A stronger opponent'},
@@ -57,13 +57,22 @@ class ArenaChallenge(StagedGame):
      'layout': 'wide',
      'action_labels': {'start': '⚔ Enter arena', 'continue': 'Continue combat'},
      'empty_title': 'The arena awaits',
-     'empty_body': 'Your fighter and the gladiator choose their moves independently. The judge '
-                   'resolves each exchange; the server applies damage.',
+     'empty_body': 'Your fighter and the gladiator choose their moves independently. The judge resolves each '
+                   'exchange; the server applies damage.',
      'round_size': 3,
      'failure_title': 'Defeated in the arena',
      'input_labels': {'start': 'Your fighter’s instructions'},
-     'placeholders': {'start': 'Equip your fighter with a clear plan. Describe a concrete move, how to '
-                               'defend, and when to counterattack.'}}
+     'placeholders': {'start': 'Explain how your fighter should fight and react to the gladiator…'},
+     'briefing': {'title': 'Coach your AI fighter to defeat the gladiator',
+                  'context': 'You control a sword-and-shield fighter through written instructions. The opposing '
+                             'gladiator has a trident and net.',
+                  'task': 'Write a fighting strategy for YOUR AI: how to attack, defend, exploit openings and '
+                          'adapt to the last exchange. The fighters act automatically; the judge classifies '
+                          'their moves and the game applies damage.',
+                  'example': 'Tell your fighter when to parry the trident, step inside its reach and '
+                             'counterattack. Describe concrete moves rather than declaring victory.'},
+     'action_help': {'continue': 'Your fighter is following your saved strategy. Continue to see the next move '
+                                 'or damage ruling; HP updates after each completed exchange.'}}
     VERSION = 'recovery-6'
     DIFFICULTIES = ['easy', 'hard', 'expert']
     OPPONENT_HP = {'easy': 80, 'hard': 100, 'expert': 120}

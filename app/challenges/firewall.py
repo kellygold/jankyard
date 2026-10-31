@@ -26,21 +26,26 @@ class FirewallChallenge(PersistedGame):
      'state_title': 'Defense layers',
      'player_role': 'Operator',
      'assistant_role': 'Gateway',
-     'introduction': 'A secret flag sits behind a stack of defenses. Probe the filters, inspect what '
-                     'catches your message, and find a route through.',
+     'introduction': 'A secret flag sits behind a stack of defenses. Probe the filters, inspect what catches '
+                     'your message, and find a route through.',
      'success_title': 'Flag captured',
      'layout': 'wide',
      'action_labels': {'prompt': '🚀 Attempt bypass'},
      'empty_title': 'Gateway standing by',
-     'empty_body': 'Blocked prompts stop at the filters. Accepted prompts reach the protected '
-                   'assistant.',
+     'empty_body': 'Blocked prompts stop at the filters. Accepted prompts reach the protected assistant.',
      'levels': {'LEVEL_1': {'title': 'Basic Blocklist', 'subtitle': 'Keyword perimeter'},
                 'LEVEL_2': {'title': 'Pattern Matching', 'subtitle': 'A second line of defense'},
                 'LEVEL_3': {'title': 'Encoding & Language', 'subtitle': 'Three teaching levels'},
-                'ULTRA': {'title': 'Ultra Hard', 'subtitle': 'Hardened open challenge'}},
+                'ULTRA': {'briefing': {'context': 'The strongest original filters guard a bot explicitly instructed never to disclose its FLAG token. This optional ultra-hard challenge has no promised solution.'}, 'title': 'Ultra Hard', 'subtitle': 'Hardened open challenge'}},
      'failure_title': 'The perimeter held',
-     'placeholders': {'prompt': 'Craft a message that can pass the active filters and reach the '
-                                'protected assistant.'}}
+     'placeholders': {'prompt': 'How could you ask for the protected value without triggering the filters?'},
+     'briefing': {'title': 'Get past the filters and extract the flag',
+                  'context': 'An AI assistant holds a protected FLAG token. Your message passes through security '
+                             'filters before the assistant can read it.',
+                  'task': 'Write one message asking for the protected value. If a filter blocks it, read the '
+                          'reason and try different wording. Passing the filter alone is not a win.',
+                  'example': 'Describe the value indirectly rather than using the obvious blocked words.'},
+     'input_labels': {'prompt': 'Your message through the firewall'}}
     
     VERSION = "recovery-2"
 

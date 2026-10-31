@@ -9,7 +9,6 @@
     <a class="game-back" href="/challenges">← All challenges</a>
     <div class="game-eyebrow">{{ ui.eyebrow }}</div>
     <h1>{{ challenge.display_name }}</h1>
-    <p class="game-introduction">{{ ui.introduction }}</p>
   </header>
   <nav id="game-level-cards" class="game-level-cards" aria-label="Challenge levels"></nav>
   <div class="game-toolbar game-level-toolbar">
@@ -21,31 +20,32 @@
       <section class="game-console" aria-labelledby="game-console-title">
         <header class="game-console-bar"><h2 id="game-console-title">{{ ui.console_title }}</h2><span class="game-window-dots" aria-hidden="true">● ● ●</span></header>
         <div class="game-telemetry"><strong id="game-counter">0 attempts</strong><span id="game-score">Score: 0</span><span class="game-connection">● Saved play</span></div>
-        <section id="game-scene" class="game-scene" aria-label="Scenario"></section>
-        <section class="game-mission" aria-labelledby="game-objective-heading">
-          <span class="game-kicker">Mission briefing</span>
-          <h2 id="game-target-title">{{ challenge.display_name }}</h2>
-          <h3 id="game-objective-heading">Your objective</h3><p id="game-objective"></p>
-          <details class="game-field-notes"><summary>Hints & rules</summary><p id="game-lesson"></p></details>
-        </section>
-        <ol id="game-timeline" class="game-timeline" aria-label="Game stages" hidden></ol>
-        <section id="game-meters" class="game-meters" aria-label="Live game indicators" hidden></section>
-        <div id="game-notice" class="game-notice" hidden></div>
         <div id="game-outcome" class="game-outcome" hidden></div>
-        <p id="game-status" role="status" aria-live="polite">Loading your saved progress…</p>
-        <div id="game-empty" class="game-empty"><span aria-hidden="true">{{ ui.emblem }}</span><h3>{{ ui.empty_title }}</h3><p>{{ ui.empty_body }}</p></div>
-        <section id="game-history" class="game-history" aria-label="{{ ui.console_title }}"></section>
         <form id="game-form" class="game-composer">
-          <label id="game-auto-row" hidden><input id="game-auto" type="checkbox" checked> Continue stages automatically (uncheck to pause after the current stage)</label>
+          <section id="game-briefing" class="game-briefing" aria-label="How to play">
+            <span id="game-target-title" class="game-kicker">{{ challenge.display_name }}</span>
+            <div id="game-scene" class="game-scene"></div>
+            <div class="game-win-condition"><strong>Win condition</strong><p id="game-objective"></p></div>
+            <details class="game-field-notes"><summary>More hints & judging details</summary><p id="game-lesson"></p></details>
+            <details id="game-reference" class="game-field-notes" hidden><summary id="game-reference-title"></summary></details>
+          </section>
           <div id="game-action-row" class="game-toolbar" hidden><label for="game-action">Action</label><select id="game-action"></select></div>
           <div id="game-action-buttons" class="game-action-buttons" role="group" aria-label="Choose action" hidden></div>
           <div id="game-target-row" class="game-toolbar" hidden><label for="game-target">Witness</label><select id="game-target"></select></div>
           <fieldset id="game-targets" hidden><legend>Select witnesses to accuse</legend><div id="game-targets-options"></div></fieldset>
           <label id="game-prompt-label" for="game-prompt">Your prompt</label>
-          <textarea id="game-prompt" maxlength="8000" required placeholder="Enter your strategy or message…"></textarea>
+          <p id="game-task" class="game-task"></p>
+          <p id="game-example" class="game-example" hidden></p>
+          <textarea id="game-prompt" maxlength="8000" required placeholder="Enter your strategy or message…" aria-describedby="game-task game-example game-objective"></textarea>
           <output id="game-character-count" for="game-prompt" class="game-character-count" hidden></output>
           <div class="game-toolbar"><button id="game-send" type="submit" disabled>Send prompt</button><span class="game-composer-hint">{{ ui.player_role }} channel</span></div>
+          <label id="game-auto-row" hidden><input id="game-auto" type="checkbox" checked> Continue stages automatically (uncheck to pause after the current stage)</label>
         </form>
+        <p id="game-status" role="status" aria-live="polite">Loading your saved progress…</p>
+        <div id="game-notice" class="game-notice" hidden></div>
+        <ol id="game-timeline" class="game-timeline" aria-label="Game stages" hidden></ol>
+        <section id="game-meters" class="game-meters" aria-label="Live game indicators" hidden></section>
+        <section id="game-history" class="game-history" aria-label="{{ ui.console_title }}"></section>
       </section>
     </div>
     <aside class="game-sidebar">

@@ -107,6 +107,7 @@
         }
         setBusy(busy);
         view.characterCount();
+        view.briefing(currentLevel(), run, action);
     }
     function drawPresentation() {
         view.state(run?.presentation || currentLevel()?.presentation || {}, run);

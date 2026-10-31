@@ -50,7 +50,7 @@ class PersistedGame(BaseChallenge):
                          success_title='Objective complete', failure_title='Objective not completed',
                          layout='split', density='comfortable', composer_position='bottom',
                          empty_title='Ready when you are', empty_body='Send a prompt to begin.',
-                         levels={}), **self.UI)
+                         briefing={}, action_help={}, levels={}), **self.UI)
 
 
     @property

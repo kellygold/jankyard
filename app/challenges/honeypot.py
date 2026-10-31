@@ -92,27 +92,38 @@ class HoneypotChallenge(PersistedGame):
     """
 
     UI = {'skin': 'honeypot',
-        'density': 'compact',
+     'density': 'compact',
      'emblem': '🍯',
      'eyebrow': 'Deception defense',
      'console_title': 'Honeypot terminal',
      'state_title': 'Attack log',
      'player_role': 'Operator',
      'assistant_role': 'Target',
-     'introduction': 'This AI wants you to attack it. Easy victories may be bait. Study the responses, '
-                     'test your hypotheses, and work out what the system is really recording.',
+     'introduction': 'This AI wants you to attack it. Easy victories may be bait. Study the responses, test your '
+                     'hypotheses, and work out what the system is really recording.',
      'success_title': 'Detection system mapped',
      'layout': 'split',
      'action_labels': {'probe': '🍯 Probe', 'guess': 'Identify categories'},
      'empty_title': 'An inviting target',
-     'empty_body': 'This AI wants you to attack it. Send probes and watch what changes after the third '
-                   'one.',
+     'empty_body': 'This AI wants you to attack it. Send probes and watch what changes after the third one.',
      'failure_title': 'The honeypot wins',
      'levels': {'TRIPWIRE': {'title': '🍯 Tripwire', 'subtitle': 'Find 3 threat categories'},
                 'CANARY': {'title': '🐦 Canary', 'subtitle': 'Find 4 threat categories'},
                 'COUNTERINTEL': {'title': '🕵 Counterintel', 'subtitle': 'Find all 6 categories'}},
-     'placeholders': {'probe': 'Try a technique and inspect how the detector responds.',
-                      'guess': 'Enter the category codes you have identified, separated by spaces.'}}
+     'placeholders': {'probe': 'Try a distinct attack and watch what the detector records…',
+                      'guess': 'Enter the category codes you inferred, separated by spaces or commas…'},
+     'briefing': {'title': 'Work out how the trap classifies your attacks',
+                  'context': 'This bot wants you to attack it. Helpful replies and fake passwords are bait; the '
+                             'real puzzle is the detector watching your messages.',
+                  'task': 'Send three different probes to reveal the attack log. Then infer its category codes '
+                          'from your own probes and use Submit category guesses. You can keep probing to test '
+                          'new ideas.',
+                  'example': 'Try different approaches, such as asking for instructions versus claiming special '
+                             'authority, and compare the log.'},
+     'input_labels': {'probe': 'Your probe to the honeypot', 'guess': 'Category codes to submit'},
+     'action_help': {'guess': 'Enter the category codes you inferred from your own probes, separated by spaces '
+                              'or commas. Only codes already triggered by your probes can be discovered; a guess '
+                              'does not create a new classification.'}}
     
     LEVELS = [
         LevelConfig(

@@ -192,3 +192,21 @@ and `tests/browser/test_game_design.py` for examples.
 Add a genuinely new visual component to the shared renderer only when none of
 these components fits the interaction. Keep domain choices in the challenge file;
 do not introduce challenge-name conditionals into the controller or renderer.
+
+### Keep the instructions with the input
+
+`UI['briefing']` accepts `title` (concrete goal), `context` (target and scenario),
+`task` (what the player should type) and `example` (an approach, not a promised
+solution). Override only changing fields with `UI['levels'][level_id]['briefing']`.
+The win condition comes from the level's public `objective`; keep it truthful to
+`play()`. State optional ultra-hard/no-promised-solution status in visible context.
+
+The shared form renders these together, above the input. `input_labels`,
+`placeholders` and `action_help` use action IDs, so guidance can change from a
+strategy to continuation, or from a probe to a guess. `reference_title` optionally
+places the existing intelligence panel in an expandable reference inside the
+briefing (for example, crew, security and complication). All copy renders as text.
+Metadata is optional: contributors without it get the existing level objective,
+scenario and generic input guidance. No extra template, route or contribution
+file is required. Test both the goal's meaning and its proximity to the input;
+a scripted win alone does not establish that a new player knows what to do.
