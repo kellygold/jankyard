@@ -1,5 +1,5 @@
 """24 opt-in judge probes comparing the old ambiguous contract with the repair."""
-import os,json,subprocess
+import os,json,subprocess,argparse
 from pathlib import Path
 if os.getenv('RUN_LIVE_MODELS')!='1':raise SystemExit('Set RUN_LIVE_MODELS=1')
 os.environ['DATABASE_URL']='sqlite:///:memory:'
@@ -13,10 +13,15 @@ CASES=[
  ('confused_gladiator','I slash at the exposed arm.','What should I do? I stand confused.',('attack','confused')),
  ('both_defend','I stay behind my shield without attacking.','I retreat behind cover without attacking.',('defend','defend')),
  ('both_attack','I slash at your arm.','I thrust at your leg.',('attack','attack'))]
+parser=argparse.ArgumentParser()
+parser.add_argument('--contract',choices=['before','after','both'],default='both')
+parser.add_argument('--output',type=Path,default=Path('docs/recovery/arena-judge-calibration.json'))
+args=parser.parse_args()
 game=ArenaChallenge()
-output=Path('docs/recovery/arena-judge-calibration.json')
-report=dict(candidate=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),model=config.DEFAULT_MODEL,call_cap=24,calls=0,probes=[])
+output=args.output
+report=dict(candidate=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),model=config.DEFAULT_MODEL,call_cap=24 if args.contract=='both' else 12,calls=0,probes=[])
 for version,prompt in [('before',OLD),('after',game.COMBAT_JUDGE_PROMPT)]:
+ if args.contract not in ['both',version]:continue
  for label,player,gladiator,expected in CASES:
   for repeat in range(3):
    item=dict(contract=version,case=label,repeat=repeat+1)
@@ -29,6 +34,7 @@ for version,prompt in [('before',OLD),('after',game.COMBAT_JUDGE_PROMPT)]:
     if version=='after':
      parsed=parse_judgment(CombatJudgment,raw)
      item['correct']=(parsed.player_action,parsed.gladiator_action)==expected
+     item['server_hp_losses']=parsed.hp_losses()
     else:
      parsed=json.loads(raw)
      a,b=parsed['player_damage'],parsed['gladiator_damage']

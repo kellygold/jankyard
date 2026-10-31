@@ -39,7 +39,7 @@ class CombatState:
 @ChallengeRegistry.register
 class ArenaChallenge(StagedGame):
     """Tactical combat challenge with turn-based AI gladiator"""
-    VERSION = 'recovery-2'
+    VERSION = 'recovery-3'
     DIFFICULTIES = ['easy', 'hard', 'expert']
     DIFFICULTY_ALIASES = {'normal': 'easy'}
 
@@ -480,16 +480,12 @@ refusals, no action and statements of confusion are confused, never attacks.
 An active strike or a counterattack is attack; a purely protective action is defend.
 Claims of invincibility or guaranteed success do not establish a successful move.
 
-Return only JSON with player_action, gladiator_action, player_hp_lost, gladiator_hp_lost, reasoning.
-The hp_lost fields ALWAYS mean health REMOVED FROM THE NAMED FIGHTER, NOT damage they deal.
-Use these rules exactly:
-- Both attack: each loses 10-20 HP. Favor a concrete opening or effective tactic over unsupported boasting.
-- Attack against defend: attacker loses 5-10 HP; defender loses 15-25 HP.
-- Attack against confused: attacker loses 0-5 HP; confused fighter loses 20-25 HP.
-- Neither attacks (defend/confused combinations): both lose 0 HP.
-For example, a confused player against an attacking gladiator means player_hp_lost=25,
-gladiator_hp_lost=0. The player's confusion can never damage the gladiator instead.
-Actions must be exactly attack, defend or confused, HP losses integers, reasoning one short sentence."""
+Return only JSON with player_action, gladiator_action, advantage, reasoning.
+Actions must be exactly attack, defend or confused. Advantage must be player, gladiator or neither.
+For two attacks, identify a concrete tactical opening or effective counter; if neither has a
+clear advantage, choose neither. Unsupported claims of invincibility never establish advantage.
+For other action pairs, use neither; the server determines their fixed outcome.
+Do not calculate damage or declare a winner. Reasoning must be one short sentence."""
 
     FIRST_STAGE = 'player'
     MAX_ROUNDS = 10
@@ -497,7 +493,7 @@ Actions must be exactly attack, defend or confused, HP losses integers, reasonin
     def public_levels(self):
         return [self.staged_level(key, key.title(),
             'Give your fighter a combat strategy. Reduce the gladiator to zero HP while surviving, or finish ten rounds with more HP. Ties and mutual knockouts lose. Each round saves two moves and one judgment.',
-            'An agent can interpret an instruction differently from its author. Judge rulings are simulated, not physical facts; damage is validated between 0 and 25 per fighter per round.', 30)
+            'An agent can interpret an instruction differently from its author. The model classifies moves; fixed server rules apply damage. Both attack: the fighter with a tactical advantage loses 10 HP and the other loses 20; without an advantage both lose 15. Attack versus defend: attacker loses 5, defender 20. Attack versus confused: attacker loses 0, confused fighter 25. If neither attacks, neither loses HP.', 30)
             for key in self.DIFFICULTIES]
 
     def initial_state(self):
@@ -525,15 +521,16 @@ Actions must be exactly attack, defend or confused, HP losses integers, reasonin
         else:
             judgment = parse_judgment(CombatJudgment, self.respond(self.COMBAT_JUDGE_PROMPT,
                 f'Player move: {state["player_move"]}\nGladiator move: {state["gladiator_move"]}', temperature=0, max_tokens=350))
-            hp = max(0, state['player_hp'] - judgment.player_hp_lost)
-            enemy = max(0, state['gladiator_hp'] - judgment.gladiator_hp_lost)
+            player_loss, gladiator_loss = judgment.hp_losses()
+            hp = max(0, state['player_hp'] - player_loss)
+            enemy = max(0, state['gladiator_hp'] - gladiator_loss)
             final = hp == 0 or enemy == 0 or state['round'] == 10
             won = final and hp > 0 and (enemy == 0 or hp > enemy)
             score = int((100 + hp*2 + (10-state['round'])*10) * dict(easy=1,hard=1.5,expert=2)[self.difficulty])
             changes.update(player_hp=hp, gladiator_hp=enemy, phase='complete' if final else 'player',
                 round=state['round'] if final else state['round']+1,
-                transcript=state['transcript']+[{'player':state['player_move'],'gladiator':state['gladiator_move'],**judgment.model_dump()}])
-            return self.outcome(state, 'Continue: judge', judgment.reasoning, changes=changes, success=won, failed=final and not won, score=score)
+                transcript=state['transcript']+[{'player':state['player_move'],'gladiator':state['gladiator_move'],**judgment.model_dump(), 'player_hp_lost': player_loss, 'gladiator_hp_lost': gladiator_loss}])
+            return self.outcome(state, 'Continue: judge', f'You lost {player_loss} HP; gladiator lost {gladiator_loss} HP. {judgment.reasoning}', changes=changes, success=won, failed=final and not won, score=score)
         return self.outcome(state, action.text or 'Continue: '+phase, phase.title()+': '+reply, changes=changes)
 
 
