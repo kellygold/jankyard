@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--suite', choices=['staged','boundaries','followup'], default='staged')
 parser.add_argument('--output', type=Path)
 parser.add_argument('--only', nargs='+', help='Run only these game names within the bounded suite')
+parser.add_argument('--levels', nargs='+', help='Run only these exact difficulty IDs')
 args = parser.parse_args()
 output = args.output or Path(f'docs/recovery/{args.suite}-calibration.json')
 from app.challenges import ChallengeRegistry
@@ -50,7 +51,7 @@ def save():
     output.write_text(json.dumps(report,indent=2)+'\n')
 
 def trial(name,difficulty,texts,label):
-    if args.only and name not in args.only:
+    if (args.only and name not in args.only) or (args.levels and difficulty not in args.levels):
         return
     game = ChallengeRegistry.get(name)({'difficulty':difficulty})
     state = game.initial_state()
