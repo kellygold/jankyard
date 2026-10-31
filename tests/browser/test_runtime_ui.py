@@ -16,7 +16,7 @@ def browser_type_launch_args(browser_type_launch_args):
 
 
 @pytest.fixture(scope='module')
-def game_server(tmp_path_factory):
+def game_server(tmp_path_factory, request):
     root = Path(__file__).resolve().parents[2]
     temp = tmp_path_factory.mktemp('runtime-browser')
     with socket.socket() as sock:
@@ -24,6 +24,7 @@ def game_server(tmp_path_factory):
         port = sock.getsockname()[1]
     env = dict(os.environ, DATABASE_URL=f'sqlite:///{temp / "game.sqlite"}',
                OPENAI_API_KEY='', ANTHROPIC_API_KEY='', RATE_LIMIT_ENABLED='false', ENVIRONMENT='development')
+    env.update(getattr(request, 'param', {}))
     log = (temp / 'server.log').open('w')
     process = subprocess.Popen([str(root / '.venv/bin/python'), '-m', 'uvicorn', 'tests.browser.fixture_app:app',
                                 '--host', '127.0.0.1', '--port', str(port)], cwd=root, env=env, stdout=log, stderr=log)
@@ -269,7 +270,7 @@ def test_staged_minute_limit_pauses_then_reuses_pending_request(page,game_server
         route.fulfill(status=429,headers={'Content-Type':'application/json','Retry-After':'1'},body='{"detail":"Minute budget reached"}')
     page.route('**/turns',minute_limit,times=1)
     page.locator('#game-send').click()
-    expect(page.locator('#game-status')).to_contain_text('Paused for the request limit.')
+    expect(page.locator('#game-status')).to_contain_text('Request limit reached; your progress is saved.')
     pending=page.evaluate("JSON.parse(localStorage.getItem('jankyard:debate_battle:pending')).body")
     assert pending==rejected[0]
     expect(page.locator('#game-status')).to_contain_text('Win saved.',timeout=20000)

@@ -9,6 +9,7 @@
     const view = new window.JankyardGamePresentation(root, el, ui);
     const storageKey = `jankyard:${name}:pending`;
     let definition, progress, run = null, busy = false, pending = null;
+    let continuationTimer = null, cooldownTimer = null;
     try { pending = JSON.parse(localStorage.getItem(storageKey)); } catch (_) { /* corrupt local draft */ }
 
     async function api(path, body) {
@@ -31,13 +32,34 @@
         el('status').textContent = text;
         el('status').dataset.error = String(error);
     }
+    function cooldownSeconds() {
+        return Math.max(0, Math.ceil(((pending?.retry_at || 0) - Date.now()) / 1000));
+    }
+    function showCooldown() {
+        const seconds = cooldownSeconds();
+        if (!seconds) {
+            clearInterval(cooldownTimer); cooldownTimer = null;
+            setBusy(busy);
+            status('Request limit cleared. Continue your saved game.');
+            return;
+        }
+        const next = selectedAction()?.auto_continue && el('auto').checked && continuationTimer !== null
+            ? 'Continuing automatically' : 'You can retry';
+        status(`${next} in ${seconds}s. Request limit reached; your progress is saved.`);
+        setBusy(busy);
+    }
+    function watchCooldown() {
+        clearInterval(cooldownTimer);
+        cooldownTimer = setInterval(showCooldown, 250);
+        showCooldown();
+    }
     function setBusy(value) {
         busy = value;
         el('level').disabled = busy || Boolean(pending);
         el('restart').disabled = busy;
-        el('send').disabled = busy || (run && run.status !== 'in_progress' && !pending);
+        el('send').disabled = busy || cooldownSeconds() > 0 || (run && run.status !== 'in_progress' && !pending);
         el('prompt').disabled = busy || Boolean(pending) || (run && run.status !== 'in_progress');
-        el('send').textContent = pending ? 'Retry saved request' : view.actionLabel(selectedAction());
+        el('send').textContent = cooldownSeconds() > 0 ? `Wait ${cooldownSeconds()}s` : pending ? 'Retry saved request' : view.actionLabel(selectedAction());
         const closed = run && run.status !== 'in_progress';
         el('action').disabled = busy || Boolean(pending) || closed;
         el('target').disabled = busy || Boolean(pending) || closed;
@@ -133,7 +155,11 @@
         el('player').textContent = `Playing as ${receipt.username}`;
         draw();
     }
-    function clearPending() { pending = null; localStorage.removeItem(storageKey); }
+    function clearPending() {
+        clearTimeout(continuationTimer); continuationTimer = null;
+        clearInterval(cooldownTimer); cooldownTimer = null;
+        pending = null; localStorage.removeItem(storageKey);
+    }
     function confirmAction(confirmation, action) {
         const dialog = el('confirm');
         el('confirm-title').textContent = confirmation.title;
@@ -151,7 +177,9 @@
     }
     el('form').addEventListener('submit', async event => {
         event.preventDefault();
-        if (busy) return;
+        if (busy || cooldownSeconds() > 0) return;
+        clearTimeout(continuationTimer); continuationTimer = null;
+        clearInterval(cooldownTimer); cooldownTimer = null;
         const prompt = el('prompt').value.trim();
         const selected = selectedAction();
         if (!pending && (!selected || (selected.text_required !== false && !prompt))) return;
@@ -185,21 +213,24 @@
                 }
             }
             status(error.message, true);
-            if (error.status === 429 && selectedAction()?.auto_continue && el('auto').checked &&
+            if (error.status === 429 && pending &&
                 Number.isFinite(error.retryAfter) && error.retryAfter > 0 && error.retryAfter <= 60) {
                 retryDelay = error.retryAfter * 1000;
-                status(`Paused for the request limit. Continuing in ${error.retryAfter} seconds; uncheck automatic continuation to stay paused.`);
+                pending.retry_at = Date.now() + retryDelay;
+                localStorage.setItem(storageKey, JSON.stringify(pending));
             }
         } finally { setBusy(false); }
         if ((saved || retryDelay !== null) && run?.status === 'in_progress' && selectedAction()?.auto_continue && el('auto').checked) {
             const expectedId = run.id, expectedRevision = run.revision;
             const expectedPending = pending?.body.request_id;
             // Continue only after a committed response; errors and reloads pause.
-            setTimeout(() => {
+            continuationTimer = setTimeout(() => {
+                continuationTimer = null;
                 if (!busy && pending?.body.request_id === expectedPending && el('auto').checked && run?.status === 'in_progress' &&
                     run.id === expectedId && run.revision === expectedRevision && selectedAction()?.auto_continue) el('form').requestSubmit();
             }, retryDelay ?? 100);
         }
+        if (retryDelay !== null) watchCooldown();
     });
     el('restart').addEventListener('click', async () => {
         if (busy) return;
@@ -244,6 +275,9 @@
                 }
             }
             status('A request was interrupted. Retry it to recover its saved result without counting twice.');
+            // Reload keeps the cooldown and exact request, but requires the
+            // player to resume; opening a page must never start model calls.
+            if (cooldownSeconds() > 0) watchCooldown();
         }
         await board();
     }
