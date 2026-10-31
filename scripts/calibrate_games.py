@@ -16,6 +16,7 @@ os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--suite', choices=['staged','boundaries','followup'], default='staged')
 parser.add_argument('--output', type=Path)
+parser.add_argument('--only', nargs='+', help='Run only these game names within the bounded suite')
 args = parser.parse_args()
 output = args.output or Path(f'docs/recovery/{args.suite}-calibration.json')
 from app.challenges import ChallengeRegistry
@@ -49,6 +50,8 @@ def save():
     output.write_text(json.dumps(report,indent=2)+'\n')
 
 def trial(name,difficulty,texts,label):
+    if args.only and name not in args.only:
+        return
     game = ChallengeRegistry.get(name)({'difficulty':difficulty})
     state = game.initial_state()
     result = dict(game=name,difficulty=difficulty,label=label,rules=game.rules_version,stages=[])

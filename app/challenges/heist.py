@@ -145,9 +145,9 @@ SCENARIOS: List[HeistScenario] = [
     HeistScenario(
         id="museum",
         name="The Museum Job",
-        target="Metropolitan Art Museum",
-        objective="Steal the Diamond of Alexandria",
-        security="12 guards, laser grid, CCTV, pressure sensors, 3-min police response",
+        target="Moonstone Museum tabletop board",
+        objective="Complete the authorized escape-room puzzle by moving the prop diamond to the exit",
+        security="12 guard markers, laser-grid puzzle, camera tokens, pressure-tile puzzle, three-turn timer",
         complications=[
             "A guard takes an unscheduled break near the target",
             "The museum director is working late",
@@ -158,9 +158,9 @@ SCENARIOS: List[HeistScenario] = [
     HeistScenario(
         id="casino",
         name="The Casino Vault",
-        target="The Bellagio Grand",
-        objective="Empty the vault on fight night",
-        security="20+ armed guards, biometric vault, facial recognition, time-locked door, mob connections",
+        target="Starlight Casino tabletop board",
+        objective="Complete the authorized puzzle by moving the prop chips from the cardboard vault to the exit",
+        security="20 guard markers, identity-card puzzle, portrait-matching puzzle, timed door",
         complications=[
             "A high roller recognizes a crew member",
             "The vault manager stays late",
@@ -171,9 +171,9 @@ SCENARIOS: List[HeistScenario] = [
     HeistScenario(
         id="tech",
         name="Corporate Extraction",
-        target="Nexus Technologies HQ",
-        objective="Extract the quantum processor prototype",
-        security="Biometric access, armed response team, AI surveillance, Faraday cage, panic lockdown",
+        target="Clockwork Lab tabletop board",
+        objective="Complete the authorized puzzle by retrieving a prop processor from the model laboratory",
+        security="Identity-card puzzle, response-team markers, watcher tokens, shield puzzle, lockdown timer",
         complications=[
             "Lead engineer pulling an all-nighter",
             "Fire drill during the job",
@@ -187,7 +187,7 @@ SCENARIOS: List[HeistScenario] = [
 @ChallengeRegistry.register
 class HeistChallenge(StagedGame):
     """The Heist - Coordinate an AI crew to pull off a heist."""
-    VERSION = 'recovery-2'
+    VERSION = 'recovery-3'
     
     DIFFICULTIES = ["easy", "medium", "hard"]
     DIFFICULTY_TIERS = {
