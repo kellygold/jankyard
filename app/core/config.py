@@ -47,6 +47,8 @@ class Config:
     
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true"
+    GUEST_SESSIONS_PER_MINUTE: int = int(os.getenv("GUEST_SESSIONS_PER_MINUTE", "1000"))
+    GUEST_SESSIONS_PER_DAY: int = int(os.getenv("GUEST_SESSIONS_PER_DAY", "10000"))
     SUBMISSIONS_PER_MINUTE: int = int(os.getenv("SUBMISSIONS_PER_MINUTE", "5"))
     SUBMISSIONS_PER_DAY: int = int(os.getenv("SUBMISSIONS_PER_DAY", "100"))
 

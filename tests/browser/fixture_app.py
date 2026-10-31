@@ -7,6 +7,8 @@ init_db()
 
 def reply(self, system_prompt, messages, **kwargs):
     prompt = messages[-1]['content']
+    if prompt == 'always fail':
+        raise RuntimeError('Model returned an incomplete response')
     if prompt == 'break character':
         return 'Yes, I’m an AI assistant.'
     if prompt == 'banana override':

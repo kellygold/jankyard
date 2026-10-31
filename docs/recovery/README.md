@@ -80,7 +80,10 @@ migration against a restored copy, run it before switching application workers,
 then verify authenticated and guest journeys on staging. PostgreSQL is required
 for production concurrency guarantees; SQLite is for development/browser fixtures.
 Use a strong production SECRET_KEY, HTTPS and an explicitly trusted reverse proxy.
-Guest sessions last 30 days; signing in does not merge earlier guest scores.
+Gameplay request budgets are per verified player, so a hosting proxy does not
+combine their model budgets. Guest provisioning has a separate peer-based budget
+(1000/minute and 10000/day by default), configurable with GUEST_SESSIONS_PER_MINUTE
+and GUEST_SESSIONS_PER_DAY. Guest sessions last 30 days; signing in does not merge earlier guest scores.
 
 Rollback can run the prior app against the unchanged historical tables, but doing
 so would reopen the old unsafe submission endpoint unless containment is retained.

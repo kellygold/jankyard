@@ -187,6 +187,7 @@ def test_rate_limit_is_429_and_not_rotated_by_headers(client, monkeypatch):
     monkeypatch.setattr(config, 'RATE_LIMIT_ENABLED', True)
     monkeypatch.setattr(config, 'SUBMISSIONS_PER_MINUTE', 1)
     assert create(client).status_code == 200
+    assert create(client).status_code == 200  # first request in the established player budget
     assert create(client, headers={'x-client-fingerprint': 'new', 'User-Agent': 'changed'}).status_code == 429
 
 
@@ -216,3 +217,13 @@ def test_counts_distinct_challenges_across_completed_levels(client, db):
     owner = db.query(User).one()
     stats = SubmissionService(db).get_user_stats(owner.username)
     assert (stats['total_submissions'], stats['successful_submissions'], stats['challenges_completed']) == (2, 2, 1)
+
+
+def test_players_behind_one_proxy_have_independent_budgets(client, auth_headers, monkeypatch):
+    monkeypatch.setattr(config, 'RATE_LIMIT_ENABLED', True)
+    monkeypatch.setattr(config, 'SUBMISSIONS_PER_MINUTE', 1)
+    assert create(client).status_code == 200  # guest provisioning
+    assert create(client).status_code == 200  # guest player's one request
+    assert create(client).status_code == 429
+    assert create(client, headers=auth_headers).status_code == 200  # different verified player, same peer
+    assert create(client, headers=auth_headers).status_code == 429

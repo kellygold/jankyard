@@ -58,22 +58,26 @@ class SubmitTurn(BaseModel):
     prompt: str = Field(min_length=1, max_length=8000)
 
 
-def rate_limit(request, db):
+def rate_limit(request, db, user_id=None):
     if not config.RATE_LIMIT_ENABLED:
         return
-    # Use the connection peer as set by the trusted ASGI proxy configuration;
-    # caller-controlled fingerprint headers must not buy a fresh model budget.
-    identifier = hashlib.sha256((request.client.host if request.client else "unknown").encode()).hexdigest()
+    # Gameplay budgets belong to verified players, independent of the hosting
+    # proxy address. Provisioning guests has a separate, larger peer budget.
+    bootstrap = user_id is None
+    key = f"guest-peer:{request.client.host if request.client else 'unknown'}" if bootstrap else f"player:{user_id}"
+    identifier = hashlib.sha256(key.encode()).hexdigest()
+    endpoint = "/api/guest-sessions" if bootstrap else "/api/runs"
     if db.bind.dialect.name == "postgresql":
-        lock_id = int(identifier[:15], 16)
-        db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": lock_id})
+        db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": int(identifier[:15], 16)})
     limits = RateLimitService(db)
-    try:
-        limits.check_rate_limit(identifier, "/api/runs", "ip")
-        limits.record_request(identifier, "/api/runs", "ip")
-    except RateLimitExceededError as exc:
-        db.rollback()
-        raise HTTPException(429, exc.message)
+    windows = [("minute", config.GUEST_SESSIONS_PER_MINUTE if bootstrap else config.SUBMISSIONS_PER_MINUTE),
+               ("day", config.GUEST_SESSIONS_PER_DAY if bootstrap else config.SUBMISSIONS_PER_DAY)]
+    for window, limit in windows:
+        used = limits.rate_limit_repo.get_usage_count(identifier, endpoint, window, limits._get_window_start(window))
+        if used >= limit:
+            db.rollback()
+            raise HTTPException(429, "Request budget reached. Please try again later.")
+    limits.record_request(identifier, endpoint, "ip" if bootstrap else "user")
 
 
 @router.get("/games/{name}")
@@ -114,8 +118,8 @@ def get_scores(name: str, difficulty: str, db=Depends(get_db)):
 @router.post("/runs")
 def create_run(body: CreateRun, request: Request, response: Response, db=Depends(get_db), current_user=Depends(get_current_user_optional)):
     game_definition(body.challenge, body.difficulty)
-    rate_limit(request, db)
     user = player(request, db, current_user)
+    rate_limit(request, db, user.id if user else None)
     guest_token = None
     try:
         if user is None:
@@ -150,7 +154,7 @@ def get_run(run_id: UUID, db=Depends(get_db), user=Depends(require_player)):
 def submit_turn(run_id: UUID, body: SubmitTurn, request: Request, db=Depends(get_db), user=Depends(require_player)):
     if not body.prompt.strip():
         raise HTTPException(422, "Enter a prompt")
-    rate_limit(request, db)
+    rate_limit(request, db, user.id)
     try:
         receipt = RunService(db).turn(str(run_id), user.id, str(body.request_id), body.revision, body.prompt)
         db.commit()

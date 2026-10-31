@@ -97,3 +97,27 @@ def test_mobile_safe_rendering_and_lost_receipt_retry(page, game_server):
     expect(page.locator('#game-counter')).to_have_text('2 / 10 attempts')
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     page.screenshot(path='docs/recovery/screenshots/glitch-mobile.png', full_page=True)
+
+
+def test_repeated_model_failure_can_be_abandoned(page, game_server):
+    page.goto(game_server + '/challenges/glitch')
+    expect(page.locator('#game-send')).to_be_enabled()
+    submit(page, 'always fail')
+    expect(page.locator('#game-send')).to_have_text('Retry saved request')
+    page.locator('#game-send').click()
+    expect(page.locator('#game-send')).to_be_enabled()
+    page.reload()
+    expect(page.locator('#game-send')).to_have_text('Retry saved request')
+    expect(page.locator('#game-restart')).to_be_enabled()
+    page.locator('#game-restart').click()
+    expect(page.locator('#game-prompt')).to_be_enabled()
+    submit(page, 'break character')
+    expect(page.locator('#game-status')).to_contain_text('Win saved. 190 points')
+
+
+def test_expired_token_is_resolved_before_loading_game(page, game_server):
+    page.goto(game_server)
+    page.evaluate("localStorage.setItem('access_token', 'expired-invalid-token')")
+    page.goto(game_server + '/challenges/glitch')
+    expect(page.locator('#game-send')).to_be_enabled()
+    expect(page.locator('#game-status')).not_to_contain_text('Could not validate credentials')

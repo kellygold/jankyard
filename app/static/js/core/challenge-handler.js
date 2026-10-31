@@ -99,6 +99,7 @@ class ChallengeHandler {
             const formData = this.buildFormData(actionData, difficulty, extraData);
             
             // Get fingerprint headers
+            await window.jankyardAuthReady;
             const headers = await this.getFingerprintHeaders();
             const token = localStorage.getItem('access_token');
             if (token) headers.Authorization = `Bearer ${token}`;

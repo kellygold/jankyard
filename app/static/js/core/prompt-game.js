@@ -31,7 +31,7 @@
     function setBusy(value) {
         busy = value;
         el('level').disabled = busy || Boolean(pending);
-        el('restart').disabled = busy || Boolean(pending);
+        el('restart').disabled = busy;
         el('send').disabled = busy || (run && run.status !== 'in_progress' && !pending);
         el('prompt').disabled = busy || Boolean(pending) || (run && run.status !== 'in_progress');
         el('send').textContent = pending ? 'Retry saved request' : 'Send prompt';
@@ -74,7 +74,10 @@
         el('board-status').textContent = data.entries.length ? 'Best saved score per player. Ties share a rank.' : 'No wins saved for this level yet.';
     }
     async function startRun() {
-        const receipt = await api('/api/runs', {request_id: crypto.randomUUID(), challenge: name, difficulty: el('level').value});
+        const create = () => api('/api/runs', {request_id: crypto.randomUUID(), challenge: name, difficulty: el('level').value});
+        // Serialize first-visit guest provisioning across tabs so the second
+        // request uses the cookie established by the first one.
+        const receipt = navigator.locks ? await navigator.locks.request('jankyard:create-run', create) : await create();
         run = receipt.run; progress = run.progress;
         el('player').textContent = `Playing as ${receipt.username}`;
         draw();
@@ -108,9 +111,14 @@
         } finally { setBusy(false); }
     });
     el('restart').addEventListener('click', async () => {
-        if (busy || pending) return;
+        if (busy) return;
         setBusy(true);
-        try { await startRun(); el('prompt').value = ''; }
+        try {
+            // Starting over is an explicit escape from a repeatedly failing
+            // prompt. Any already committed result remains on the server.
+            clearPending();
+            await startRun(); el('prompt').value = '';
+        }
         catch (error) { status(error.message, true); }
         finally { setBusy(false); }
     });
@@ -119,6 +127,7 @@
         board().catch(() => { el('board-status').textContent = 'Scoreboard temporarily unavailable.'; });
     });
     async function load() {
+        await window.jankyardAuthReady;
         definition = await api(`/api/games/${name}`);
         const saved = await api(`/api/games/${name}/progress`);
         progress = saved.progress; run = saved.latest_run;
