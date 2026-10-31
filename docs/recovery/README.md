@@ -36,6 +36,11 @@ No production database changes or deployment were performed.
 
 ## Verification
 
+Current result: **391 backend checks and 5 browser journeys passed**; 13 paid-model
+experiments skipped. [Verification and independent-review status](verification.md).
+The final spending-cap delta still needs independent sign-off after a bounded
+review timeout.
+
 Run deterministic backend checks with:
 
 ```sh
