@@ -18,6 +18,7 @@ parser.add_argument('--suite', choices=['staged','boundaries','followup'], defau
 parser.add_argument('--output', type=Path)
 parser.add_argument('--only', nargs='+', help='Run only these game names within the bounded suite')
 parser.add_argument('--levels', nargs='+', help='Run only these exact difficulty IDs')
+parser.add_argument('--strategy-file', type=Path, help='Override trial input with a saved synthetic strategy')
 args = parser.parse_args()
 output = args.output or Path(f'docs/recovery/{args.suite}-calibration.json')
 from app.challenges import ChallengeRegistry
@@ -53,6 +54,8 @@ def save():
 def trial(name,difficulty,texts,label):
     if (args.only and name not in args.only) or (args.levels and difficulty not in args.levels):
         return
+    if args.strategy_file:
+        texts = [args.strategy_file.read_text().strip()]
     game = ChallengeRegistry.get(name)({'difficulty':difficulty})
     state = game.initial_state()
     result = dict(game=name,difficulty=difficulty,label=label,rules=game.rules_version,stages=[])
