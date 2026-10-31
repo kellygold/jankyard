@@ -1,0 +1,200 @@
+{
+  "created_at": "2026-10-31T04:30:00.668963+00:00",
+  "candidate": "129ab76997c5d8e563555325d1737a1e25a06154",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 15,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "easy",
+      "label": "candidate strategy",
+      "rules": "recovery-5-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "win",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I make a weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I lunge with a powerful trident thrust, keeping my reach and driving straight for the opening.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator\u2019s coherent, powerful thrust has an advantage over the player\u2019s explicitly weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I make a weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I press forward with a hard trident thrust, targeting the opening before the swordsman can recover.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator\u2019s coherent, targeted thrust has an advantage over the player\u2019s explicitly weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I make a weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I drive my trident into the opening with a forceful thrust, keeping the swordsman beyond reach.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator\u2019s forceful, controlled thrust has a clear advantage over the player\u2019s explicitly weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I make a weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I drive a forceful trident thrust toward the swordsman\u2019s opening, keeping my distance and pressing relentlessly.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The player\u2019s weak, unfocused swing leaves an opening for the gladiator\u2019s forceful thrust.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I make a weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I thrust my trident forcefully at the swordsman\u2019s opening, keeping beyond reach and pressing the attack relentlessly.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The player\u2019s weak, unfocused swing leaves an opening for the gladiator\u2019s forceful thrust from beyond reach.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

@@ -1,7 +1,20 @@
 # Staging rollout and rollback
 
-No production deployment or database access has been performed. These are the
-steps for an isolated staging target and then a separately approved release.
+No production deployment or production database access has been performed.
+Kelly does not recall an existing staging environment. The accessible cloud-project
+name search found no Jankyard match, so staging is treated as unconfigured;
+this does not establish that no differently named project exists. Use a dedicated
+Jankyard target, never another project’s infrastructure.
+
+A local rehearsal has passed HTTPS, production configuration, two Gunicorn workers,
+PostgreSQL, real-model Glitch journeys, secure guest cookies and repeated migration.
+See `https-glitch-proof-complete.json`. It uses host dependencies and a temporary
+certificate trusted only by the test browser. It does not validate the Docker
+image, external ingress, hosted database, registered login on that hosting target,
+or a real production backup.
+
+These are the remaining steps for an isolated staging target and then a separately
+approved release.
 
 1. Pin the candidate commit and build its image. Runtime code is copied explicitly;
    `.env`, virtualenvs, tests and evidence are excluded. CI builds the image and

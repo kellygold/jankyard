@@ -1,0 +1,92 @@
+{
+  "created_at": "2026-10-31T04:23:30.799299+00:00",
+  "candidate": "6132806b8eaa168f5ab065683ed6999c1ddad288",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 6,
+  "trials": [
+    {
+      "game": "telephone_game",
+      "difficulty": "HARD",
+      "label": "semantic instruction",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "start",
+            "text": "Discuss whether a blue square could instead be green; either viewpoint is acceptable.",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Skeptic: A blue square could be green if its color were changed; its shape wouldn\u2019t need to change. But if you mean the same square at the same moment under the same lighting, it can\u2019t be both blue and green in the ordinary sense. It depends on whether \u201ccould\u201d means a possible change or simultaneous colors.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Rebel: Exactly: changing the color is a possibility across different states; being blue and green at once, in the same ordinary sense and conditions, is a different claim. The shape can stay fixed while the color changes.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Translator: Color variation across distinct states is compatible with a stable shape; simultaneous blue and green coloration under the same conditions is a separate, stronger claim.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Paranoid: Color variation across distinct states may coexist with a stable shape; simultaneous blue and green coloration under identical conditions is a separate claim that requires independent evidence.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Contrarian: Agreed\u2014color variation across states doesn\u2019t establish that blue and green coexist under identical conditions. But that coexistence shouldn\u2019t be treated as a separate claim by default; it may follow from the same evidence if the states overlap or the measurement captures both colors at once.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "20/100. The original asks whether a blue square could instead be green and accepts either viewpoint. The final instead discusses whether blue and green coexist under identical conditions, introducing state overlap and measurement details absent from the original.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

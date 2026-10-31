@@ -1,0 +1,41 @@
+{
+  "application_head": "129ab76997c5d8e563555325d1737a1e25a06154",
+  "tested_head": "f2b2ff05ea8d238cbbaed615f97de616fe913ea6",
+  "application_unchanged_since_review_head": true,
+  "results": {
+    "backend": {
+      "tests": 463,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 13,
+      "passed": 450,
+      "seconds": 18.487
+    },
+    "browser": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 16,
+      "seconds": 18.192
+    }
+  },
+  "https_postgres_live": "passed: six saved turns, three wins, three controls, six receipt replays, twelve turn admissions",
+  "external_staging": "unconfigured; no deployment performed",
+  "compile": "passed",
+  "whitespace": "passed",
+  "independent_review": {
+    "verdict": "no P0/P1 blockers in reviewed application delta",
+    "seconds": 220.57,
+    "budget_seconds": 900
+  },
+  "docker": "not executed: daemon unavailable",
+  "remote_ci": "not executed",
+  "cleanup": {
+    "local_https_workers": "stopped",
+    "owned_postgres_tables_remaining": 0,
+    "owned_postgres_server": "stopped",
+    "completed_review_worktrees": "removed after preserving verdicts",
+    "original_checkout": "clean and unchanged"
+  }
+}

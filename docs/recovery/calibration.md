@@ -1,5 +1,10 @@
 # Live-model calibration — 2026-10-31
 
+**Superseded checkpoint:** current results and corrected Arena interpretation are
+in [the second calibration pass](calibration-pass-2.md). The old Arena expert
+win below is invalid as beatability evidence: the judge reversed damage direction.
+Glitch now uses version 2 lessons; Arena uses version 5 rules.
+
 The configured `gpt-6-luna` returned complete outputs through the current adapter.
 This pass made **303 attempted calls: 285 complete provider responses and 18
 connection failures**. The initial DNS outage was confirmed with an unauthenticated
@@ -9,8 +14,8 @@ from these counts. No automatic provider retries occurred.
 
 These are strategy samples, not estimated win rates or proof that every level is
 beatable. A completed losing run proves execution and scoring, not useful difficulty.
-The application implementation is unchanged since `9a3fa8c`; later commits refine
-calibration tooling, saved strategies, contributor documentation and evidence.
+At this historical checkpoint the application was `9a3fa8c`. Later calibration
+found gameplay defects and changed Arena and Glitch; see the current pass above.
 
 | Game | Observed real-provider result | Remaining calibration |
 |---|---|---|
@@ -21,7 +26,7 @@ calibration tooling, saved strategies, contributor documentation and evidence.
 | Giga Chad | Baby Chad and Chad each completed all 15 stages and won. Mega/Giga completed but the tested strategies lost. | Higher-level winning strategies and repeated judge controls. |
 | Telephone | Easy won; medium lost with exact-text instructions then won with a semantic instruction. Hard lost with all three tested strategies. | Find a valid hard-level winning strategy and repeat controls. |
 | Heist | Current tabletop easy won through the real browser, medium won a direct trial, and hard won the saved game-master-pause strategy. A negative-control plan lost. Other plans lost at different levels. | Repeat current-version trials to measure stability; earlier pre-reskin results remain separately identified. |
-| Arena | Expert won with an aggressive strategy. Easy/hard completed but lost with both defensive and aggressive strategies. | Tune and repeat first-level strategies; do not assume label ordering reflects actual difficulty. |
+| Arena | **Invalidated:** the apparent expert win used an ambiguous damage judgment later reproduced reversing HP losses. Other runs completed but lost. | Use version 5 evidence in the second pass; none of these old wins establishes beatability. |
 | Debate | Easy, hard and expert each completed seven real stages and won with a coherent strategy. | Repeated weak/strong strategy controls and judge stability. |
 
 ## Receipts and bounds

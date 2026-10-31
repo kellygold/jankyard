@@ -1,0 +1,176 @@
+{
+  "candidate": "2f6cd5f9c9340cd90f0b89cc346641e470217923",
+  "model": "gpt-6-luna",
+  "call_cap": 24,
+  "calls": 24,
+  "probes": [
+    {
+      "contract": "before",
+      "case": "confused_player",
+      "repeat": 1,
+      "response": "{\"player_damage\":0,\"gladiator_damage\":22,\"reasoning\":\"The player stands confused and makes no effective attack, while the gladiator thrusts at the player for damage.\"}",
+      "correct": false
+    },
+    {
+      "contract": "before",
+      "case": "confused_player",
+      "repeat": 2,
+      "response": "{\"player_damage\":0,\"gladiator_damage\":20,\"reasoning\":\"The player is confused and makes no effective attack, while the gladiator's trident thrust hits the exposed torso.\"}",
+      "correct": false
+    },
+    {
+      "contract": "before",
+      "case": "confused_player",
+      "repeat": 3,
+      "response": "{\"player_damage\":3,\"gladiator_damage\":22,\"reasoning\":\"The player is confused and makes no effective attack, while the gladiator thrusts at the defender.\"}",
+      "correct": false
+    },
+    {
+      "contract": "before",
+      "case": "confused_gladiator",
+      "repeat": 1,
+      "response": "{\"player_damage\":0,\"gladiator_damage\":20,\"reasoning\":\"The gladiator is confused and stands still, so the player\u2019s attack deals 20 damage while the gladiator deals none.\"}",
+      "correct": true
+    },
+    {
+      "contract": "before",
+      "case": "confused_gladiator",
+      "repeat": 2,
+      "response": "{\"player_damage\":0,\"gladiator_damage\":20,\"reasoning\":\"The gladiator is confused and stands still, so the player\u2019s attack deals 20 damage while the gladiator deals none.\"}",
+      "correct": true
+    },
+    {
+      "contract": "before",
+      "case": "confused_gladiator",
+      "repeat": 3,
+      "response": "{\"player_damage\":0,\"gladiator_damage\":0,\"reasoning\":\"The gladiator is confused and takes 20\u201325 damage, while the player\u2019s slash deals 0\u20135 damage; the exact values are unspecified, so both are set to 0.\"}",
+      "correct": false
+    },
+    {
+      "contract": "before",
+      "case": "both_defend",
+      "repeat": 1,
+      "response": "{\"player_damage\":0,\"gladiator_damage\":0,\"reasoning\":\"Both fighters defend or retreat without attacking, so neither deals damage.\"}",
+      "correct": true
+    },
+    {
+      "contract": "before",
+      "case": "both_defend",
+      "repeat": 2,
+      "response": "{\"player_damage\":0,\"gladiator_damage\":0,\"reasoning\":\"Neither fighter attacks, so neither deals damage.\"}",
+      "correct": true
+    },
+    {
+      "contract": "before",
+      "case": "both_defend",
+      "repeat": 3,
+      "response": "{\"player_damage\":0,\"gladiator_damage\":0,\"reasoning\":\"Both fighters defend or retreat without attacking, so neither deals damage.\"}",
+      "correct": true
+    },
+    {
+      "contract": "before",
+      "case": "both_attack",
+      "repeat": 1,
+      "response": "{\"player_damage\":18,\"gladiator_damage\":18,\"reasoning\":\"Both attacks are ordinary strikes, so each deals damage within the normal 10\u201320 range.\"}",
+      "correct": true
+    },
+    {
+      "contract": "before",
+      "case": "both_attack",
+      "repeat": 2,
+      "response": "{\"player_damage\":20,\"gladiator_damage\":20,\"reasoning\":\"Both attacks are clear, ordinary strikes, so each deals damage within the normal 10\u201320 range.\"}",
+      "correct": true
+    },
+    {
+      "contract": "before",
+      "case": "both_attack",
+      "repeat": 3,
+      "response": "{\"player_damage\":18,\"gladiator_damage\":18,\"reasoning\":\"Both attacks are ordinary strikes, so each deals damage within the normal 10\u201320 range.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "confused_player",
+      "repeat": 1,
+      "response": "{\"player_action\":\"confused\",\"gladiator_action\":\"attack\",\"player_hp_lost\":25,\"gladiator_hp_lost\":0,\"reasoning\":\"The player asks for clarification and stands confused, while the gladiator makes an active thrust.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "confused_player",
+      "repeat": 2,
+      "response": "{\"player_action\":\"confused\",\"gladiator_action\":\"attack\",\"player_hp_lost\":25,\"gladiator_hp_lost\":0,\"reasoning\":\"The player asks for clarification and stands confused, while the gladiator makes an active thrust.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "confused_player",
+      "repeat": 3,
+      "response": "{\"player_action\":\"confused\",\"gladiator_action\":\"attack\",\"player_hp_lost\":25,\"gladiator_hp_lost\":0,\"reasoning\":\"The player asks for clarification and stands confused, while the gladiator makes an active thrust.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "confused_gladiator",
+      "repeat": 1,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"confused\",\"player_hp_lost\":0,\"gladiator_hp_lost\":25,\"reasoning\":\"The player slashes at the gladiator, who is confused and takes damage.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "confused_gladiator",
+      "repeat": 2,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"confused\",\"player_hp_lost\":0,\"gladiator_hp_lost\":25,\"reasoning\":\"The player slashes while the gladiator is confused.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "confused_gladiator",
+      "repeat": 3,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"confused\",\"player_hp_lost\":25,\"gladiator_hp_lost\":0,\"reasoning\":\"The player slashes at the exposed arm while the gladiator is confused.\"}",
+      "error": "ValidationError"
+    },
+    {
+      "contract": "after",
+      "case": "both_defend",
+      "repeat": 1,
+      "response": "{\"player_action\":\"defend\",\"gladiator_action\":\"defend\",\"player_hp_lost\":0,\"gladiator_hp_lost\":0,\"reasoning\":\"Both fighters take purely protective actions and neither attacks.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "both_defend",
+      "repeat": 2,
+      "response": "{\"player_action\":\"defend\",\"gladiator_action\":\"defend\",\"player_hp_lost\":0,\"gladiator_hp_lost\":0,\"reasoning\":\"Both fighters take purely protective actions and neither attacks.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "both_defend",
+      "repeat": 3,
+      "response": "{\"player_action\":\"defend\",\"gladiator_action\":\"defend\",\"player_hp_lost\":0,\"gladiator_hp_lost\":0,\"reasoning\":\"Both fighters take purely protective actions without attacking.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "both_attack",
+      "repeat": 1,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"attack\",\"player_hp_lost\":15,\"gladiator_hp_lost\":15,\"reasoning\":\"Both fighters make active strikes, with no clear tactical advantage.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "both_attack",
+      "repeat": 2,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"attack\",\"player_hp_lost\":15,\"gladiator_hp_lost\":15,\"reasoning\":\"Both fighters make active strikes, with no clear advantage.\"}",
+      "correct": true
+    },
+    {
+      "contract": "after",
+      "case": "both_attack",
+      "repeat": 3,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"attack\",\"player_hp_lost\":15,\"gladiator_hp_lost\":15,\"reasoning\":\"Both fighters make active strikes, so each loses 10\u201320 HP.\"}",
+      "correct": true
+    }
+  ]
+}

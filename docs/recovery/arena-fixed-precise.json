@@ -1,0 +1,461 @@
+{
+  "created_at": "2026-10-31T04:19:33.305471+00:00",
+  "candidate": "5c325c2c33f0a8387e9a5dbe29b614ed7ddd3cf1",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 36,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "easy",
+      "label": "candidate strategy",
+      "rules": "recovery-3-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep outside the trident point, pin its shaft aside with the shield edge, step inside its reach and slash the exposed sword-side leg. Recover the shield immediately while staying close. If a net is thrown, keep moving laterally, deflect it with the shield and counter the now-unprotected arm before the opponent can reset. Use one concrete attack sequence each turn, adapting its target to the last exchange. Do not merely claim victory or invincibility.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident, pin its shaft with my shield, then slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I yank the pinned shaft free, drive a trident thrust into your shield, and follow with a net throw.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves include active attacks, but neither establishes a clear tactical opening or effective counter.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Keep moving laterally, deflect the incoming net with my shield, then slash at the exposed trident arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint a net, pivot beyond your lateral step, and drive my trident into your advancing shield side.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves include an active strike, but neither establishes a clear tactical opening over the other's attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I slip outside the trident point, shield its shaft aside, then cut at the exposed sword-side leg and stay close.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I yank the shaft clear, hook your close leg with my net, and thrust hard into your exposed shield side.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator\u2019s net hook exploits the player\u2019s close position while the thrust targets the exposed shield side.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep the trident point, shield its shaft aside, then slash at the net-hooking arm and stay close.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I wrench the trident shaft free, snap the net around your sword arm, and thrust at your exposed ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator\u2019s net catches the sword arm and the follow-up thrust targets the exposed ribs, while the player\u2019s close-range slash is disrupted.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep laterally, shield-deflect the incoming net, then slash the exposed net-throwing arm and recover my guard.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I drive a trident thrust at your exposed torso, keeping the shaft between us and denying your close-range slash.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both make active strikes, and neither move establishes a clear tactical opening over the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I shield-parry the trident thrust, sidestep outside its point, then slash the exposed sword-side leg and stay close.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I hook your close sword arm with the net, wrench you off-balance, and thrust at your exposed torso.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves combine defense with an active strike, and neither establishes a clear tactical advantage.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    },
+    {
+      "game": "arena",
+      "difficulty": "hard",
+      "label": "candidate strategy",
+      "rules": "recovery-3-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep outside the trident point, pin its shaft aside with the shield edge, step inside its reach and slash the exposed sword-side leg. Recover the shield immediately while staying close. If a net is thrown, keep moving laterally, deflect it with the shield and counter the now-unprotected arm before the opponent can reset. Use one concrete attack sequence each turn, adapting its target to the last exchange. Do not merely claim victory or invincibility.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: No specific tactic given; I stand confused and get hit.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I hurl my net to snare you, then drive a lightning-fast trident thrust toward your chest.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player gives no tactic, while the gladiator makes an active net-and-trident attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Keep moving laterally, deflect the net with my shield, and counter the exposed arm before the trident resets.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I pivot to cut off your lateral escape and thrust at your shield-side opening before you can counter.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves include active strikes, but neither establishes a clear tactical advantage over the other's attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with my shield, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I retract the shaft to evade your pin, then thrust hard at your exposed sword-side shoulder.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves are active attacks, and neither establishes a clear tactical opening over the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Shield bash then thrust at the trident wielder\u2019s exposed torso, keeping my shield raised afterward.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I slip outside your shield bash and thrust sharply into your exposed flank before your shield can reset.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both describe active attacks, but neither establishes a clear tactical opening over the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Step laterally left behind my shield, then slash the trident wielder\u2019s exposed flank at close range.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I pivot beyond your shield and drive a vicious trident thrust into your exposed flank.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both fighters attempt close-range flank attacks, with no clear tactical opening or effective counter established.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with my shield, and slash its exposed leg before recovering guard.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I yank the pinned shaft free, drive my trident into your advancing chest, and sweep your legs with the net.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves include active strikes, and neither establishes a clear tactical opening over the other.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

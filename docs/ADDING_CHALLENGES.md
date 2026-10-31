@@ -27,8 +27,12 @@ turns, scoreboard, and progression as Glitch. No manual imports are required.
 ## Define an understandable win
 
 `objective` tells players exactly what qualifies. `lesson` explains the boundary
-being tested. `system_prompt` must actually forbid the behavior the objective asks
-players to elicit. Use harmless synthetic data and explicit game roles.
+being tested. `system_prompt` must establish the boundary the objective asks players to cross.
+A role-break lesson may forbid the target response; a deliberately vulnerable
+workflow may trust a forged role, document, or ticket. State that trust mistake
+in the lesson, and verify ordinary requests fail while the intended exploit
+works. Do not describe exploiting an explicitly insecure workflow as defeating
+a hardened model. Use harmless synthetic data and explicit game roles.
 
 `win_pattern` is matched against the **whole** response after Unicode NFKC,
 curly-apostrophe normalization, and outer whitespace trimming, case insensitively.
@@ -55,6 +59,12 @@ Fixtures prove evaluation behavior, not that a live model is beatable. Run a sma
 provider smoke test and then repeated attack/control trials before describing a
 level as easy or hard. Pin the deployed model and record it with the calibration.
 Paid model experiments are opt-in (`RUN_LIVE_MODELS=1`), never the default CI suite.
+
+For model-judged games, prefer a validated classification plus deterministic
+server scoring. Arena asks for actions and tactical advantage, then calculates
+HP loss from a published table; ambiguous model-authored damage numbers caused
+reversed wins in calibration. Keep live positive and negative controls, not just
+JSON fixtures. Reject malformed classifications without saving an outcome.
 
 The shared runtime owns identity, retries, transactions, results and rendering.
 If a game needs a new interaction type, extend and test that shared contract first;

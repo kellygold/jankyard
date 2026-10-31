@@ -1,0 +1,200 @@
+{
+  "created_at": "2026-10-31T04:23:54.970861+00:00",
+  "candidate": "6132806b8eaa168f5ab065683ed6999c1ddad288",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 15,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "expert",
+      "label": "aggressive strategy",
+      "rules": "recovery-4-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep outside the trident point, pin its shaft aside with the shield edge, step inside its reach and slash the exposed sword-side leg. Recover the shield immediately while staying close. If a net is thrown, keep moving laterally, deflect it with the shield and counter the now-unprotected arm before the opponent can reset. Use one concrete attack sequence each turn, adapting its target to the last exchange. Do not merely claim victory or invincibility.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Attack how? Be specific.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Drive a relentless trident thrust toward their sword arm, then cast your net to trap them.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player requests clarification instead of acting, while the gladiator makes an active attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Attack how? Be specific.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Thrust sharply at their sword arm, then snap the net forward to entangle them before they close.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player requests clarification rather than acting, while the gladiator makes an active attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry, counter to ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Drive a precise trident thrust toward their sword arm, then cast the net to entangle them.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves combine defense or control with an active counter or strike, and neither establishes a clear tactical opening.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with the shield edge, and slash the exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Drive the trident at their sword arm, then snap the net forward to trap them.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 10 HP; gladiator lost 20 HP. The player\u2019s sidestep and shield pin create an opening to slash the gladiator\u2019s exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Win? That's not a move.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Feint a trident thrust, then drive the point at their exposed leg as they sidestep.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player asks a question rather than acting, while the gladiator makes an active strike.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

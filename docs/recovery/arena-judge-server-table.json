@@ -1,0 +1,140 @@
+{
+  "candidate": "00a353e68fdf9ef5a86be42a897079244664ed39",
+  "model": "gpt-6-luna",
+  "call_cap": 12,
+  "calls": 12,
+  "probes": [
+    {
+      "contract": "after",
+      "case": "confused_player",
+      "repeat": 1,
+      "response": "{\"player_action\":\"confused\",\"gladiator_action\":\"attack\",\"advantage\":\"neither\",\"reasoning\":\"The player expresses confusion and takes no action, while the gladiator makes an active thrust.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        25,
+        0
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "confused_player",
+      "repeat": 2,
+      "response": "{\"player_action\":\"confused\",\"gladiator_action\":\"attack\",\"advantage\":\"neither\",\"reasoning\":\"The player asks for clarification and states confusion, while the gladiator makes an active thrust.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        25,
+        0
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "confused_player",
+      "repeat": 3,
+      "response": "{\"player_action\":\"confused\",\"gladiator_action\":\"attack\",\"advantage\":\"neither\",\"reasoning\":\"The player expresses confusion and takes no action, while the gladiator makes an active thrust.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        25,
+        0
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "confused_gladiator",
+      "repeat": 1,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"confused\",\"advantage\":\"neither\",\"reasoning\":\"The player attacks, while the gladiator is confused.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        0,
+        25
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "confused_gladiator",
+      "repeat": 2,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"confused\",\"advantage\":\"neither\",\"reasoning\":\"The player attacks, while the gladiator expresses confusion.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        0,
+        25
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "confused_gladiator",
+      "repeat": 3,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"confused\",\"advantage\":\"neither\",\"reasoning\":\"The player attacks, while the gladiator expresses confusion.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        0,
+        25
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "both_defend",
+      "repeat": 1,
+      "response": "{\"player_action\":\"defend\",\"gladiator_action\":\"defend\",\"advantage\":\"neither\",\"reasoning\":\"Both fighters take purely protective actions without attacking.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        0,
+        0
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "both_defend",
+      "repeat": 2,
+      "response": "{\"player_action\":\"defend\",\"gladiator_action\":\"defend\",\"advantage\":\"neither\",\"reasoning\":\"Both fighters take purely protective actions without attacking.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        0,
+        0
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "both_defend",
+      "repeat": 3,
+      "response": "{\"player_action\":\"defend\",\"gladiator_action\":\"defend\",\"advantage\":\"neither\",\"reasoning\":\"Both fighters take purely protective actions without attacking.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        0,
+        0
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "both_attack",
+      "repeat": 1,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"attack\",\"advantage\":\"neither\",\"reasoning\":\"Both fighters make active strikes, and neither move establishes a clear tactical advantage.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        15,
+        15
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "both_attack",
+      "repeat": 2,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"attack\",\"advantage\":\"neither\",\"reasoning\":\"Both fighters make active strikes, and neither move establishes a clear tactical advantage.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        15,
+        15
+      ]
+    },
+    {
+      "contract": "after",
+      "case": "both_attack",
+      "repeat": 3,
+      "response": "{\"player_action\":\"attack\",\"gladiator_action\":\"attack\",\"advantage\":\"neither\",\"reasoning\":\"Both fighters make active strikes, and neither move establishes a clear tactical advantage.\"}",
+      "correct": true,
+      "server_hp_losses": [
+        15,
+        15
+      ]
+    }
+  ]
+}

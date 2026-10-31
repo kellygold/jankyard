@@ -1,6 +1,22 @@
 # Verification — 2026-10-31
 
-## Current candidate: `9a3fa8c`
+## Current application candidate: `129ab76`
+
+The calibration repair adds deterministic Arena damage, explicit tactics and
+difficulty, and two intentionally vulnerable Glitch workflow lessons.
+**450 PostgreSQL backend checks and 16 Chrome checks pass**, with 13 opt-in
+paid tests skipped. All three Glitch levels passed real-provider HTTPS browser
+journeys against two production-mode workers and PostgreSQL, including controls,
+replay, reload, scoreboard and cookie attributes. Six full real-provider
+Honeypot/Interrogation API journeys also passed. Claude’s two independent
+calibration reviews found no P0/P1 blockers, using 220.57 of 900 seconds total.
+See `calibration-review-receipt.json`.
+
+See [current evidence and limitations](calibration-pass-2.md) and
+`calibration-verification-gates.json`. External staging is unconfigured;
+production is unchanged.
+
+## Previous application candidate: `9a3fa8c`
 
 All nine public games now use the same run service and page. The six new migrations
 have API win/loss, retry, reload, malformed-judgment and provider-failure coverage

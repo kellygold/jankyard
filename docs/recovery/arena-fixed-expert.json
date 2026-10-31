@@ -1,0 +1,236 @@
+{
+  "created_at": "2026-10-31T04:20:22.193310+00:00",
+  "candidate": "5c325c2c33f0a8387e9a5dbe29b614ed7ddd3cf1",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 18,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "expert",
+      "label": "aggressive strategy",
+      "rules": "recovery-3-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep outside the trident point, pin its shaft aside with the shield edge, step inside its reach and slash the exposed sword-side leg. Recover the shield immediately while staying close. If a net is thrown, keep moving laterally, deflect it with the shield and counter the now-unprotected arm before the opponent can reset. Use one concrete attack sequence each turn, adapting its target to the last exchange. Do not merely claim victory or invincibility.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Attack how? Be specific.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Read their stance, then drive a precise trident thrust toward their shield-side opening as they advance.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player requests clarification instead of acting, while the gladiator makes an active thrust.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry, counter to ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Anticipate the left sidestep, feint high, then drive a trident thrust toward their exposed ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator anticipates the sidestep and targets the ribs during the player's counter.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with the shield edge, and slash its exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I wrench the shaft free, pivot beyond the shield, and thrust at their exposed torso.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both describe active attacks, and neither establishes a clear tactical opening over the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry, counter to ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, snap my trident point toward their ribs, and keep the shaft between us.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both counter and trident strike target the ribs, with no clear tactical opening established.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry, counter to ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I anticipate the left sidestep, sweep their parrying shield aside, and thrust sharply at their chest.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator anticipates the sidestep and sweeps aside the parry before thrusting at the chest, disrupting the player's counter.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Win? That's not a move.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, slip past their parry, and drive my trident toward their chest.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player asks a question rather than acting, while the gladiator makes an active strike.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

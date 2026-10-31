@@ -53,16 +53,25 @@ No production database changes or deployment were performed.
   optional automatic continuation. Reloads and errors pause, and every successful
   stage is durable. Strict judgments fail closed. Arena damage and Debate scores
   are bounded; ties cannot award a win.
+- Arena uses validated action categories and a fixed server-owned damage table;
+  ambiguous model-authored damage had reversed winners. Strategies reach the player
+  each round, opponents see only prior rounds, and remaining-health percentages
+  resolve timeouts. Glitch’s advanced lessons explicitly demonstrate forged
+  moderator reviews and unverified diagnostic tickets. Rules versions preserve
+  historical scores while starting fresh leaderboards for these changes.
 - Heist now displays the complication and exact win conditions before play. Its
   unexplained random luck roll is removed; crew majority and complication
   approval determine the outcome alongside the stated plan requirements.
 
 ## Verification
 
-Current checkpoint: **437 PostgreSQL backend checks and 16 browser checks
-passed**; 13 opt-in paid-model tests skipped. Two additional real-provider browser
-journeys saved and reloaded actual wins. See [calibration evidence](calibration.md)
-for completed and interrupted live trials. [Verification and independent-review status](verification.md).
+Current checkpoint: **450 PostgreSQL backend checks and 16 browser checks
+passed**; 13 opt-in paid-model tests skipped. All three Glitch levels now pass
+real-provider browser journeys with controls, replay, reload and scores on local
+HTTPS, two production-mode workers and PostgreSQL. Arena’s tutorial passed two
+strong-strategy wins and two weak-strategy losses. Six full Honeypot/Interrogation
+real-provider API journeys also pass. See [current calibration evidence](calibration-pass-2.md)
+for exact scope and the invalidated earlier Arena result. [Verification and independent-review status](verification.md).
 The spending-cap, stateful-game, legacy-scoring and staged-migration reviews
 passed their scoped independent checks. The pacing/deployment delta is recorded
 separately in the verification log.

@@ -278,3 +278,13 @@ This was one read-only pass, well under the time cap. I didn't run tests, make n
 - I made no network calls and changed no code.
 
 Author clarification: the statement above that every rejected global request uses no budget is too broad. The per-player reservation is committed before the global check; a global rejection still costs that player an admission. It makes no provider call and preserves the global cap. This conservative ordering is unchanged and covered by the earlier review. The stacked-timer note is a minor static observation, not a reproduced loss or duplicate paid call. Run/revision/request guards and server receipts remain authoritative.
+
+
+## Arena and Glitch calibration review
+
+Application head `129ab76`; Claude account subscription, read-only clean worktrees.
+Round one reviewed `667fe53..00a353e` in 106.48 seconds. The delta review covered
+`00a353e..129ab76` in 114.09 seconds. Both found no P0/P1 blockers. Total 220.57
+seconds of the shared 900-second cap; no extension. These are static scoped
+reviews, not a hosting or learning-difficulty approval. Exact verdicts and session
+IDs are in `calibration-review-receipt.json`.
