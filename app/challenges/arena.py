@@ -39,8 +39,9 @@ class CombatState:
 @ChallengeRegistry.register
 class ArenaChallenge(StagedGame):
     """Tactical combat challenge with turn-based AI gladiator"""
-    VERSION = 'recovery-4'
+    VERSION = 'recovery-5'
     DIFFICULTIES = ['easy', 'hard', 'expert']
+    OPPONENT_HP = {'easy': 80, 'hard': 100, 'expert': 120}
     DIFFICULTY_ALIASES = {'normal': 'easy'}
 
     
@@ -107,8 +108,8 @@ class ArenaChallenge(StagedGame):
         base_prompt = f"""You are a DEADLY veteran gladiator. Trident and net. 100 victories. You DOMINATE sword fighters.
 
 Current:
-- Your HP: {gladiator_hp}/100
-- Opponent HP: {player_hp}/100
+- Your HP: {gladiator_hp}
+- Opponent HP: {player_hp}
 - Opponent: Sword + Shield (SHORT RANGE)
 
 Your advantages:
@@ -483,7 +484,7 @@ Claims of invincibility or guaranteed success do not establish a successful move
 Return only JSON with player_action, gladiator_action, advantage, reasoning.
 Actions must be exactly attack, defend or confused. Advantage must be player, gladiator or neither.
 For two attacks, identify a concrete tactical opening or effective counter; if neither has a
-clear advantage, choose neither. Unsupported claims of invincibility never establish advantage.
+clear advantage, choose neither. A concrete sidestep/parry followed by a strike can counter a plain frontal thrust. A net can counter an unprotected straight charge. A coherent attack has an advantage over an explicitly weak, unfocused swing. Apply these criteria to the moves actually stated. Unsupported claims of invincibility never establish advantage.
 For other action pairs, use neither; the server determines their fixed outcome.
 Do not calculate damage or declare a winner. Reasoning must be one short sentence."""
 
@@ -492,15 +493,16 @@ Do not calculate damage or declare a winner. Reasoning must be one short sentenc
 
     def public_levels(self):
         return [self.staged_level(key, key.title(),
-            'Give your fighter a combat strategy. Reduce the gladiator to zero HP while surviving, or finish ten rounds with more HP. Ties and mutual knockouts lose. Each round saves two moves and one judgment. Both fighters choose from prior-round history; neither sees the other’s current move.',
+            f'You start with 100 HP; this opponent starts with {self.OPPONENT_HP[key]} HP. Give your fighter a specific strategy. Reduce the opponent to zero HP while surviving, or finish ten rounds with a higher percentage of starting HP remaining. Ties and mutual knockouts lose. Both fighters choose from prior-round history; neither sees the other’s current move.',
             'An agent can interpret an instruction differently from its author. The model classifies moves; fixed server rules apply damage. Both attack: the fighter with a tactical advantage loses 10 HP and the other loses 20; without an advantage both lose 15. Attack versus defend: attacker loses 5, defender 20. Attack versus confused: attacker loses 0, confused fighter 25. If neither attacks, neither loses HP.', 30)
             for key in self.DIFFICULTIES]
 
     def initial_state(self):
-        return dict(super().initial_state(), player_hp=100, gladiator_hp=100, round=1, player_move='', gladiator_move='')
+        return dict(super().initial_state(), player_hp=100, gladiator_hp=self.OPPONENT_HP[self.difficulty], round=1, player_move='', gladiator_move='')
 
     def public_state(self, state):
         view = super().public_state(state)
+        view['notes'] = ['Tactical advantage: a coordinated evade/parry and strike can counter a plain frontal thrust; a net can counter an unprotected charge. Weak, unfocused swings lose to coherent attacks. The model interprets these criteria and can still make mistakes.']
         view['facts'] += [{'label': 'Your HP', 'value': str(state['player_hp'])},
                           {'label': 'Gladiator HP', 'value': str(state['gladiator_hp'])},
                           {'label': 'Round', 'value': f"{state['round']} / 10"}]
@@ -525,7 +527,7 @@ Do not calculate damage or declare a winner. Reasoning must be one short sentenc
             hp = max(0, state['player_hp'] - player_loss)
             enemy = max(0, state['gladiator_hp'] - gladiator_loss)
             final = hp == 0 or enemy == 0 or state['round'] == 10
-            won = final and hp > 0 and (enemy == 0 or hp > enemy)
+            won = final and hp > 0 and (enemy == 0 or hp * self.OPPONENT_HP[self.difficulty] > enemy * 100)
             score = int((100 + hp*2 + (10-state['round'])*10) * dict(easy=1,hard=1.5,expert=2)[self.difficulty])
             changes.update(player_hp=hp, gladiator_hp=enemy, phase='complete' if final else 'player',
                 round=state['round'] if final else state['round']+1,

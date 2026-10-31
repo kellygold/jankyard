@@ -132,7 +132,6 @@ def test_malformed_judgments_never_save_scores(client,db,game,bad):
 @pytest.mark.parametrize('game,judge',[
  ('giga_chad',dict(broke=False,severity='wobble',points=15,creativity=5,reasoning='Not a break.')),
  ('arena',dict(player_action="defend",gladiator_action="defend",advantage='neither',reasoning='A draw.')),
- ('arena',dict(player_action="attack",gladiator_action="attack",advantage='neither',reasoning='Mutual knockout.')),
  ('debate_battle',dict(pro=80,con=80,reasoning='Tied.')),
  ('telephone_game',dict(intent_preservation=49,detail_preservation=0,semantic_accuracy=20,total_score=69,explanation='Below threshold.')),
 ])
@@ -230,14 +229,14 @@ def test_arena_rejects_reversed_losses_then_saves_correct_health(client,db):
     with patch('app.llm.client.LLMClient.call_with_history',return_value=json.dumps(good)):
         saved=client.post(f"/api/runs/{run['id']}/turns",json=body).json()['run']
     state=db.get(ChallengeRun,run['id']).state
-    assert (state['player_hp'],state['gladiator_hp'])==(75,100)
+    assert (state['player_hp'],state['gladiator_hp'])==(75,80)
     assert saved['status']=='in_progress' and db.query(RunScore).count()==0
     saved=step(client,db,saved,reply='I swing my sword.')
     with patch('app.llm.client.LLMClient.call_with_history',return_value='I thrust.') as provider:
         response=client.post(f"/api/runs/{run['id']}/turns",json=request_body(saved))
     assert response.status_code==200
     system_prompt=provider.call_args.args[0]
-    assert 'Your HP: 100/100' in system_prompt and 'Opponent HP: 75/100' in system_prompt
+    assert 'Your HP: 80' in system_prompt and 'Opponent HP: 75' in system_prompt
 
 
 def test_arena_confused_player_can_never_win_via_consistent_judgments(client,db):
@@ -279,3 +278,24 @@ def test_arena_strategy_reaches_player_on_every_round_and_current_move_is_hidden
     assert strategy not in system
     assert strategy in messages[-1]['content']
     assert 'Your HP: 85' in messages[-1]['content']
+
+
+def test_arena_equal_percentage_timeout_cannot_win_with_tutorial_headstart(client,db):
+    run=finish(client,db,create(client,'arena','easy'),judge=json.dumps(dict(player_action='defend',gladiator_action='defend',advantage='neither',reasoning='No attacks.')))
+    assert run['status']=='failure' and run['attempts']==30
+    state=db.get(ChallengeRun,run['id']).state
+    assert (state['player_hp'],state['gladiator_hp'])==(100,80)
+    assert db.query(RunScore).count()==0
+
+
+def test_arena_mutual_knockout_after_unequal_start_is_a_loss(client,db):
+    run=create(client,'arena','easy')
+    pairs=[('confused','attack','neither'),('attack','defend','neither'),('attack','attack','gladiator')]
+    for player,opponent,advantage in pairs:
+        run=step(client,db,run);run=step(client,db,run)
+        run=step(client,db,run,reply=json.dumps(dict(player_action=player,gladiator_action=opponent,advantage=advantage,reasoning='Exchange.')))
+    state=db.get(ChallengeRun,run['id']).state
+    assert (state['player_hp'],state['gladiator_hp'])==(50,50)
+    run=finish(client,db,run,judge=json.dumps(dict(player_action='attack',gladiator_action='attack',advantage='neither',reasoning='Matched attacks.')))
+    assert run['status']=='failure' and run['result']['score']==0
+    assert db.query(RunScore).count()==0
