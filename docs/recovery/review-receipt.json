@@ -1,0 +1,24 @@
+{
+  "application_head": "9a3fa8c7b3e008e8a330e1fa55a97af57a1a2771",
+  "base": "8932a19",
+  "provider": "Claude Code subscription",
+  "model": "opus",
+  "effort": "high",
+  "budget_seconds": 900,
+  "consumed_seconds": 328.57,
+  "rounds": [
+    {
+      "head": "95dc61e",
+      "seconds": 225.51,
+      "session": "786792ed-3a1f-403a-bbde-a8f2670d28bc",
+      "verdict": "No P0/P1 blockers in scoped static review"
+    },
+    {
+      "head": "9a3fa8c",
+      "seconds": 103.06,
+      "session": "30ae770a-d071-4f31-b736-5504d37a6dc4",
+      "verdict": "No P0/P1 blockers in delta static review"
+    }
+  ],
+  "limitations": "Read-only static review; no test execution, provider or production access. Calibration/proof runners excluded."
+}

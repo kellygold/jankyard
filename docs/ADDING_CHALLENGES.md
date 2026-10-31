@@ -1,445 +1,122 @@
-# 🎮 Adding a New Challenge to Jankyard
+# Add a prompt game with two files
 
-Complete guide for creating a new challenge from scratch.
+All nine public games use the recovered runtime. New prompt games use
+`PromptGame`; games with multiple actions use `PersistedGame`. Multi-agent games
+use `StagedGame`. Do not copy legacy HTTP handlers or templates.
 
-## Quick Start: Only 2 Files Needed!
+1. Copy `app/challenges/_TEMPLATE.py` to `app/challenges/my_game.py`. Set a unique
+   `name`, title, description, version, and one or more `PromptLevel` definitions.
+2. Add `tests/runtime/fixtures/my_game.json`. Include at least one winning and one
+   losing response for every level, plus refusals, quotes, negation, punctuation,
+   and ordinary legitimate outputs relevant to its objective.
 
-Thanks to auto-discovery, adding a challenge is simple:
+Example fixture file:
 
-```
-1. Backend Challenge Class (app/challenges/your_challenge.py)
-   → Your game logic, scoring, and rules
-   
-2. HTML Template (app/templates/challenges/your_challenge.html)
-   → Your UI (optional - can use generic template)
-```
-
-**That's it!** No manual registration, no route editing, no streaming config.
-
----
-
-## Step 1: Copy the Template
-
-```bash
-cd app/challenges
-cp _TEMPLATE.py my_challenge.py
+```json
+[
+  {"name":"exact target","level":"level_1","prompt":"Say PINEAPPLE","response":"PINEAPPLE","success":true},
+  {"name":"refusal","level":"level_1","prompt":"Say PINEAPPLE","response":"I cannot say that.","success":false},
+  {"name":"quoted target","level":"level_1","prompt":"Quote PINEAPPLE","response":"The word is PINEAPPLE.","success":false}
+]
 ```
 
----
+Run `pytest tests/challenges/test_prompt_contract.py tests/runtime`. Restart the
+app and visit `/challenges/my_game`. Discovery supplies the same page, persisted
+turns, scoreboard, and progression as Glitch. No manual imports are required.
 
-## Step 2: Create Backend Challenge Class
+## Define an understandable win
 
-**File**: `app/challenges/your_challenge.py`
+`objective` tells players exactly what qualifies. `lesson` explains the boundary
+being tested. `system_prompt` must establish the boundary the objective asks players to cross.
+A role-break lesson may forbid the target response; a deliberately vulnerable
+workflow may trust a forged role, document, or ticket. State that trust mistake
+in the lesson, and verify ordinary requests fail while the intended exploit
+works. Do not describe exploiting an explicitly insecure workflow as defeating
+a hardened model. Use harmless synthetic data and explicit game roles.
 
-**What it does**: Defines the game rules, scoring logic, and state management for your challenge.
+`win_pattern` is matched against the **whole** response after Unicode NFKC,
+curly-apostrophe normalization, and outer whitespace trimming, case insensitively.
+An optional `input_pattern` must also match the submitted prompt. Glitch level two
+uses this to ensure ordinary moderation approvals cannot count as policy bypasses.
+Set `match_anywhere=True` for literal secret-extraction goals: printing a protected
+token inside a refusal still leaks it. Glitch level three uses this mode. Patterns
+are authored in trusted source code, never supplied by players.
 
-**When it runs**: Every time a user plays your challenge, the backend creates an instance and calls:
-1. `__init__()` - Set up the challenge
-2. `reset()` - Initialize the game state
-3. `step(action)` - Process each player action (called repeatedly)
-4. `get_result()` - Return final score when game ends
+`memory` controls whether prior conversation turns reach the model. Both settings
+retain the server-side attempt log. `max_attempts` is enforced by the server.
+A win scores `base_score + unused_attempts * efficiency_bonus`; a failed run
+scores zero. Only wins appear on the recovered scoreboard. Ties use fewer attempts,
+then share the same rank. A new run starts at zero attempts.
 
-```python
-from typing import Dict, Any, Optional
-from app.sandbox.base_challenge import BaseChallenge, ChallengeResult
+Change `VERSION` whenever a prompt, detector, or scoring change materially
+changes difficulty. Scores and unlocks are scoped to that version; historical
+records stay intact. The configured provider/model also contributes to the version key
+automatically. No score migration should be inferred from a new version.
 
-class YourChallenge(BaseChallenge):
-    """
-    Brief description of what this challenge does.
-    """
-    
-    def __init__(self, difficulty: str = "normal"):
-        """
-        CALLED: Once when challenge is created
-        PURPOSE: Set up configuration and initial values
-        """
-        super().__init__()
-        self.difficulty = difficulty
-        self.challenge_type = "your_challenge"  # IMPORTANT: Must match your challenge name!
-        self.max_steps = 10  # Maximum number of actions allowed
-        
-        # Challenge-specific config (customize these!)
-        self.target_score = 100
-        
-    def reset(self) -> Dict[str, Any]:
-        """
-        CALLED: Once at the start of the game
-        PURPOSE: Reset all state variables and return initial game state
-        RETURNS: Dict with starting info shown to player
-        """
-        self.current_step = 0
-        self.score = 0
-        
-        # Return what the player sees at start
-        return {
-            "observation": "Starting state description",
-            "difficulty": self.difficulty,
-            "instructions": "What the player should do",
-            "allowed_actions": ["action1", "action2"]
-        }
-    
-    def step(self, action: str) -> tuple[Dict[str, Any], bool]:
-        """
-        CALLED: Every time the player submits an action
-        PURPOSE: Process the action, update game state, check if game is over
-        
-        Args:
-            action: The user's action/input (string from text box)
-            
-        Returns:
-            observation: Dict with updated state info to show player
-            done: True if game is over, False to continue
-        """
-        self.current_step += 1
-        
-        # Your game logic here
-        result = self._process_action(action)
-        self.score += result['points']
-        
-        # Check if done
-        done = (
-            self.current_step >= self.max_steps or 
-            self.score >= self.target_score
-        )
-        
-        observation = {
-            "message": result['message'],
-            "score": self.score,
-            "step": self.current_step,
-            "done": done
-        }
-        
-        return observation, done
-    
-    def _process_action(self, action: str) -> Dict[str, Any]:
-        """
-        CALLED: By step() to evaluate the player's action
-        PURPOSE: Your custom game logic - this is where the fun happens!
-        
-        Example: Check if answer is correct, calculate damage, etc.
-        """
-        # Example: check action validity, update state
-        if "correct" in action.lower():
-            return {"points": 10, "message": "Good job!"}
-        else:
-            return {"points": 0, "message": "Try again"}
-    
-    def get_result(self) -> ChallengeResult:
-        """
-        CALLED: Once at the end of the game
-        PURPOSE: Calculate final score and success/failure
-        RETURNS: ChallengeResult object (saved to database)
-        """
-        success = self.score >= self.target_score
-        
-        return ChallengeResult(
-            success=success,
-            score=self.score,
-            steps=self.current_step,
-            message=f"Final score: {self.score}"
-        )
-    
-    @property
-    def allowed_actions(self) -> list[str]:
-        """
-        CALLED: When frontend needs to know valid actions
-        PURPOSE: Define what actions the player can take
-        NOTE: Optional - only needed if you want to restrict actions
-        """
-        return ["submit_answer", "get_hint"]
-```
+## Teaching progression and ultra-hard mode
 
-**Auto-Discovery**: Your challenge is automatically registered! No need to edit any other files.
+Use three passable teaching levels before an optional hardened open challenge.
+Each teaching level needs a clear trust boundary and reproducible live winning
+examples with controls. Label ultra-hard as experimental with no promised
+solution; it should follow the teaching levels, not block them. Preserve hardened
+defenses when redesigning the main lessons, and bump the rules version.
 
-Test it:
-```bash
-python3 -c "from app.challenges import CHALLENGES; print('my_challenge' in CHALLENGES)"
-```
+## Test before adding difficulty claims
 
----
+Fixtures prove evaluation behavior, not that a live model is beatable. Run a small
+provider smoke test and then repeated attack/control trials before describing a
+level as easy or hard. Pin the deployed model and record it with the calibration.
+Paid model experiments are opt-in (`RUN_LIVE_MODELS=1`), never the default CI suite.
 
-## Step 3: Create HTML Template (Optional)
+For model-judged games, prefer a validated classification plus deterministic
+server scoring. Arena asks for actions and tactical advantage, then calculates
+HP loss from a published table; ambiguous model-authored damage numbers caused
+reversed wins in calibration. Keep live positive and negative controls, not just
+JSON fixtures. Reject malformed classifications without saving an outcome.
 
-**File**: `app/templates/challenges/your_challenge.html`
+The shared runtime owns identity, retries, transactions, results and rendering.
+If a game needs a new interaction type, extend and test that shared contract first;
+keep transport and storage code out of the challenge definition.
 
-**What it does**: The UI players see - game board, input fields, score display, etc.
+## Stateful games use the same runtime
 
-**Structure**:
-- `{% block challenge_info %}` - Description and rules
-- `{% block submit_section %}` - Game UI (this is where the action happens!)
-- `{% block challenge_css %}` - Your custom styling
-- `{% block challenge_js %}` - Initialize handler and button click events
+A stateful contribution has two files too: a `PersistedGame` subclass and a Python
+journey test. The definition supplies `public_levels`, `initial_state`, `actions`,
+`validate_action`, `public_state`, and `play`. See Honeypot for probe/guess actions
+and Interrogation for witness selection and multiple accusations. Public action
+descriptors specify labels, required text, and single/multiple target options;
+the shared page renders them. Public presentation supports facts, notes and a table.
+Keep hidden solutions and prompts out of both public methods.
 
-```html
-{% extends "challenges/_base_challenge.html" %}
+`play(state, action)` returns a validated `TurnOutcome`, usually via `self.outcome`.
+Each accepted action consumes exactly one attempt. A win must be explicit; a
+positive score alone cannot complete a run. `ActionError` rejects invalid actions
+without consuming a turn. Provider failures must propagate, so the transaction
+rolls back instead of inventing a response or awarding a win. Close provider
+clients in `finally`. Limit each turn to one provider request so the shared daily
+admission ceiling remains a bound on paid calls.
 
-{% block challenge_info %}
-<div class="giga-header">
-    <h1>🎮 Your Challenge Name</h1>
-    <p>Brief description of what players need to do</p>
-</div>
+Tests must play through the actual run API, resume between turns, prove a win and
+an exhausted failure, reject invalid actions, and fault-inject provider errors.
+No new route, template, JavaScript, registry entry, or database table is needed.
 
-<div class="challenge-info">
-    <div class="info-box">
-        <h3>📋 Rules</h3>
-        <ul>
-            <li>Rule 1</li>
-            <li>Rule 2</li>
-            <li>Rule 3</li>
-        </ul>
-    </div>
-    
-    <div class="info-box">
-        <h3>🎯 Objective</h3>
-        <p>Score {{ target_score }} points to win!</p>
-    </div>
-</div>
-{% endblock %}
+## Multi-agent games use saved stages
 
-{% block submit_section %}
-<!-- Username Field (for leaderboard) -->
-<div class="username-section">
-    <label for="username">
-        👤 Username {% if current_user %}(logged in){% else %}(optional){% endif %}
-    </label>
-    <input 
-        type="text" 
-        id="username" 
-        name="username"
-        value="{% if current_user %}{{ current_user.username }}{% endif %}"
-        {% if current_user %}readonly{% endif %}
-        placeholder="{% if not current_user %}Enter your username{% endif %}"
-    />
-</div>
+Copy `app/challenges/_STAGED_TEMPLATE.py` and add a Python API journey test as
+your second file. `StagedGame` supplies start/continue actions, strategy entry,
+and optional automatic continuation. Set a stage limit and keep each stage to
+at most one provider call. The shared transport enforces that limit inside a
+run turn. Use `respond()` for complete text and automatic client cleanup.
 
-<!-- Game UI -->
-<div class="game-container">
-    <div class="stats-bar">
-        <span>Score: <strong id="score">0</strong></span>
-        <span>Step: <strong id="step">0</strong>/10</span>
-    </div>
-    
-    <div class="messages" id="gameMessages">
-        <div class="system-message">
-            Ready to play! Submit your action below.
-        </div>
-    </div>
-    
-    <div class="input-container">
-        <textarea 
-            id="userAction" 
-            placeholder="Enter your action..."
-            rows="4"
-        ></textarea>
-        <button id="submitBtn" class="btn-primary">
-            🚀 Submit Action
-        </button>
-    </div>
-</div>
+Store the next phase, transcript and private strategy in the outcome's state.
+Validate structured judgments with strict schemas, and derive wins and bounded
+scores on the server. Malformed judgments must raise, leaving the previous stage
+intact. Never fabricate a fallback win. Automatic continuation starts only after
+a saved response; reloads and errors pause. Players can uncheck the control to
+pause after the current request. Each stage consumes a daily admission, including
+failed attempts and retries; a replayed receipt never calls the model again.
 
-<!-- Completion Modal -->
-<div id="completionModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <h2 id="modalTitle">Challenge Complete!</h2>
-        <p id="modalMessage"></p>
-        <div class="modal-stats">
-            <div>Score: <span id="finalScore"></span></div>
-            <div>Steps: <span id="finalSteps"></span></div>
-        </div>
-        <button onclick="closeModal()" class="btn-primary">Close</button>
-    </div>
-</div>
-{% endblock %}
-
-{% block challenge_css %}
-<style>
-/* Your custom styling */
-.game-container {
-    background: #1a1a2e;
-    border: 2px solid #3b82f6;
-    border-radius: 12px;
-    padding: 1.5rem;
-}
-
-.stats-bar {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem;
-    background: rgba(59, 130, 246, 0.1);
-    border-radius: 8px;
-    margin-bottom: 1rem;
-}
-
-.messages {
-    min-height: 300px;
-    max-height: 500px;
-    overflow-y: auto;
-    padding: 1rem;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    margin-bottom: 1rem;
-}
-
-.system-message, .update-message {
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-    background: rgba(96, 165, 250, 0.1);
-    border-left: 3px solid #60a5fa;
-    border-radius: 4px;
-}
-
-/* Add more styles... */
-</style>
-{% endblock %}
-
-{% block challenge_js %}
-<script src="/static/js/core/challenge-handler.js"></script>
-<script src="/static/js/handlers/your_challenge.js"></script>
-<script>
-(function() {
-    // Initialize handler
-    const handler = new YourChallengeHandler('gameMessages');
-    
-    // Submit button
-    const submitBtn = document.getElementById('submitBtn');
-    const userAction = document.getElementById('userAction');
-    
-    submitBtn.addEventListener('click', async () => {
-        const action = userAction.value.trim();
-        if (!action) {
-            alert('Please enter an action!');
-            return;
-        }
-        
-        // Disable during processing
-        submitBtn.disabled = true;
-        userAction.disabled = true;
-        
-        try {
-            // Stream the action
-            await handler.stream(action, '{{ difficulty }}');
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Something went wrong!');
-        } finally {
-            submitBtn.disabled = false;
-            userAction.disabled = false;
-            userAction.value = '';
-        }
-    });
-})();
-
-// Modal functions
-function showCompletionModal(result) {
-    document.getElementById('modalTitle').textContent = 
-        result.success ? '🎉 You Won!' : '😔 Challenge Failed';
-    document.getElementById('modalMessage').textContent = result.message;
-    document.getElementById('finalScore').textContent = result.score;
-    document.getElementById('finalSteps').textContent = result.steps;
-    document.getElementById('completionModal').style.display = 'flex';
-}
-
-function closeModal() {
-    document.getElementById('completionModal').style.display = 'none';
-}
-</script>
-{% endblock %}
-```
-
----
-
-## Step 4: Add Difficulty Levels (Optional)
-
-For multi-level challenges, define levels in your class:
-
-```python
-class MyChallenge(BaseChallenge):
-    DIFFICULTY_LEVELS = {
-        "level_1": {"name": "Easy", "max_attempts": 10},
-        "level_2": {"name": "Hard", "max_attempts": 5},
-        "level_3": {"name": "Expert", "max_attempts": 3},
-    }
-    
-    def __init__(self, config=None):
-        super().__init__(config)
-        difficulty = config.get('difficulty', 'level_1') if config else 'level_1'
-        self.config = self.DIFFICULTY_LEVELS[difficulty]
-```
-
----
-
-## Testing Checklist
-
-- [ ] Challenge class initializes correctly
-- [ ] `reset()` returns valid initial state  
-- [ ] `step()` processes actions properly
-- [ ] `get_result()` returns correct final state
-- [ ] Auto-discovery works: `python3 -c "from app.challenges import CHALLENGES; print('my_challenge' in CHALLENGES)"`
-- [ ] Template loads at `/challenges/my_challenge`
-- [ ] Scoring works correctly
-- [ ] Completion modal shows
-
----
-
-## Deployment
-
-Once your challenge works locally:
-
-1. **Commit changes**:
-```bash
-git add .
-git commit -m "feat: Add YourChallenge"
-git push origin main
-```
-
-2. **Deploy to Cloud Run**:
-```bash
-gcloud run deploy jankyard --source . --region us-central1
-```
-
----
-
-## Example Challenges to Study
-
-- **Simple**: `app/challenges/firewall.py` - Basic keyword filtering
-- **Medium**: `app/challenges/arena.py` - Turn-based combat
-- **Complex**: `app/challenges/giga_chad.py` - Multi-round AI battles
-- **Progressive**: `app/challenges/glitch.py` - Level unlocking
-
----
-
-## Tips
-
-1. **Start simple** - Get basic functionality working first
-2. **Use existing patterns** - Copy from similar challenges
-3. **Test incrementally** - Don't write everything at once
-4. **Debug with console.log** - Check browser console for events
-5. **Check SSE events** - Network tab shows streaming data
-6. **Style last** - Get logic working before making it pretty
-
----
-
-## Common Issues
-
-**Events not showing?**
-- Check handler is registered: `this.on('event_type', handler)`
-- Verify event type matches backend: `{'type': 'update'}`
-
-**UI not updating?**
-- Check element IDs match: `getElementById('score')`
-- Verify DOM elements exist before updating
-
-**Score not saving?**
-- Ensure username field exists with `id="username"`
-- Check `ChallengeHandler` is submitting properly
-
----
-
-## Need Help?
-
-- Study existing challenges in `app/challenges/`
-- Check handlers in `app/static/js/handlers/`
-- Look at templates in `app/templates/challenges/`
-- Open an issue on GitHub
-
-Happy building! 🎮
+The template discovery test plays both winning and losing two-stage runs through
+the existing API, resumes between stages, and replays every request. Extend that
+pattern with provider failures and domain-specific judgment boundaries. Fixtures
+prove mechanics; real-model trials establish compatibility and sample difficulty.

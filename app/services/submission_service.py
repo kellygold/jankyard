@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models.submission import Submission
 from app.models.user import User
+from app.models.run import RunScore
 from app.repositories.submission_repo import SubmissionRepository
 from app.repositories.user_repo import UserRepository
 from app.repositories.leaderboard_repo import LeaderboardRepository
@@ -42,115 +43,28 @@ class SubmissionService:
         Returns:
             Created Submission object
         """
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        # Get or create user with psycopg2 if needed
-        if not user_id and username:
-            import psycopg2
-            import os
-            try:
-                conn = psycopg2.connect(os.getenv('DATABASE_URL'))
-                conn.autocommit = True
-                cursor = conn.cursor()
-                
-                # Try to get existing user
-                cursor.execute("SELECT id FROM users WHERE username = %s LIMIT 1", (username,))
-                row = cursor.fetchone()
-                
-                if row:
-                    user_id = row[0]
-                else:
-                    # Create new user
-                    from datetime import datetime
-                    cursor.execute("""
-                        INSERT INTO users (username, email, hashed_password, is_active, created_at)
-                        VALUES (%s, %s, %s, %s, %s)
-                        RETURNING id
-                    """, (username, None, None, False, datetime.utcnow()))
-                    user_id = cursor.fetchone()[0]
-                    logger.info(f"👤 Created user: {username}")
-                
-                cursor.close()
-                conn.close()
-            except Exception as e:
-                logger.error(f"❌ Failed to get/create user: {e}")
-                user_id = None
-        
-        # Sanitize logs for JSON serialization
-        safe_logs = []
-        if result.logs:
-            for log in result.logs:
-                try:
-                    # Convert to JSON-safe dict
-                    safe_log = {}
-                    for key, value in log.items():
-                        # Convert non-JSON types to strings
-                        if isinstance(value, (str, int, float, bool, type(None))):
-                            safe_log[key] = value
-                        else:
-                            safe_log[key] = str(value)  # Convert sets, tuples, etc. to strings
-                    safe_logs.append(safe_log)
-                except (TypeError, ValueError, KeyError) as e:
-                    pass  # Skip problematic logs - expected for malformed data
-        
-        # Insert submission with raw SQL
-        import json
-        from datetime import datetime
-        
-        try:
-            # Use psycopg2 directly - bypass SQLAlchemy session issues
-            import psycopg2
-            import os
-            
-            conn = psycopg2.connect(os.getenv('DATABASE_URL'))
-            conn.autocommit = True
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO submissions 
-                (user_id, challenge_name, difficulty, score, steps, success, status, logs, agent_code, error_message, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id
-            """, (
-                user_id,
-                challenge_name,
-                difficulty,
-                result.score,
-                result.steps,
-                result.success,
-                result.status.value,
-                json.dumps(safe_logs),
-                agent_code,
-                result.error_message,
-                datetime.utcnow()
-            ))
-            
-            submission_id = cursor.fetchone()[0]
-            cursor.close()
-            conn.close()
-            
-            # Create a mock submission object with the ID
-            from app.models.submission import Submission
-            submission = Submission(id=submission_id)
-        except Exception as e:
-            logger.error(f"❌ Submission insert failed: {e}", exc_info=True)
-            # Create dummy submission
-            submission = type('obj', (object,), {'id': 0})()
-        
-        # Update leaderboard if successful
-        if result.success and username:
-            self._update_leaderboard(
-                challenge_name=challenge_name,
-                username=username,
-                user_id=user_id,
-                score=result.score,
-                steps=result.steps,
-                submission_id=submission.id,
-                difficulty=difficulty
-            )
-        
+        # A display name is never proof of account ownership. Callers must resolve
+        # the authenticated or cookie-owned player before reaching this service.
+        if user_id is None:
+            raise ValueError("A verified player is required")
+        user = self.db.query(User).filter_by(id=user_id).with_for_update().one()
+        status = result.status.value if hasattr(result.status, "value") else result.status
+        if status not in {"success", "failure", "error", "timeout"} or result.success != (status == "success"):
+            raise ValueError("Inconsistent challenge outcome")
+        submission = Submission(
+            user_id=user.id, challenge_name=challenge_name, difficulty=difficulty,
+            score=result.score, steps=result.steps, success=result.success, status=status,
+            logs=result.logs or [], agent_code=agent_code, error_message=result.error_message,
+        )
+        self.db.add(submission)
+        self.db.flush()
+        if result.success:
+            self._update_leaderboard(challenge_name, user.username, user.id,
+                                     result.score, result.steps, submission.id, difficulty)
+        self.db.flush()
+        # Caller owns the transaction, including rollback on leaderboard failure.
         return submission
-    
+
     def _update_leaderboard(
         self,
         challenge_name: str,
@@ -184,7 +98,7 @@ class SubmissionService:
                 submission_id=submission_id,
                 difficulty=difficulty
             )
-            self.leaderboard_repo.commit()
+
     
     def get_submission(self, submission_id: int) -> Optional[Submission]:
         """Get a submission by ID"""
@@ -216,13 +130,15 @@ class SubmissionService:
             return None
         
         # Count submissions
-        all_submissions = self.submission_repo.get_by_user(user.id, limit=10000)
-        total_submissions = len(all_submissions)
-        successful_submissions = sum(1 for s in all_submissions if s.success)
+        submissions = self.db.query(Submission).filter_by(user_id=user.id)
+        total_submissions = submissions.count()
+        successful_submissions = submissions.filter_by(success=True).count()
         
         # Count leaderboard entries
         leaderboard_entries = self.leaderboard_repo.get_by_user(username)
-        challenges_completed = len(leaderboard_entries)
+        completed = {entry.challenge_name for entry in leaderboard_entries}
+        completed.update(name for (name,) in self.db.query(RunScore.challenge).filter_by(user_id=user.id).distinct())
+        challenges_completed = len(completed)
         
         return {
             'username': username,

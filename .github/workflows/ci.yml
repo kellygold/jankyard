@@ -1,35 +1,55 @@
 name: CI
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
-    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: jankyard
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: jankyard_recovery_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      JANKYARD_TEST_DATABASE_URL: postgresql+psycopg2://jankyard:test-only@127.0.0.1:5432/jankyard_recovery_test
+      OPENAI_API_KEY: ''
+      ANTHROPIC_API_KEY: ''
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
-      
-      - name: Install dependencies
+          cache: pip
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install -r requirements-test.txt
+      - run: .venv/bin/python -m compileall -q app
+      - run: .venv/bin/pytest tests/runtime tests/api tests/challenges tests/difficulty --junitxml=test-results/backend.xml
+      - run: .venv/bin/playwright install --with-deps chromium
+      - run: .venv/bin/pytest tests/browser --junitxml=test-results/browser.xml
+      - run: .venv/bin/pip-audit --disable-pip --no-deps -r requirements.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification
+          path: |
+            test-results/
+            docs/recovery/screenshots/
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t jankyard-candidate .
+      - name: Production configuration and packaged files
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: Check Python syntax
-        run: |
-          python -m py_compile app/main.py
-          python -m py_compile app/challenges/*.py
-          echo "✅ No syntax errors"
-      
-      - name: Check imports
-        run: |
-          python -c "from app.challenges.registry import ChallengeRegistry; print(f'✅ Found {len(ChallengeRegistry.get_all())} challenges')"
+          docker run --rm -e SECRET_KEY=ci-only-not-a-deployment-secret -e DATABASE_URL=sqlite:///:memory: jankyard-candidate python -c "from app.core.config import config; from pathlib import Path; assert config.ENVIRONMENT == 'production' and not config.DEBUG; assert not Path('/app/.env').exists(); assert not Path('/app/.venv').exists(); assert not Path('/app/tests').exists()"
+          if docker run --rm jankyard-candidate python -c 'from app.core.config import config'; then
+            echo 'Image accepted missing production secret'; exit 1
+          fi

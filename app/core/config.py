@@ -35,7 +35,7 @@ class Config:
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     DEFAULT_LLM_PROVIDER: str = os.getenv("DEFAULT_LLM_PROVIDER", "openai")
-    DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
+    DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "gpt-6-luna")
     
     # File upload
     MAX_UPLOAD_SIZE: int = 50 * 1024  # 50KB max for agent.py
@@ -47,6 +47,9 @@ class Config:
     
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true"
+    RECOVERED_TURNS_PER_DAY: int = int(os.getenv("RECOVERED_TURNS_PER_DAY", "1000"))
+    GUEST_SESSIONS_PER_MINUTE: int = int(os.getenv("GUEST_SESSIONS_PER_MINUTE", "1000"))
+    GUEST_SESSIONS_PER_DAY: int = int(os.getenv("GUEST_SESSIONS_PER_DAY", "10000"))
     SUBMISSIONS_PER_MINUTE: int = int(os.getenv("SUBMISSIONS_PER_MINUTE", "5"))
     SUBMISSIONS_PER_DAY: int = int(os.getenv("SUBMISSIONS_PER_DAY", "100"))
 

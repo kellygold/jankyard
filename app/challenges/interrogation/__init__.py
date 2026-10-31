@@ -13,14 +13,15 @@ from typing import Dict, Any, List
 import json
 import asyncio
 
-from app.challenges.base import BaseChallenge, ChallengeResult, StepResult, ChallengeRegistry
+from app.challenges.base import BaseChallenge, ChallengeResult, StepResult, ChallengeRegistry, ChallengeStatus
 from app.llm.client import LLMClient
+from app.challenges.runtime import PersistedGame, ActionError
 
 from .models import WitnessConfig, LevelConfig
 from .levels import LEVELS, EVIDENCE_TRIGGERS, EVIDENCE_REQUIREMENTS
 
 
-class InterrogationChallenge(BaseChallenge):
+class InterrogationChallenge(PersistedGame):
     """
     The Interrogation Room - Detective mystery challenge
     
@@ -35,6 +36,9 @@ class InterrogationChallenge(BaseChallenge):
         # Parse level from config
         config = config or {}
         difficulty = config.get('difficulty', 'level_1')
+        if difficulty not in [f'level_{level.id}' for level in LEVELS]:
+            raise ValueError('Unknown difficulty')
+        self.difficulty = difficulty
         level = 1
         if difficulty.startswith("level_"):
             try:
@@ -56,6 +60,82 @@ class InterrogationChallenge(BaseChallenge):
         self.case_solved = False
         self.discovered_evidence = set()
         
+    def public_levels(self):
+        return [{'id': f'level_{level.id}', 'title': level.name,
+                 'max_attempts': len(level.witnesses) * level.questions_per_witness + level.max_accusation_attempts,
+                 'objective': f'Collect at least {EVIDENCE_REQUIREMENTS[level.id]} leads from witness testimony, then accuse the exact set of guilty witnesses. You have {level.questions_per_witness} questions per witness and {level.max_accusation_attempts} accusation attempts.',
+                 'lesson': 'Test conflicting accounts and cross-reference witnesses. A fluent answer is a claim, not verified evidence. Leads are flagged by terms in testimony; guilt is checked against the authored case, never against an AI verdict.'}
+                for level in LEVELS]
+
+    def initial_state(self):
+        return dict(super().initial_state(), questions_asked={w.name: 0 for w in self.level_config.witnesses},
+                    interrogation_log=[], accusation_attempts=0, case_solved=False, discovered_evidence=[])
+
+    def actions(self, state):
+        options = [{'value': w.name, 'label': f"{w.name} ({self.level_config.questions_per_witness - state['questions_asked'][w.name]} questions left)"}
+                   for w in self.level_config.witnesses if state['questions_asked'][w.name] < self.level_config.questions_per_witness]
+        actions = []
+        if options:
+            actions.append({'id': 'question', 'label': 'Question witness', 'text_label': 'Your question',
+                            'text_required': True, 'target_options': options})
+        if len(state['discovered_evidence']) >= EVIDENCE_REQUIREMENTS[self.current_level] and state['accusation_attempts'] < self.level_config.max_accusation_attempts:
+            actions.append({'id': 'accuse', 'label': 'Submit accusation', 'text_label': 'Your reasoning (optional)',
+                            'text_required': False, 'targets_options': [{'value': w.name, 'label': w.name} for w in self.level_config.witnesses]})
+        return actions
+
+    def validate_action(self, state, action):
+        available = {item['id'] for item in self.actions(state)}
+        if action.kind not in available:
+            raise ActionError('That action is unavailable. Check the remaining questions and required leads.')
+        names = {w.name for w in self.level_config.witnesses}
+        if action.kind == 'question':
+            if action.target not in names or action.targets or not action.text.strip():
+                raise ActionError('Choose one witness and enter a question')
+            if state['questions_asked'][action.target] >= self.level_config.questions_per_witness:
+                raise ActionError('No questions remain for that witness')
+        elif action.target is not None or not action.targets or not set(action.targets) <= names or len(action.targets) != len(set(action.targets)):
+            raise ActionError('Select one or more distinct witnesses to accuse')
+
+    def public_state(self, state):
+        triggers = EVIDENCE_TRIGGERS[self.current_level]
+        return {'facts': [
+                    {'label': 'Leads collected', 'value': f"{len(state['discovered_evidence'])} / {EVIDENCE_REQUIREMENTS[self.current_level]} required"},
+                    {'label': 'Accusations remaining', 'value': str(self.level_config.max_accusation_attempts - state['accusation_attempts'])}],
+                'notes': [self.level_config.crime_description] + [triggers[key]['description'] for key in state['discovered_evidence']],
+                'table': {'columns': ['Witness', 'Role', 'Questions remaining'], 'rows': [
+                    [w.name, w.role, str(self.level_config.questions_per_witness - state['questions_asked'][w.name])] for w in self.level_config.witnesses]}}
+
+    def play(self, state, action):
+        self.questions_asked = dict(state['questions_asked'])
+        self.interrogation_log = list(state['interrogation_log'])
+        self.accusation_attempts = state['accusation_attempts']
+        self.case_solved = state['case_solved']
+        self.discovered_evidence = set(state['discovered_evidence'])
+        try:
+            if action.kind == 'question':
+                result = self.ask_question(action.target, action.text)
+                reply = f"{action.target}: {result['answer']}"
+                action_text = f"To {action.target}: {action.text}"
+            else:
+                result = self.make_accusation(action.targets, action.text)
+                reply = result['verdict']
+                if result.get('solution'):
+                    reply += '\n' + result['solution']
+                action_text = 'Accuse: ' + ', '.join(action.targets) + ('\n' + action.text if action.text else '')
+        finally:
+            self.llm_client.close()
+            self.judge_client.close()
+        questions_left = any(count < self.level_config.questions_per_witness for count in self.questions_asked.values())
+        insufficient = len(self.discovered_evidence) < EVIDENCE_REQUIREMENTS[self.current_level]
+        failed = self.accusation_attempts >= self.level_config.max_accusation_attempts or (not questions_left and insufficient)
+        if failed and not self.case_solved and not questions_left and insufficient:
+            reply += '\nNo questions remain and there are not enough leads to accuse. Start a new run to investigate again.'
+        return self.outcome(state, action_text, reply, success=self.case_solved, failed=failed,
+            score=self.calculate_score(), changes={
+                'questions_asked': self.questions_asked, 'interrogation_log': self.interrogation_log,
+                'accusation_attempts': self.accusation_attempts, 'case_solved': self.case_solved,
+                'discovered_evidence': sorted(self.discovered_evidence)})
+
     @property
     def name(self) -> str:
         return "interrogation"
@@ -83,7 +163,7 @@ class InterrogationChallenge(BaseChallenge):
     
     @property
     def supports_streaming(self) -> bool:
-        return True
+        return False
     
     @property
     def template_name(self) -> str:
@@ -143,16 +223,13 @@ class InterrogationChallenge(BaseChallenge):
                 "answer": f"[You've used all your questions for {witness_name}]"
             }
         
-        try:
-            answer = self.llm_client.call(
-                system_prompt=witness.system_prompt,
-                user_message=question,
-                temperature=0.7,
-                max_tokens=250
-            )
-        except Exception as e:
-            answer = f"[{witness_name} is unavailable: {str(e)}]"
-        
+        messages = []
+        for entry in self.interrogation_log:
+            if entry['witness'] == witness_name:
+                messages.extend([{'role': 'user', 'content': entry['question']}, {'role': 'assistant', 'content': entry['answer']}])
+        messages.append({'role': 'user', 'content': question})
+        answer = self.llm_client.call_with_history(witness.system_prompt, messages, temperature=0.7, max_tokens=300)
+
         self.questions_asked[witness_name] += 1
         self.interrogation_log.append({
             "witness": witness_name,
@@ -297,203 +374,6 @@ class InterrogationChallenge(BaseChallenge):
         }
         return hints.get(self.current_level, "Review the witness testimonies carefully.")
     
-    async def stream_events(self, user_action: str, llm_client=None):
-        """Stream interrogation events with SSE."""
-        from app.challenges.base import ChallengeStatus
-        
-        start_event = {'type': 'start', 'challenge': 'interrogation'}
-        yield f"data: {json.dumps(start_event)}\n\n"
-        
-        try:
-            action_data = json.loads(user_action)
-            action_type = action_data.get('action')
-            
-            if action_type == 'question':
-                witness_name = action_data['witness']
-                question = action_data['question']
-                
-                thinking_event = {
-                    'type': 'thinking',
-                    'agent': 'system',
-                    'data': {'witness': witness_name},
-                    'metadata': {}
-                }
-                yield f"data: {json.dumps(thinking_event)}\n\n"
-                await asyncio.sleep(0.3)
-                
-                result = self.ask_question(witness_name, question)
-                
-                if 'error' in result:
-                    error_event = {
-                        'type': 'error',
-                        'agent': 'system',
-                        'data': {'message': result['error']},
-                        'metadata': {}
-                    }
-                    yield f"data: {json.dumps(error_event)}\n\n"
-                else:
-                    answer_event = {
-                        'type': 'answer',
-                        'agent': 'system',
-                        'data': {
-                            'witness': witness_name,
-                            'question': question,
-                            'answer': result['answer'],
-                            'questions_remaining': result['questions_remaining'],
-                            'total_questions_used': result['total_questions_used'],
-                            'evidence_discovered': result.get('evidence_discovered', []),
-                            'total_evidence': result.get('total_evidence', 0),
-                            'evidence_required': result.get('evidence_required', 2)
-                        },
-                        'metadata': {}
-                    }
-                    yield f"data: {json.dumps(answer_event)}\n\n"
-                    
-                    if result.get('evidence_discovered'):
-                        for evidence in result['evidence_discovered']:
-                            evidence_event = {
-                                'type': 'evidence',
-                                'agent': 'system',
-                                'data': {
-                                    'id': evidence['id'],
-                                    'description': evidence['description'],
-                                    'total_evidence': result['total_evidence'],
-                                    'evidence_required': result['evidence_required'],
-                                    'can_accuse': result['total_evidence'] >= result['evidence_required']
-                                },
-                                'metadata': {}
-                            }
-                            yield f"data: {json.dumps(evidence_event)}\n\n"
-                            await asyncio.sleep(0.3)
-            
-            elif action_type == 'accuse':
-                accused_names = action_data.get('accused', [])
-                reasoning = action_data.get('reasoning', '')
-                
-                update_event = {
-                    'type': 'update',
-                    'agent': 'system',
-                    'data': {'message': 'Deliberating...'},
-                    'metadata': {}
-                }
-                yield f"data: {json.dumps(update_event)}\n\n"
-                await asyncio.sleep(0.8)
-                
-                result = self.make_accusation(accused_names, reasoning)
-                
-                if 'error' in result:
-                    error_event = {
-                        'type': 'error',
-                        'agent': 'system',
-                        'data': {
-                            'message': result['error'],
-                            'evidence_found': result.get('evidence_found'),
-                            'evidence_required': result.get('evidence_required'),
-                            'hint': result.get('hint', '')
-                        },
-                        'metadata': {}
-                    }
-                    yield f"data: {json.dumps(error_event)}\n\n"
-                    
-                elif result['correct']:
-                    final_result = self.get_result(success=True)
-                    
-                    verdict_event = {
-                        'type': 'verdict',
-                        'agent': 'system',
-                        'data': {
-                            'correct': True,
-                            'verdict': result['verdict'],
-                            'score': result['score'],
-                            'key_evidence': result.get('key_evidence', [])
-                        },
-                        'metadata': {}
-                    }
-                    yield f"data: {json.dumps(verdict_event)}\n\n"
-                    await asyncio.sleep(0.5)
-                    
-                    complete_event = {
-                        'type': 'complete',
-                        'agent': 'system',
-                        'data': {
-                            'result': {
-                                'status': ChallengeStatus.SUCCESS.value,
-                                'score': result['score'],
-                                'steps': final_result.steps,
-                                'success': True,
-                                'logs': final_result.logs
-                            },
-                            'level_complete': True,
-                            'accused': accused_names
-                        },
-                        'metadata': {}
-                    }
-                    yield f"data: {json.dumps(complete_event)}\n\n"
-                    
-                else:
-                    if result.get('attempts_remaining', 0) > 0:
-                        verdict_event = {
-                            'type': 'verdict',
-                            'agent': 'system',
-                            'data': {
-                                'correct': False,
-                                'verdict': result['verdict'],
-                                'attempts_remaining': result['attempts_remaining'],
-                                'hint': result.get('hint', '')
-                            },
-                            'metadata': {}
-                        }
-                        yield f"data: {json.dumps(verdict_event)}\n\n"
-                    else:
-                        final_result = self.get_result(success=False)
-                        
-                        verdict_event = {
-                            'type': 'verdict',
-                            'agent': 'system',
-                            'data': {
-                                'correct': False,
-                                'verdict': result['verdict'],
-                                'solution': result.get('solution', ''),
-                                'attempts_remaining': 0
-                            },
-                            'metadata': {}
-                        }
-                        yield f"data: {json.dumps(verdict_event)}\n\n"
-                        await asyncio.sleep(0.5)
-                        
-                        complete_event = {
-                            'type': 'complete',
-                            'agent': 'system',
-                            'data': {
-                                'result': {
-                                    'status': ChallengeStatus.FAILURE.value,
-                                    'score': 0,
-                                    'steps': final_result.steps,
-                                    'success': False,
-                                    'logs': final_result.logs
-                                }
-                            },
-                            'metadata': {}
-                        }
-                        yield f"data: {json.dumps(complete_event)}\n\n"
-            
-            else:
-                error_event = {
-                    'type': 'error',
-                    'agent': 'system',
-                    'data': {'message': f"Unknown action type: {action_type}"},
-                    'metadata': {}
-                }
-                yield f"data: {json.dumps(error_event)}\n\n"
-                
-        except Exception as e:
-            error_event = {
-                'type': 'error',
-                'agent': 'system',
-                'data': {'message': f"Error processing action: {str(e)}"},
-                'metadata': {}
-            }
-            yield f"data: {json.dumps(error_event)}\n\n"
     
     def step(self, action: Any) -> StepResult:
         """Process interrogation action (legacy - now uses stream_events)"""
@@ -509,7 +389,7 @@ class InterrogationChallenge(BaseChallenge):
         score = self.calculate_score() if success else 0
         
         return ChallengeResult(
-            status="success" if success else "failure",
+            status=ChallengeStatus.SUCCESS if success else ChallengeStatus.FAILURE,
             score=score,
             steps=sum(self.questions_asked.values()) + self.accusation_attempts,
             success=success,

@@ -382,7 +382,7 @@ class TestHoneypotDifficulties:
         
         challenge = HoneypotChallenge(config={'difficulty': 'TRIPWIRE'})
         
-        assert challenge.level_config.max_attempts == 10
+        assert challenge.level_config.max_attempts == 16
         assert challenge.level_config.categories_to_find == 3
         assert challenge.level_config.show_hints == True
     
@@ -392,7 +392,7 @@ class TestHoneypotDifficulties:
         
         challenge = HoneypotChallenge(config={'difficulty': 'CANARY'})
         
-        assert challenge.level_config.max_attempts == 8
+        assert challenge.level_config.max_attempts == 14
         assert challenge.level_config.categories_to_find == 4
         assert challenge.level_config.show_hints == True
     
@@ -402,7 +402,7 @@ class TestHoneypotDifficulties:
         
         challenge = HoneypotChallenge(config={'difficulty': 'COUNTERINTEL'})
         
-        assert challenge.level_config.max_attempts == 3
+        assert challenge.level_config.max_attempts == 12
         assert challenge.level_config.categories_to_find == 6
         assert challenge.level_config.show_hints == False
     
@@ -436,11 +436,11 @@ class TestChallengeProperties:
         assert challenge.display_name == 'The Honeypot'
     
     def test_supports_streaming(self):
-        """Challenge supports SSE streaming."""
+        """Persisted turns replace the stateless SSE path."""
         from app.challenges.honeypot import HoneypotChallenge
         
         challenge = HoneypotChallenge()
-        assert challenge.supports_streaming == True
+        assert challenge.supports_streaming is False
     
     def test_challenge_type(self):
         """Challenge type is 'conversation'."""

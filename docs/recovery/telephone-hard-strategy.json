@@ -1,0 +1,92 @@
+{
+  "created_at": "2026-10-31T04:06:06.453482+00:00",
+  "candidate": "a637acef14e659bf1d199d00185b3f79cbfae735",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 6,
+  "trials": [
+    {
+      "game": "telephone_game",
+      "difficulty": "HARD",
+      "label": "semantic instruction",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "start",
+            "text": "Be creative and question assumptions. Consider multiple interpretations before choosing an answer.",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Skeptic: I can do that, though \u201cbe creative\u201d and \u201cquestion assumptions\u201d can pull in different directions. I\u2019ll consider plausible interpretations and uncertainties, but I won\u2019t invent facts or treat every possibility as equally likely. What would you like me to apply that approach to?",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Rebel: Let\u2019s test it on a real question. Give me a claim, and I\u2019ll look for the assumptions underneath it\u2014without pretending every alternative is equally plausible.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Translator: Claim: A four-day workweek will improve employee productivity without reducing overall output.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Paranoid: A four-day workweek may improve employee productivity without reducing overall output, but results depend on the workplace, workload, and implementation. Evaluate it with a time-limited pilot, clear measures of productivity and service quality, and safeguards against increased workload or employee burnout.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Contrarian: A four-day week shouldn\u2019t be presumed to boost productivity\u2014or even be the right goal. Compressing the same workload into fewer days can intensify work and harm service quality. Before piloting it, first test whether workload can be reduced, processes improved, or schedules made more flexible. If a pilot proceeds, compare it with those alternatives and track burnout, overtime, coverage, and output\u2014not just productivity.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "15/100. The original asks for creative thinking and consideration of multiple interpretations. The final instead gives specific advice about evaluating a four-day workweek, a topic and goal not present in the original.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

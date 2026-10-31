@@ -1,0 +1,59 @@
+{
+  "application_head": "aba1c525b720bc6d977370ba5c5177344dc4f493",
+  "tooling_head": "d8379fe83b40128af9ccc028c90f582f74935149",
+  "results": {
+    "backend": {
+      "tests": 465,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 13,
+      "passed": 452,
+      "seconds": 18.465
+    },
+    "browser": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 16,
+      "seconds": 21.137
+    }
+  },
+  "review": {
+    "result": "no P0/P1 blockers",
+    "seconds": 122.34,
+    "budget_seconds": 900
+  },
+  "image": {
+    "build": "passed",
+    "platform": "linux/amd64",
+    "metadata": {
+      "Id": "sha256:87097c3dc681d985e1743f7e32ba750d55215caec9c21029e02146942dbc3d75",
+      "Architecture": "amd64",
+      "Os": "linux"
+    },
+    "guest_and_registered_browser": "passed",
+    "restart_and_reload": "passed",
+    "provider_calls": 4,
+    "turn_admissions": 8,
+    "owned_resources_removed": true
+  },
+  "external_staging": "unconfigured; not deployed",
+  "excluded_failures": [
+    "Initial backend launch used a stopped test database after startup omitted its custom port. Aborted; complete rerun used owned port55439. No other database was touched.",
+    "First image rehearsal completed both wins, then Docker reassigned the automatic host port on restart. Reproduced with a standalone server; fixed test harness to pin a free loopback port. Original failed receipt preserved."
+  ],
+  "compile": "passed",
+  "whitespace": "passed",
+  "provider_calls": 363,
+  "cleanup": {
+    "owned_postgres_tables_remaining": 0,
+    "owned_postgres_server": "stopped",
+    "owned_container_network_and_containers": "removed",
+    "dedicated_vm_and_container_data": "removed",
+    "docker_context": "desktop-linux (unchanged)",
+    "completed_review_worktree": "removed",
+    "installed_local_tools": "Colima and its Homebrew dependencies remain installed; no service enabled",
+    "original_checkout": "clean and unchanged"
+  }
+}

@@ -21,7 +21,8 @@ if not config.DATABASE_URL.startswith("sqlite"):
     })
 
 # Create SQLAlchemy engine
-engine = create_engine(config.DATABASE_URL, **engine_kwargs)
+database_url = config.DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+engine = create_engine(database_url, **engine_kwargs)
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

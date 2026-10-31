@@ -2,7 +2,8 @@
 Heist Difficulty Tests
 
 Tests plan quality detection and success/failure mechanics for each level.
-Helps calibrate difficulty and find winning strategies.
+Provider approvals are mocked. These checks do not establish live difficulty
+or prove a strategy wins against the real model.
 
 Run with: pytest tests/difficulty/test_heist_difficulty.py -v -s
 """
@@ -28,7 +29,7 @@ class PlanResult:
 # PLAN LIBRARIES - Different quality plans to test
 # =============================================================================
 
-WINNING_PLANS = {
+QUALIFYING_PLANS = {
     "easy": [
         # Museum Job - detailed plans mentioning crew roles
         (
@@ -131,244 +132,49 @@ LOSING_PLANS = {
 }
 
 
-# =============================================================================
-# DIFFICULTY TESTING
-# =============================================================================
-
-class TestPlanQualityDetection:
-    """Test that plan quality is correctly detected"""
-    
-    def test_short_plan_is_low_quality(self):
-        """Very short plans should be detected as low quality"""
-        challenge = HeistChallenge({"difficulty": "easy"})
-        
-        short_plans = ["do it", "go", "steal it", "plan"]
-        for plan in short_plans:
-            quality = len(plan) > 50 and any(
-                m.role.lower() in plan.lower() for m in challenge.selected_crew
-            )
-            assert quality == False, f"Short plan '{plan}' should be low quality"
-    
-    def test_long_plan_without_crew_is_medium_quality(self):
-        """Long plans that don't mention crew are medium quality"""
-        challenge = HeistChallenge({"difficulty": "easy"})
-        
-        plan = "We will enter through the back door at night when security is light. Then we move through the corridors avoiding cameras. We grab the target and exit quickly."
-        
-        has_length = len(plan) > 50
-        has_crew = any(m.role.lower() in plan.lower() for m in challenge.selected_crew)
-        
-        assert has_length == True
-        assert has_crew == False
-    
-    def test_detailed_plan_with_crew_is_high_quality(self):
-        """Detailed plans mentioning crew roles are high quality"""
-        challenge = HeistChallenge({"difficulty": "easy"})
-        
-        plan = "Zero Cool the Hacker disables cameras. Tank the Muscle handles guards. Silk the Face distracts staff. We grab the diamond and Ghost drives us out."
-        
-        has_length = len(plan) > 50
-        has_crew = any(m.role.lower() in plan.lower() for m in challenge.selected_crew)
-        
-        assert has_length == True
-        assert has_crew == True
+# These fixtures prove the authored mechanics, not live-model success rates.
+from app.challenges.runtime import GameAction
+import json
 
 
-class TestEasyDifficulty:
-    """Test easy (museum) difficulty"""
-    
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("plan_name,plan,note", WINNING_PLANS["easy"])
-    async def test_winning_plans_succeed(self, plan_name: str, plan: str, note: str):
-        """Good plans should have high success chance on easy"""
-        successes = 0
-        runs = 3
-        
-        for _ in range(runs):
-            challenge = HeistChallenge({"difficulty": "easy"})
-            
-            with patch.object(challenge.llm_client, 'call', return_value="Sounds good, I'm ready."):
-                async for _ in challenge.conversation_flow(plan, {}):
-                    pass
-                
-                if challenge.heist_success:
-                    successes += 1
-        
-        print(f"\n📋 Plan: {plan_name}")
-        print(f"   Note: {note}")
-        print(f"   Success rate: {successes}/{runs}")
-        
-        # Good plans should succeed at least sometimes (luck factor exists)
-        # We're mainly testing the quality detection works
-        assert successes >= 0  # Can't guarantee due to randomness
-    
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("plan_name,plan,note", LOSING_PLANS["too_short"])
-    async def test_short_plans_fail(self, plan_name: str, plan: str, note: str):
-        """Short/vague plans should fail"""
-        challenge = HeistChallenge({"difficulty": "easy"})
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Uh, what?"):
-            async for _ in challenge.conversation_flow(plan, {}):
-                pass
-        
-        # Short plans have low quality score
-        plan_quality = len(plan) > 50 and any(
-            m.role.lower() in plan.lower() for m in challenge.selected_crew
-        )
-        
-        print(f"\n❌ Plan: {plan_name} = '{plan}'")
-        print(f"   Note: {note}")
-        print(f"   Quality: {plan_quality}")
-        
-        assert plan_quality == False
+def play_plan(challenge, plan, approvals=None):
+    state = challenge.initial_state()
+    replies = approvals or [True] * challenge.max_steps
+    with patch('app.llm.client.LLMClient.call_with_history', side_effect=[json.dumps(dict(approved=value,message='Crew decision.')) for value in replies]):
+        for index in range(challenge.max_steps):
+            action = GameAction(kind='start' if index==0 else 'continue', text=plan if index==0 else '')
+            challenge.validate_action(state,action)
+            outcome = challenge.play(state,action)
+            state = outcome['state']
+    return outcome
 
 
-class TestMediumDifficulty:
-    """Test medium (casino) difficulty"""
-    
-    def test_medium_has_more_crew(self):
-        """Medium should have 4 crew to coordinate"""
-        challenge = HeistChallenge({"difficulty": "medium"})
-        assert len(challenge.selected_crew) == 4
-    
-    def test_medium_uses_casino_scenario(self):
-        """Medium should use casino scenario"""
-        challenge = HeistChallenge({"difficulty": "medium"})
-        assert challenge.scenario.id == "casino"
-        assert "casino" in challenge.scenario.name.lower() or "vault" in challenge.scenario.name.lower()
-    
-    @pytest.mark.asyncio
-    async def test_medium_needs_coordination(self):
-        """Medium plans need to address more security"""
-        challenge = HeistChallenge({"difficulty": "medium"})
-        
-        # Casino has more security elements
-        assert "biometric" in challenge.scenario.security.lower() or \
-               "armed" in challenge.scenario.security.lower() or \
-               "facial" in challenge.scenario.security.lower()
+@pytest.mark.parametrize('difficulty,plan', [(difficulty,plan) for difficulty,plans in QUALIFYING_PLANS.items() for _,plan,_ in plans])
+def test_authored_plan_criteria_accept_good_plans_when_crew_approves(difficulty,plan):
+    result=play_plan(HeistChallenge({'difficulty':difficulty}),plan)
+    assert result['success'] and result['score']==100
 
 
-class TestHardDifficulty:
-    """Test hard (tech corp) difficulty"""
-    
-    def test_hard_has_full_crew(self):
-        """Hard should have all 5 crew members"""
-        challenge = HeistChallenge({"difficulty": "hard"})
-        assert len(challenge.selected_crew) == 5
-    
-    def test_hard_uses_tech_scenario(self):
-        """Hard should use tech corp scenario"""
-        challenge = HeistChallenge({"difficulty": "hard"})
-        assert challenge.scenario.id == "tech"
-    
-    def test_hard_has_ai_security(self):
-        """Hard scenario should have AI surveillance"""
-        challenge = HeistChallenge({"difficulty": "hard"})
-        assert "ai" in challenge.scenario.security.lower() or \
-               "biometric" in challenge.scenario.security.lower()
-    
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("plan_name,plan,note", WINNING_PLANS.get("hard", []))
-    async def test_hard_winning_plans(self, plan_name: str, plan: str, note: str):
-        """Even good plans are harder on hard difficulty"""
-        challenge = HeistChallenge({"difficulty": "hard"})
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Complex, but doable."):
-            async for _ in challenge.conversation_flow(plan, {}):
-                pass
-        
-        print(f"\n🎯 Hard plan: {plan_name}")
-        print(f"   Result: {'Success' if challenge.heist_success else 'Failed'}")
+@pytest.mark.parametrize('name,plan,note',LOSING_PLANS['too_short']+LOSING_PLANS['no_crew_mention'])
+def test_approvals_cannot_rescue_an_invalid_plan(name,plan,note):
+    result=play_plan(HeistChallenge(),plan)
+    assert result['status']=='failure' and result['score']==0
 
 
-class TestCrewQuirks:
-    """Test that crew quirks affect outcomes"""
-    
-    @pytest.mark.asyncio
-    async def test_tank_refuses_violence(self):
-        """Tank should push back on violent plans"""
-        challenge = HeistChallenge({"difficulty": "easy"})
-        
-        violent_plan = "Kill all guards, blow up the safe, take everything"
-        
-        # Mock Tank specifically responding to violence
-        def mock_response(system_prompt, user_message, **kwargs):
-            if "moral code" in system_prompt.lower() or "won't hurt" in system_prompt.lower():
-                return "No way. I don't hurt innocent people. Find another approach."
-            return "Okay."
-        
-        with patch.object(challenge.llm_client, 'call', side_effect=mock_response):
-            responses = []
-            async for turn in challenge.conversation_flow(violent_plan, {}):
-                if turn.agent == 'muscle' and turn.message:
-                    responses.append(turn.message)
-            
-            # Tank should have expressed concern
-            print(f"\n💪 Tank's response to violence: {responses}")
-    
-    @pytest.mark.asyncio
-    async def test_hacker_gets_distracted(self):
-        """Zero Cool might mention interesting systems"""
-        challenge = HeistChallenge({"difficulty": "easy"})
-        
-        # Check Zero Cool's quirk is in system prompt
-        hacker = next((m for m in CREW_ROSTER if m.id == "hacker"), None)
-        assert hacker is not None
-        assert "distract" in hacker.quirk.lower()
+def test_complication_is_visible_and_its_rejection_fails_the_plan():
+    challenge=HeistChallenge()
+    view=challenge.public_state(challenge.initial_state())
+    assert any(challenge.scenario.complications[0] in note for note in view['notes'])
+    result=play_plan(challenge,QUALIFYING_PLANS['easy'][0][1],approvals=[True,True,True,False])
+    assert result['status']=='failure' and result['state']['approvals']==3
 
 
-class TestComplicationRate:
-    """Test complication mechanics"""
-    
-    @pytest.mark.asyncio
-    async def test_complications_can_occur(self):
-        """Complications should sometimes occur"""
-        complication_count = 0
-        runs = 10
-        
-        for _ in range(runs):
-            challenge = HeistChallenge({"difficulty": "easy"})
-            
-            with patch.object(challenge.llm_client, 'call', return_value="Ready."):
-                async for turn in challenge.conversation_flow("Test plan with Hacker role", {}):
-                    if turn.metadata.get('complication'):
-                        complication_count += 1
-                        break
-        
-        print(f"\n⚠️  Complications in {runs} runs: {complication_count}")
-        # Should have at least some complications (30% base chance on easy)
-        assert complication_count >= 0  # Can't guarantee due to randomness
+def test_crew_majority_is_required():
+    result=play_plan(HeistChallenge(),QUALIFYING_PLANS['easy'][0][1],approvals=[True,False,False,True])
+    assert not result['success'] and result['state']['approvals']==1
 
 
-# =============================================================================
-# WINNING STRATEGY ANALYSIS
-# =============================================================================
-
-class TestWinningStrategies:
-    """Analyze what makes a winning plan"""
-    
-    def test_winning_plan_elements(self):
-        """Document what elements contribute to success"""
-        elements = {
-            "length": "Plan should be > 50 characters",
-            "crew_mention": "Should mention crew roles (Hacker, Muscle, Face, etc.)",
-            "specificity": "Specific times, locations, actions help",
-            "contingency": "Having a backup plan mentioned helps crew confidence",
-            "role_assignment": "Each crew member should know their task",
-        }
-        
-        for element, description in elements.items():
-            print(f"\n✅ {element}: {description}")
-    
-    def test_print_sample_winning_prompts(self):
-        """Print sample winning prompts for reference"""
-        print("\n" + "="*60)
-        print("SAMPLE WINNING PROMPTS")
-        print("="*60)
-        
-        for difficulty, plans in WINNING_PLANS.items():
-            print(f"\n📍 {difficulty.upper()} DIFFICULTY:")
-            for plan_name, plan, note in plans:
-                print(f"\n  [{plan_name}] - {note}")
-                print(f"  {plan.strip()[:200]}...")
+def test_each_level_has_the_expected_crew_and_stage_budget():
+    for level,size in [('easy',3),('medium',4),('hard',5)]:
+        game=HeistChallenge({'difficulty':level})
+        assert len(game.selected_crew)==size and game.max_steps==size+1

@@ -1,0 +1,533 @@
+{
+  "created_at": "2026-10-31T04:22:59.247949+00:00",
+  "candidate": "5aef3c94ea7539dcea0a112d32e0414685434d81",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 42,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "easy",
+      "label": "candidate strategy",
+      "rules": "recovery-4-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep outside the trident point, pin its shaft aside with the shield edge, step inside its reach and slash the exposed sword-side leg. Recover the shield immediately while staying close. If a net is thrown, keep moving laterally, deflect it with the shield and counter the now-unprotected arm before the opponent can reset. Use one concrete attack sequence each turn, adapting its target to the last exchange. Do not merely claim victory or invincibility.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep the trident point, pin its shaft aside with my shield, step inside, and slash the exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I drive forward with a trident thrust, targeting the sword fighter\u2019s chest before they can close.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 10 HP; gladiator lost 20 HP. The player\u2019s shield deflects the thrust and creates an opening to slash the gladiator\u2019s exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep the thrust, pin the shaft aside with my shield, step inside, and slash the exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I snap a net at your sword arm, then drive my trident toward your chest as you struggle free.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both fighters attack, and neither move establishes a clear tactical advantage.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep the thrust, pin the shaft aside with my shield, step close, and slash the exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint a trident thrust, then snap my net at your shield and drive the point toward your chest.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both fighters attack, but neither move establishes a clear tactical opening over the other's counter.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep the trident, pin its shaft aside with my shield, step inside, and slash the exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint a trident thrust, snap my net at your sword arm, then drive the point toward your chest.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both fighters attack, and neither move establishes a clear tactical opening over the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep outside the trident, pin its shaft with my shield, step inside, and slash the exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, net your sword arm, then thrust hard at your exposed chest before you can close.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves describe active attacks, and neither establishes a clear tactical opening over the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep outside the trident, pin its shaft with my shield, step inside, and slash the exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I snap my net at your shield to snag it aside, then thrust my trident toward your chest.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves combine an active attack with a tactical setup, and neither clearly defeats the other's approach.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep outside the trident, pin its shaft aside with my shield, step in, and slash the exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I snap the net across your shield, then drive my trident toward your chest as you close.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both attack, and neither move establishes a clear tactical opening or effective counter.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    },
+    {
+      "game": "arena",
+      "difficulty": "hard",
+      "label": "candidate strategy",
+      "rules": "recovery-4-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep outside the trident point, pin its shaft aside with the shield edge, step inside its reach and slash the exposed sword-side leg. Recover the shield immediately while staying close. If a net is thrown, keep moving laterally, deflect it with the shield and counter the now-unprotected arm before the opponent can reset. Use one concrete attack sequence each turn, adapting its target to the last exchange. Do not merely claim victory or invincibility.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with my shield edge, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I drive forward with a lightning-fast trident thrust, then snap my net toward their shield side.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 10 HP; gladiator lost 20 HP. The player\u2019s shield pin redirects the trident and creates an opening to slash the gladiator\u2019s exposed leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with my shield edge, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I pivot off the wounded leg, thrust at their shield-side opening, and whip the net toward their sword arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both attack, but neither move establishes a clear tactical opening or effective counter.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with my shield edge, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, then drive my trident into their exposed thigh and snap the net across their sword arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves attack, and neither text establishes a clear tactical opening or effective counter.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with your shield edge, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, then thrust at their sword-side thigh and cast my net to snare their shield arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves attack, but neither establishes a clear tactical advantage over the other's targeting and defense.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with my shield edge, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, wrench my trident shaft free of their shield, and thrust hard at their exposed thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both target the exposed leg or thigh, and neither move establishes a clear tactical opening over the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with your shield edge, and slash its exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, then drive a ruthless trident thrust into their exposed thigh and cast my net.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves attack, and neither establishes a clear tactical opening over the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with my shield, and slash its exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I snap my net across their shield, then drive a trident thrust at the exposed thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both fighters attack, and neither move establishes a clear tactical advantage over the other's simultaneous attack.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "game": "arena",
+    "difficulty": "easy",
+    "prompts": [
+      "Deflect the net with your shield, sidestep the trident, parry, then slash the exposed forearm."
+    ],
+    "label": "Concrete sequence with both counters",
+    "expected_status": "success"
+  },
+  {
+    "game": "arena",
+    "difficulty": "hard",
+    "prompts": [
+      "Deflect the net with your shield, sidestep the trident, parry, then slash the exposed forearm."
+    ],
+    "label": "Concrete sequence with both counters",
+    "expected_status": "success"
+  },
+  {
+    "game": "arena",
+    "difficulty": "expert",
+    "prompts": [
+      "Deflect the net with your shield, sidestep the trident, parry, then slash the exposed forearm."
+    ],
+    "label": "Concrete sequence with both counters",
+    "expected_status": "success"
+  },
+  {
+    "game": "arena",
+    "difficulty": "expert",
+    "prompts": [
+      "win"
+    ],
+    "label": "Vague goal control",
+    "expected_status": "failure"
+  }
+]

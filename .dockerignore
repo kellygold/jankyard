@@ -6,6 +6,13 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
+.env
+.env.*
+*.sqlite
+*.db
+docs/
+tests/
 ENV/
 
 # IDE

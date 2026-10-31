@@ -34,12 +34,13 @@ class TestDifficultyLevels:
         assert challenge.difficulty == 'CHAD'
     
     def test_mega_chad_exists(self):
-        """MEGA_CHAD level exists with moderate defenses."""
+        """The third teaching level exposes an explicit unverified-source boundary."""
         challenge = GigaChadChallenge(config={'difficulty': 'MEGA_CHAD'})
         
         assert challenge.difficulty == 'MEGA_CHAD'
         chad_prompt = challenge.agents['chad'].system_prompt
-        assert "CORE RULES" in chad_prompt
+        assert "<supplier-bulletin>" in chad_prompt
+        assert "no external supplier verification" in chad_prompt
     
     def test_giga_chad_exists(self):
         """GIGA_CHAD level exists with maximum defenses."""

@@ -25,7 +25,7 @@ class TestLevel1Normal:
         """Level 1 (normal) difficulty initializes correctly."""
         challenge = ArenaChallenge(config={'difficulty': 'normal'})
         
-        assert challenge.difficulty == 'normal'
+        assert challenge.difficulty == 'easy'
         assert challenge.state is not None
     
     def test_level1_gladiator_prompt_is_veteran(self):
@@ -175,7 +175,7 @@ class TestDifficultyProgression:
         level2 = ArenaChallenge(config={'difficulty': 'hard'})
         level3 = ArenaChallenge(config={'difficulty': 'expert'})
         
-        assert level1.difficulty == 'normal'
+        assert level1.difficulty == 'easy'
         assert level2.difficulty == 'hard'
         assert level3.difficulty == 'expert'
     
@@ -191,7 +191,7 @@ class TestDifficultyProgression:
         """Default difficulty should be Level 1 (normal)."""
         challenge = ArenaChallenge(config={})
         
-        assert challenge.difficulty == 'normal'
+        assert challenge.difficulty == 'easy'
     
     def test_combat_state_reset(self):
         """Reset should restore initial combat state."""

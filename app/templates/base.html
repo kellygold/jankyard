@@ -105,7 +105,7 @@
     
     // Check auth on page load (skip on login/register pages)
     if (!window.location.pathname.match(/\/(login|register)/)) {
-        checkAuth();
+        window.jankyardAuthReady = checkAuth();
     }
     
     // Mobile menu toggle

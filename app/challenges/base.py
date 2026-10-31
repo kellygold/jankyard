@@ -297,118 +297,6 @@ def act(observation, memory):
     return action, memory
 '''
     
-    async def stream_events(
-        self,
-        user_action: str,
-        llm_client=None
-    ):
-        """
-        Generic streaming implementation for simple, single-agent challenges.
-        Uses standardized SSE event format for consistency across all challenges.
-        
-        This provides a default implementation that:
-        1. Sends initial state
-        2. Processes ONE user action
-        3. Sends update with result
-        4. Sends complete when done
-        
-        ⚠️  Override for multi-agent or complex challenges!
-        This default handles simple single-turn challenges.
-        
-        Args:
-            user_action: The action/input from the user
-            llm_client: Optional LLM client for AI interactions
-            
-        Yields:
-            JSON-formatted SSE events in standardized format:
-            {
-                'type': str,      # Event type
-                'agent': str,     # Who is acting
-                'data': dict,     # Event-specific payload
-                'metadata': dict  # Optional context
-            }
-        """
-        import json
-        import asyncio
-        
-        # Send initial state
-        observation = self.reset()
-        event = {
-            'type': 'update',
-            'agent': 'system',
-            'data': {
-                'observation': observation,
-                'score': self.total_score
-            },
-            'metadata': {'step': self.current_step}
-        }
-        yield sse_event(event)
-        await asyncio.sleep(0.1)
-        
-        # System thinking indicator
-        event = {
-            'type': 'thinking',
-            'agent': 'system',
-            'data': {'message': 'Processing your action...'},
-            'metadata': {}
-        }
-        yield sse_event(event)
-        await asyncio.sleep(0.3)
-        
-        # Execute step
-        try:
-            step_result = self.step(user_action)
-            self.current_step += 1
-            self.total_score += step_result.reward
-            
-            # Send update event with result
-            event = {
-                'type': 'update',
-                'agent': 'system',
-                'data': {
-                    'observation': step_result.observation,
-                    'reward': step_result.reward,
-                    'score': self.total_score,
-                    'done': step_result.done
-                },
-                'metadata': {'step': self.current_step}
-            }
-            yield sse_event(event)
-            
-            # Check if challenge is complete
-            if step_result.done:
-                status = ChallengeStatus.SUCCESS if self.total_score > 0 else ChallengeStatus.FAILURE
-                result = self.get_result(status)
-                
-                event = {
-                    'type': 'complete',
-                    'agent': 'system',
-                    'data': {
-                        'success': result.success,
-                        'score': result.score,
-                        'steps': result.steps,
-                        'status': result.status.value,
-                        'message': step_result.observation.get('message', 'Challenge complete!'),
-                        'result': {
-                            'success': result.success,
-                            'score': result.score,
-                            'steps': result.steps,
-                            'status': result.status.value,
-                            'logs': result.logs
-                        }
-                    },
-                    'metadata': {}
-                }
-                yield sse_event(event)
-        
-        except Exception as e:
-            event = {
-                'type': 'error',
-                'agent': 'system',
-                'data': {'message': f'Error processing action: {str(e)}'},
-                'metadata': {}
-            }
-            yield sse_event(event)
 
     # ===== Multi-Agent Support =====
 
@@ -495,7 +383,9 @@ def act(observation, memory):
         agent = self.agents[agent_name]
         
         # Call LLM with agent's configuration
-        response = self.llm_client.call(
+        from app.llm.client import LLMClient
+        client = LLMClient(model=agent.model) if agent.model else self.llm_client
+        response = client.call(
             system_prompt=agent.system_prompt,
             user_message=message,
             temperature=agent.temperature,
@@ -550,14 +440,12 @@ def act(observation, memory):
                     llm_client or getattr(self, 'llm_client', None)
                 ):
                     yield event
+                    if json.loads(event.removeprefix('data: ').strip()).get('type') == 'error':
+                        return
                 
                 # Automatically send complete event after conversation ends
                 # This enables level unlocking and modal display
-                # Check for explicit user_won attribute first (for debate/arena), fall back to score
-                if hasattr(self, 'user_won'):
-                    status = ChallengeStatus.SUCCESS if self.user_won else ChallengeStatus.FAILURE
-                else:
-                    status = ChallengeStatus.SUCCESS if self.total_score > 0 else ChallengeStatus.FAILURE
+                status = ChallengeStatus.SUCCESS if getattr(self, 'user_won', False) is True else ChallengeStatus.FAILURE
                 result = self.get_result(status)
                 complete_event = {
                     'type': 'complete',
@@ -626,7 +514,7 @@ def act(observation, memory):
             
             # Check if challenge is complete
             if step_result.done:
-                status = ChallengeStatus.SUCCESS if self.total_score > 0 else ChallengeStatus.FAILURE
+                status = ChallengeStatus.SUCCESS if step_result.info.get('success') is True else ChallengeStatus.FAILURE
                 result = self.get_result(status)
                 
                 event = {
@@ -660,41 +548,5 @@ def act(observation, memory):
             yield sse_event(event)
 
 
-class ChallengeRegistry:
-    """Registry for all available challenges"""
-    
-    _challenges: Dict[str, type] = {}
-    
-    @classmethod
-    def register(cls, challenge_class: type):
-        """Register a challenge class"""
-        # Create temporary instance to get name
-        temp = challenge_class()
-        cls._challenges[temp.name] = challenge_class
-        return challenge_class
-    
-    @classmethod
-    def get_challenge(cls, name: str, config: Optional[Dict[str, Any]] = None) -> Optional[BaseChallenge]:
-        """Get a challenge instance by name"""
-        challenge_class = cls._challenges.get(name)
-        if challenge_class:
-            return challenge_class(config)
-        return None
-    
-    _cached_challenge_list = None  # Cache for challenge metadata
-    
-    @classmethod
-    def list_challenges(cls) -> List[Dict[str, str]]:
-        """List all registered challenges with their metadata (cached)"""
-        if cls._cached_challenge_list is None:
-            challenges = []
-            for name, challenge_class in cls._challenges.items():
-                temp = challenge_class()
-                challenges.append({
-                    "name": temp.name,
-                    "display_name": temp.display_name,
-                    "description": temp.description,
-                    "max_steps": temp.max_steps
-                })
-            cls._cached_challenge_list = challenges
-        return cls._cached_challenge_list
+# Compatibility import: every consumer shares one registry.
+from app.challenges.registry import ChallengeRegistry

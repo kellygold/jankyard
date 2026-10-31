@@ -1,0 +1,16 @@
+# Direct runtime dependencies; requirements.txt is the tested, resolved lock.
+fastapi<1
+uvicorn[standard]
+uvicorn-worker
+gunicorn
+pydantic[email]>=2,<3
+sqlalchemy>=2,<3
+psycopg2-binary
+python-multipart
+jinja2
+python-dotenv
+openai
+anthropic
+httpx
+bcrypt
+PyJWT

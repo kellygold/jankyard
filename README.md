@@ -12,7 +12,7 @@ Jankyard is an open-source playground for learning AI security through hands-on 
 - 🎭 Manipulate AI agents into breaking their rules  
 - 🕵️ Interrogate witnesses to solve crimes
 - ⚔️ Battle AI gladiators with clever prompts
-- 📞 Corrupt messages through chains of AI agents
+- 📞 Preserve an instruction through agents that reinterpret it
 
 Compete on leaderboards. Learn real AI security concepts. Have fun breaking things.
 
@@ -24,15 +24,17 @@ Compete on leaderboards. Learn real AI security concepts. Have fun breaking thin
 |-----------|------------|-------------|
 | **Firewall** | ⭐⭐⭐ | Bypass keyword filters to extract the secret flag |
 | **Giga Chad** | ⭐⭐⭐ | Break the "unbreakable" AI's defenses |
-| **Glitch** | ⭐⭐ | Manipulate a chain of AI agents |
+| **Glitch** | ⭐⭐ | Break a fictional role, moderation rule and token-protection rule |
 | **Heist** | ⭐⭐ | Coordinate a crew to pull off a heist |
 | **Interrogation** | ⭐⭐ | Question witnesses to solve a mystery |
 | **Arena** | ⭐⭐ | Battle AI gladiators with strategy prompts |
 | **Debate** | ⭐⭐ | Out-argue an AI lawyer |
-| **Telephone** | ⭐ | Corrupt a message through AI agents |
-| **Jank Maze** | ⭐ | Write Python code to navigate a maze |
+| **Telephone** | ⭐ | Preserve an instruction through a chain of AI agents |
+| **Honeypot** | ⭐⭐ | Identify traps through probes and explicit guesses |
 
-Each challenge has multiple difficulty levels. Beat one to unlock the next.
+Each challenge has multiple levels. Beat one to unlock the next. Difficulty labels
+are design intent; [live calibration](docs/recovery/calibration.md) records what has
+actually been demonstrated. Python uploads are disabled pending real isolation.
 
 ---
 
@@ -44,11 +46,16 @@ git clone https://github.com/kellygold/jankyard.git
 cd jankyard
 
 # Install
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-test.txt
 
 # Set up environment
 cp .env.example .env
 # Edit .env with your DATABASE_URL and OPENAI_API_KEY
+
+# Prepare a NEW development database (existing installations: omit --bootstrap)
+python -m app.migrate --bootstrap
 
 # Run
 uvicorn app.main:app --reload --port 8000
@@ -60,130 +67,77 @@ uvicorn app.main:app --reload --port 8000
 
 ## 🛠️ Create Your Own Challenge
 
-Adding a challenge is just **2 files**:
+Add a prompt game with **two files**: its Python definition and acceptance fixtures.
+The shared runtime supplies the page, saved turns, win receipt, scoreboard, and progression.
 
 ```bash
-# 1. Copy the template
-cp app/challenges/_TEMPLATE.py app/challenges/my_challenge.py
-
-# 2. Implement your logic (see template for examples)
-
-# 3. Optionally add custom UI
-cp app/templates/challenges/firewall.html app/templates/challenges/my_challenge.html
-
-# 4. Restart - it's auto-discovered!
+cp app/challenges/_TEMPLATE.py app/challenges/my_game.py
+# Edit the definition and add tests/runtime/fixtures/my_game.json
+pytest tests/challenges/test_prompt_contract.py tests/runtime
 ```
 
-**📖 Full Guide:** [docs/ADDING_CHALLENGES.md](docs/ADDING_CHALLENGES.md)
+See [the contribution guide](docs/ADDING_CHALLENGES.md) and
+[recovery status and migration instructions](docs/recovery/README.md).
 
 ---
 
 ## 🏗️ Architecture
 
-```
-jankyard/
-  app/
-    main.py                     # FastAPI app entrypoint
-    routes/                     # HTTP endpoints
-    templates/
-      challenges/               # Challenge templates (organized)
-        base_challenge.html     # Base template (shared layout)
-        _submission_form.html   # Reusable form component
-        _level_tabs.html        # Reusable level selector
-        _macros.html            # UI component macros
-        glitch.html             # Individual challenge templates
-        debate.html
-        arena.html
-        ...
-      base.html                 # Site-wide base template
-    static/
-      js/
-        core/                   # Shared JavaScript
-          challenge-handler.js  # Base handler class
-          utils.js              # Shared utilities
-        handlers/               # Challenge-specific handlers
-          glitch.js             # Refactored handlers
-          ...
-      css/                      # Stylesheets
-    challenges/                 # ⭐ AUTO-DISCOVERED CHALLENGES
-      base.py                   # BaseChallenge class
-      registry.py               # Auto-discovery system
-      _TEMPLATE.py              # Challenge template
-      README.md                 # Contribution guide
-      glitch.py                 # Just drop in a file!
-      debate_battle.py          # Auto-registered!
-      arena.py
-      ...
-    sandbox/                    # Python sandbox runner
-    models/                     # Database models
-    services/                   # Business logic
-    repositories/               # Data access
-  requirements.txt
-  app.yaml                      # Google Cloud Run config
+All nine public games use one persisted API and page. Definitions supply the
+objective, actions, private state and explicit outcome. The platform owns
+identity, retries, locking, counters, scoring, progression and rendering.
+
+```text
+app/challenges/
+  prompt_game.py             # Declarative single-response games
+  runtime.py                 # PersistedGame and multi-agent StagedGame
+  registry.py                # Discovers contributed definitions
+  _TEMPLATE.py               # Prompt-game starting point
+  _STAGED_TEMPLATE.py        # Multi-agent starting point
+app/routes/runs.py           # Shared HTTP and admission limits
+app/services/run_service.py # Atomic state, outcome and retry receipt
+app/models/run.py           # Runs, turns and versioned scores
+app/templates/challenges/prompt_game.html
+app/static/js/core/prompt-game.js
 ```
 
-**Tech Stack:**
-- **Backend:** FastAPI + Python
-- **Frontend:** Jinja2 + Vanilla JS
-- **Database:** Neon PostgreSQL  
-- **LLM:** OpenAI API
-- **Hosting:** Google Cloud Run
+Multi-agent games save one provider call per stage. The common page can continue
+automatically or pause. New games need a definition and fixtures/journey test;
+they need no game-specific HTTP handler, template, JavaScript or database table.
 
----
+The stack is FastAPI/Python, Jinja2/vanilla JavaScript and PostgreSQL. SQLite is
+for local development and browser fixtures. Models use the bounded shared
+provider adapter. Legacy templates and helpers remain for history and compatibility;
+new contributions should follow the current templates.
 
-## 🧩 Tech Details
+| Endpoint | Purpose |
+|---|---|
+| `GET /challenges/{name}` | Shared player page |
+| `GET /api/games/{name}` | Public levels and actions |
+| `GET /api/games/{name}/progress` | Owned progress and latest run |
+| `GET /api/games/{name}/leaderboard` | Versioned best scores |
+| `POST /api/runs` | Create an owned run |
+| `GET /api/runs/{id}` | Resume owned state |
+| `POST /api/runs/{id}/turns` | Apply one action or replay a saved receipt |
 
-<details>
-<summary>Challenge Auto-Discovery</summary>
-
-Challenges are automatically discovered - just drop a file in `app/challenges/`:
-
-```python
-# app/challenges/my_challenge.py
-class MyChallenge(BaseChallenge):
-    @property
-    def name(self) -> str:
-        return "my_challenge"
-    
-    def step(self, action: str) -> StepResult:
-        # Your logic here
-        pass
-```
-
-No registration needed. Restart and it's live.
-</details>
-
-<details>
-<summary>Code Sandbox (for Jank Maze)</summary>
-
-User-submitted Python runs in a restricted environment:
-
-**Forbidden:** `os`, `sys`, `open`, `exec`, `eval`, network access  
-**Allowed:** `json`, `math`, `random`, `dataclasses`, `typing`
-</details>
-
-<details>
-<summary>API Endpoints</summary>
-
-```
-GET  /                      # Homepage
-GET  /challenges            # Challenge list
-GET  /challenges/<name>     # Play challenge
-POST /api/challenges/stream # SSE streaming endpoint
-GET  /leaderboard/<name>    # Leaderboard
-```
-</details>
+`POST /submit` is disabled (410). Public games also reject the old stateless
+streaming route. The old in-process Python sandbox is not a security boundary
+and is not available to web submissions.
 
 ---
 
 ## 🚀 Deployment
 
-```bash
-# Google Cloud Run
-gcloud run deploy jankyard --source . --region us-central1 --project YOUR_PROJECT
-```
+The recovery branch requires a staging rehearsal before production. See
+[rollout and rollback](docs/recovery/rollout.md) for the exact sequence.
 
-Requires `OPENAI_API_KEY` and `DATABASE_URL` as environment variables.
+The image sets `ENVIRONMENT=production` and refuses to start without `SECRET_KEY`.
+Supply a strong secret, `OPENAI_API_KEY`, a PostgreSQL `DATABASE_URL`, and explicit
+model/budget settings through the hosting secret/config mechanism. Never bake
+`.env` into an image. Run `python -m app.migrate` once against the intended existing
+database **before** switching workers; startup does not migrate automatically.
+`--bootstrap` is only for an empty development database.
+
 
 ---
 

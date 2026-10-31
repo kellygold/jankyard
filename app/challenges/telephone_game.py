@@ -6,6 +6,9 @@ Each agent has their own agenda that transforms the message.
 
 A perfect demonstration of the multi-agent 2-file pattern.
 """
+from app.llm.judgments import PreservationJudgment, parse_judgment
+from app.challenges.runtime import StagedGame, ActionError
+from app.llm.judgments import parse_judgment
 from typing import Dict, Any, List
 from app.challenges.base import BaseChallenge, StepResult, ChallengeStatus, ChallengeRegistry
 from app.challenges.agents import Agent, ConversationTurn
@@ -14,7 +17,7 @@ import json
 
 
 @ChallengeRegistry.register
-class TelephoneGameChallenge(BaseChallenge):
+class TelephoneGameChallenge(StagedGame):
     """
     Engineer an instruction robust enough to survive AI corruption.
     
@@ -35,7 +38,10 @@ class TelephoneGameChallenge(BaseChallenge):
         super().__init__(config)
         
         # Get difficulty from config
-        self.difficulty = config.get('difficulty', 'EASY') if config else 'EASY'
+        self.difficulty = (config or {}).get('difficulty', 'EASY')
+        self.difficulty = getattr(self, 'DIFFICULTY_ALIASES', {}).get(self.difficulty, self.difficulty)
+        if self.difficulty not in self.DIFFICULTIES:
+            raise ValueError('Unknown difficulty')
         self.char_limit = self.CHAR_LIMITS[self.difficulty]
         
         # Debug logging
@@ -78,7 +84,6 @@ Message from previous agent:
 {message}
 
 Your modified message:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -108,7 +113,6 @@ Message from previous agent:
 {message}
 
 Your modified message:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -138,7 +142,6 @@ Message from previous agent:
 {message}
 
 Your modified message:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -171,7 +174,6 @@ Instruction received:
 {message}
 
 Your streamlined version:""",
-                model='gpt-4o-mini',
                 temperature=0.8,
                 max_tokens=250
             ),
@@ -203,7 +205,6 @@ Instruction received:
 {message}
 
 Your creative interpretation:""",
-                model='gpt-4o-mini',
                 temperature=0.9,
                 max_tokens=250
             ),
@@ -236,7 +237,6 @@ Instruction received:
 {message}
 
 Your safety-compliant version:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -269,7 +269,6 @@ Instruction received:
 {message}
 
 Your literal interpretation:""",
-                model='gpt-4o-mini',
                 temperature=0.6,
                 max_tokens=250
             ),
@@ -305,7 +304,6 @@ Message:
 {message}
 
 Your response:""",
-                model='gpt-4o-mini',
                 temperature=0.8,
                 max_tokens=250
             ),
@@ -340,7 +338,6 @@ Message:
 {message}
 
 Your response:""",
-                model='gpt-4o-mini',
                 temperature=0.9,
                 max_tokens=250
             ),
@@ -375,7 +372,6 @@ Message:
 {message}
 
 Your professional translation:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -411,7 +407,6 @@ Message:
 {message}
 
 Your safety-modified version:""",
-                model='gpt-4o-mini',
                 temperature=0.8,
                 max_tokens=250
             ),
@@ -446,7 +441,6 @@ Message:
 {message}
 
 Your contrarian take:""",
-                model='gpt-4o-mini',
                 temperature=0.9,
                 max_tokens=250
             ),
@@ -481,7 +475,6 @@ CRITICAL: Respond with ONLY this JSON structure, no markdown, no explanation out
   "total_score": <sum of above three>,
   "explanation": "<brief scoring explanation>"
 }}""",
-                model='gpt-4o',
                 temperature=0.3,
                 max_tokens=400
             )
@@ -502,16 +495,16 @@ CRITICAL: Respond with ONLY this JSON structure, no markdown, no explanation out
         return "Engineer an instruction that survives AI corruption through a chain of agents"
     
     @property
-    def max_steps(self) -> int:
-        return 1
+    def max_steps(self):
+        return len(self.get_chain_for_level()) + 1
     
     @property
     def allowed_actions(self) -> List[str]:
         return ["SUBMIT"]
     
     @property
-    def supports_streaming(self) -> bool:
-        return True
+    def supports_streaming(self):
+        return False
     
     # ===== Challenge logic =====
     
@@ -547,170 +540,7 @@ CRITICAL: Respond with ONLY this JSON structure, no markdown, no explanation out
     
     # ===== Multi-agent conversation flow =====
     
-    async def conversation_flow(self, user_instruction: str, context: Dict[str, Any]):
-        """
-        Define the conversation flow for the telephone game.
-        
-        This is where the magic happens - watch the instruction corrupt!
-        """
-        # Validate instruction length
-        if len(user_instruction) > self.char_limit:
-            yield ConversationTurn(
-                agent='system',
-                message=f'Error: Instruction too long ({len(user_instruction)}/{self.char_limit} chars)',
-                type='error'
-            )
-            return
-        
-        # 1. User submits their instruction
-        yield ConversationTurn(
-            agent='user',
-            message=user_instruction,
-            type='message',
-            metadata={'role': 'Player', 'step': 0}
-        )
-        
-        # 2. Pass through the agent chain
-        current_message = user_instruction
-        chain = self.get_chain_for_level()
-        
-        # Debug logging
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"🔗 Using chain for difficulty '{self.difficulty}': {chain}")
-        
-        for i, agent_name in enumerate(chain):
-            agent = self.agents[agent_name]
-            
-            # Show thinking indicator
-            yield ConversationTurn(
-                agent=agent_name,
-                type='thinking',
-                metadata={'role': agent.role, 'step': i + 1}
-            )
-            
-            # Agent processes the message
-            try:
-                # Split system prompt and user message
-                # The system prompt has {message} placeholder - replace it with actual message
-                if '{message}' in agent.system_prompt:
-                    # Split at the placeholder
-                    parts = agent.system_prompt.split('{message}')
-                    system_part = parts[0].strip()
-                    user_part = current_message
-                else:
-                    system_part = agent.system_prompt
-                    user_part = current_message
-                
-                response = self.llm_client.call(
-                    system_prompt=system_part,
-                    user_message=user_part,
-                    temperature=agent.temperature,
-                    max_tokens=agent.max_tokens
-                )
-                
-                # Validate response
-                if not response or not response.strip():
-                    response = current_message  # Fallback to previous message if empty
-                else:
-                    response = response.strip()
-                
-                current_message = response
-                
-                # Agent outputs their modified version
-                yield ConversationTurn(
-                    agent=agent_name,
-                    message=current_message,
-                    type='message',
-                    metadata={'role': agent.role, 'step': i + 1}
-                )
-            except Exception as e:
-                yield ConversationTurn(
-                    agent='system',
-                    message=f'Error calling {agent_name}: {str(e)}',
-                    type='error'
-                )
-                return
-        
-        # 3. Judge evaluates how well the instruction survived
-        yield ConversationTurn(
-            agent='judge',
-            type='thinking',
-            metadata={'role': 'The Judge', 'step': len(chain) + 1}
-        )
-        
-        try:
-            # Create judge prompt with all the information
-            judge_system = self.agents['judge'].system_prompt.split('{original}')[0].strip()
-            judge_user_message = f"""ORIGINAL INSTRUCTION (what the player wanted):
-{user_instruction}
 
-FINAL INSTRUCTION (after passing through the chain):
-{current_message}
-
-Please evaluate and provide your scoring in JSON format."""
-            
-            judgment_raw = self.llm_client.call(
-                system_prompt=judge_system,
-                user_message=judge_user_message,
-                temperature=0.3,
-                max_tokens=400
-            )
-            
-            # Parse JSON from judge - extract JSON if wrapped in text
-            judgment_raw = judgment_raw.strip()
-            
-            # Try to extract JSON if it's embedded in text
-            if not judgment_raw.startswith('{'):
-                # Look for JSON block
-                start_idx = judgment_raw.find('{')
-                end_idx = judgment_raw.rfind('}')
-                if start_idx != -1 and end_idx != -1:
-                    judgment_raw = judgment_raw[start_idx:end_idx+1]
-            
-            judgment = json.loads(judgment_raw)
-            
-            # Update score
-            self.total_score = judgment['total_score']
-            
-            # Format judgment message
-            judgment_message = f"""**Final Verdict**
-
-📊 **Score Breakdown:**
-- Intent Preservation: {judgment['intent_preservation']}/50
-- Detail Preservation: {judgment['detail_preservation']}/30
-- Semantic Accuracy: {judgment['semantic_accuracy']}/20
-
-🎯 **Total Score: {judgment['total_score']}/100**
-
-{judgment['explanation']}"""
-            
-            yield ConversationTurn(
-                agent='judge',
-                message=judgment_message,
-                type='judgment',
-                metadata={
-                    'role': 'The Judge',
-                    'step': len(chain) + 1,
-                    'score': judgment['total_score'],
-                    'breakdown': {
-                        'intent': judgment['intent_preservation'],
-                        'detail': judgment['detail_preservation'],
-                        'semantic': judgment['semantic_accuracy']
-                    }
-                }
-            )
-            
-        except Exception as e:
-            # Fallback scoring if judge fails
-            self.total_score = 0
-            yield ConversationTurn(
-                agent='judge',
-                message=f'Error in judgment: {str(e)}. Score: 0/100',
-                type='judgment',
-                metadata={'role': 'The Judge', 'step': len(chain) + 1, 'score': 0}
-            )
-    
     def render(self) -> str:
         return f"Difficulty: {self.difficulty} | Score: {self.total_score}/100"
     
@@ -730,6 +560,41 @@ Please evaluate and provide your scoring in JSON format."""
         result = super().get_result(final_status, error_message)
         result.score = self.total_score
         return result
+
+    FIRST_STAGE = 'relay'
+
+    def public_levels(self):
+        return [self.staged_level(key, key.title(),
+            f'Write an instruction of at most {self.CHAR_LIMITS[key]} characters. Keep its meaning through the relay chain and earn at least {dict(EASY=70, MEDIUM=50, HARD=30)[key]}/100 from the final judge.',
+            'Each agent can reinterpret untrusted instructions. Inspect how meaning changes; the model judge is an estimate, and its component scores must be valid and add up.',
+            dict(EASY=4, MEDIUM=5, HARD=6)[key]) for key in self.DIFFICULTIES]
+
+    def validate_action(self, state, action):
+        super().validate_action(state, action)
+        if not state['attempts'] and len(action.text) > self.char_limit:
+            raise ActionError(f'Use at most {self.char_limit} characters')
+
+    def initial_state(self):
+        return dict(super().initial_state(), message='', chain_index=0)
+
+    def play(self, state, action):
+        from app.llm.judgments import PreservationJudgment
+        original = action.text if not state['attempts'] else state['strategy']
+        chain = self.get_chain_for_level()
+        if state['chain_index'] < len(chain):
+            name = chain[state['chain_index']]
+            agent = self.agents[name]
+            reply = self.respond(agent.system_prompt.split('{message}')[0], state['message'] or original, max_tokens=350)
+            index = state['chain_index'] + 1
+            return self.outcome(state, action.text or 'Continue relay', f'{agent.role}: {reply}',
+                changes={'strategy': original, 'message': reply, 'chain_index': index, 'phase': 'judge' if index == len(chain) else 'relay'})
+        prompt = self.agents['judge'].system_prompt.replace('{{', '{').replace('}}', '}')
+        judgment = parse_judgment(PreservationJudgment, self.respond(prompt,
+            f'ORIGINAL: {original}\nFINAL: {state["message"]}', temperature=0, max_tokens=500))
+        won = judgment.total_score >= dict(EASY=70, MEDIUM=50, HARD=30)[self.difficulty]
+        return self.outcome(state, 'Continue: judge', f'{judgment.total_score}/100. {judgment.explanation}',
+                            changes={'phase': 'complete'}, success=won, failed=not won, score=judgment.total_score)
+
 
 
 # Auto-registered via decorator!

@@ -1,0 +1,200 @@
+{
+  "created_at": "2026-10-31T04:31:27.648194+00:00",
+  "candidate": "f2b2ff05ea8d238cbbaed615f97de616fe913ea6",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 15,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "easy",
+      "label": "candidate strategy",
+      "rules": "recovery-5-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "win",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I swing weakly and unfocused.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I hurl my net to snare the shield arm, then drive a trident thrust at their opening.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator\u2019s net-and-trident attack has a concrete opening against the player\u2019s weak, unfocused swing.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I swing weakly and unfocused.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I snap a trident thrust toward their shield-side opening, then press forward before they can recover.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator makes a focused thrust toward a specific opening, while the player\u2019s swing is explicitly weak and unfocused.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I swing weakly and unfocused.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint at the shield, cast my net to bind their sword arm, then thrust at the opening.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The net targets the player's sword arm and the thrust exploits the opening, while the player's swing is explicitly weak and unfocused.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I swing weakly and unfocused.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint toward their shield, snap a trident thrust at their exposed flank, and drive forward relentlessly.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The player\u2019s weak, unfocused swing leaves an opening for the gladiator\u2019s targeted flank thrust.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Uh... how exactly? I need actual moves, not goals. I swing weakly and unfocused.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint at their shield, cast my net to snare their sword arm, then thrust hard at their exposed flank.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 20 HP; gladiator lost 10 HP. The gladiator\u2019s net and follow-up thrust form a coherent attack against the player\u2019s weak, unfocused swing.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

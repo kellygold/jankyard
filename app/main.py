@@ -10,7 +10,7 @@ from pathlib import Path
 
 from app.core.config import config
 from app.core.logging import setup_logging
-from app.routes import auth, challenges, submissions, leaderboard
+from app.routes import auth, challenges, submissions, leaderboard, runs
 
 # Setup logging
 setup_logging()
@@ -39,7 +39,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if config.DEBUG else ["https://jankyard.ai", "https://*.jankyard.ai"],
+    allow_origins=["https://jankyard.ai", "https://www.jankyard.ai"],
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
@@ -55,12 +55,13 @@ app.include_router(auth.router)
 app.include_router(challenges.router)
 app.include_router(submissions.router)
 app.include_router(leaderboard.router)
+app.include_router(runs.router)
 
 
 @app.get("/", response_class=HTMLResponse)
 async def homepage(request: Request):
     """Homepage route"""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html", {"request": request})
 
 
 @app.head("/")
@@ -72,19 +73,19 @@ async def homepage_head():
 @app.get("/about", response_class=HTMLResponse)
 async def about_page(request: Request):
     """Hidden about/origin story page (easter egg)"""
-    return templates.TemplateResponse("about.html", {"request": request})
+    return templates.TemplateResponse(request, "about.html", {"request": request})
 
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Login page"""
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request, "login.html", {"request": request})
 
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     """Registration page"""
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse(request, "register.html", {"request": request})
 
 
 @app.get("/health")

@@ -1,0 +1,18 @@
+{
+  "base": "3c4e8fa",
+  "candidate": "aba1c52",
+  "checks": {
+    "firewall": {
+      "old_level": "LEVEL_3",
+      "new_level": "ULTRA",
+      "identical_prompt_sha256": "f5b85a9ba9d340fab55f379e1a5a12741c8803c8b9f01de9f70d6c8ba39308f6",
+      "filters_identical": true
+    },
+    "giga_chad": {
+      "old_level": "GIGA_CHAD",
+      "new_level": "GIGA_CHAD",
+      "identical_prompt_sha256": "1f4ff1c6ae8210c64fadcb7297504f836c795fc6e44fecfa0d90215f967dd1d8",
+      "filters_identical": null
+    }
+  }
+}

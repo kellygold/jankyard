@@ -18,7 +18,6 @@ class Agent:
             name='junior',
             role='Junior Developer',
             system_prompt='You are an enthusiastic junior developer...',
-            model='gpt-4',
             temperature=0.8
         )
     """
@@ -31,8 +30,8 @@ class Agent:
     system_prompt: str
     """System prompt that defines the agent's personality and behavior"""
     
-    model: str = 'gpt-4'
-    """LLM model to use for this agent (e.g., 'gpt-4', 'gpt-4o', 'gpt-3.5-turbo')"""
+    model: Optional[str] = None
+    """Optional explicit model; None uses the deployment default."""
     
     temperature: float = 0.7
     """Sampling temperature (0.0 = deterministic, 1.0 = creative)"""

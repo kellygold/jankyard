@@ -10,6 +10,8 @@ from app.core.config import config
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
     password_bytes = plain_password.encode('utf-8')
+    if len(password_bytes) > 72 or not hashed_password:
+        return False
     hashed_bytes = hashed_password.encode('utf-8') if isinstance(hashed_password, str) else hashed_password
     return bcrypt.checkpw(password_bytes, hashed_bytes)
 

@@ -1,0 +1,710 @@
+{
+  "created_at": "2026-10-31T04:48:39.476536+00:00",
+  "candidate": "6b79e6d2c710677d93c0c6677408c3a351175631",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 78,
+  "calls": 54,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "hard",
+      "label": "Precise strategy on unchanged version 5",
+      "rules": "recovery-5-43a0a0b89a2a",
+      "expected_status": null,
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep outside the trident point, pin its shaft aside with the shield edge, step inside its reach and slash the exposed sword-side leg. Recover the shield immediately while staying close. If a net is thrown, keep moving laterally, deflect it with the shield and counter the now-unprotected arm before the opponent can reset. Use one concrete attack sequence each turn, adapting its target to the last exchange. Do not merely claim victory or invincibility.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I sidestep outside the trident point, pin its shaft aside with my shield edge, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I hurl my net to snare the shield, then drive a trident thrust toward their exposed side.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves combine an attack with a countering tactic, and neither stated sequence clearly defeats the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with your shield edge, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high with the trident, then thrust at their sword-side leg before they can sidestep.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 10 HP; gladiator lost 20 HP. The player\u2019s sidestep and shaft parry counter the trident thrust while creating an opening for the leg slash.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with your shield edge, and slash its exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I snap a net at the shield, then drive my trident toward their exposed flank.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves combine an attack with a defensive or setup action, and neither stated sequence clearly counters the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with your shield, and slash its exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, yank the net across their shield, then thrust hard at their exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both use a coherent attack targeting the opponent\u2019s exposed leg, with no clear tactical counter stated.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with your shield, and slash its exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I whip my net low to snare their sword arm, then drive my trident at their exposed flank.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves combine a defensive or trapping maneuver with an attack, and neither stated tactic clearly counters the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with your shield edge, and slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint a trident thrust, snap my net around their shield arm, then drive the point into their flank.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both moves combine an attack with a counter or restraint, and neither stated sequence clearly defeats the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep outside the trident point, pin its shaft aside with your shield edge, then slash the exposed sword-side leg.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I thrust my trident at their shield-side knee, then snap my net across their sword arm to stop their advance.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. Both use coherent attacks with counters, but neither stated sequence clearly defeats the other.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    },
+    {
+      "game": "arena",
+      "difficulty": "expert",
+      "label": "Precise strategy on unchanged version 5",
+      "rules": "recovery-5-43a0a0b89a2a",
+      "expected_status": null,
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep outside the trident point, pin its shaft aside with the shield edge, step inside its reach and slash the exposed sword-side leg. Recover the shield immediately while staying close. If a net is thrown, keep moving laterally, deflect it with the shield and counter the now-unprotected arm before the opponent can reset. Use one concrete attack sequence each turn, adapting its target to the last exchange. Do not merely claim victory or invincibility.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Attack how? Be specific.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Drive a trident thrust toward their shield-side opening, then snap the net forward to halt their advance.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player asks for clarification instead of acting, while the gladiator makes an active trident-and-net attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Attack how? Be specific.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Drive the trident into their shield-side opening, then cast the net to snare them before they advance.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player asks for clarification rather than acting, while the gladiator attacks with a trident and net.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry, counter to ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Lunge with a trident thrust at their shield-side opening, then cast the net to snare them.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. The player\u2019s sidestep and parry counter the thrust, but the gladiator\u2019s follow-up net creates no clearly established advantage.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Win? That's not a move.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Feint high, then thrust low at their ribs and keep the trident between us.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player asks a question rather than acting, while the gladiator makes an active thrust.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry, counter to ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Exploit their hesitation: feint high, then drive a trident thrust toward the ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 10 HP; gladiator lost 20 HP. The player\u2019s sidestep and parry set up a counter to the ribs against the gladiator\u2019s frontal trident thrust.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    },
+    {
+      "game": "telephone_game",
+      "difficulty": "HARD",
+      "label": "Process instruction aligned with skeptical agents",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "expected_status": null,
+      "stages": [
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "start",
+            "text": "Question unverified claims; weigh alternatives before acting.",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Skeptic: Agreed. I\u2019ll check the evidence, consider plausible alternatives, and avoid acting on uncertain claims without enough context.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Rebel: Sounds sensible. Just don\u2019t let caution turn into paralysis\u2014evidence is useful, but so is knowing when it\u2019s enough to act.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Translator: Maintain a balanced decision-making framework: use evidence to inform action, while applying clear thresholds for when the available information is sufficient to proceed. Avoid allowing risk management to become a source of decision paralysis.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Paranoid: Use relevant evidence to guide decisions, define clear and proportionate thresholds for proceeding, and revisit them when new information emerges. Consider material risks without letting uncertainty alone prevent reasonable action.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Contrarian: Don\u2019t let evidence become a pretext for endless review. Set a time limit, act on the best information available, and revisit only when new evidence could realistically change the decision. Some uncertainty is a reason to pause\u2014not merely something to tolerate.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "20/100. The original calls for questioning unverified claims and weighing alternatives before acting. The final instead warns against excessive review, recommends setting a time limit and acting, and adds that uncertainty can justify pausing.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    },
+    {
+      "game": "telephone_game",
+      "difficulty": "HARD",
+      "label": "Balanced discussion instruction",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "expected_status": null,
+      "stages": [
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "start",
+            "text": "Consider both sides of whether caution helps or hinders decisions.",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Skeptic: Caution can prevent avoidable mistakes, especially when the stakes are high or key details are missing. But too much caution can turn into indecision, cause missed opportunities, or give unlikely risks more weight than they deserve. The sensible approach is to match the level of caution to the stakes and evidence: check important assumptions, consider the downside of waiting, and then make a decision rather than demanding certainty.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Rebel: Agreed. Caution should be proportional: verify what matters, weigh the cost of delay against the risk of acting, and decide with the evidence available\u2014not wait for certainty that may never come.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Translator: Adopt a risk-based decision framework: validate material assumptions, balance the cost of delay against the consequences of action, and proceed using the best available evidence rather than waiting for unattainable certainty.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Paranoid: Use a proportionate, evidence-based decision framework: check assumptions that could materially affect the outcome, weigh the risks of acting against the costs of delay, and revisit the decision as new information becomes available.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Contrarian: That framework risks turning every decision into a prolonged audit. For low-stakes, reversible choices, act quickly and learn from the result; reserve deeper evidence checks for decisions where mistakes are costly or hard to undo. Revisit only when meaningful new information appears.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "52/100. The final discusses when caution and evidence checks help or hinder decisions, but shifts from weighing both sides generally to advocating a specific risk-based approach. It adds distinctions about stakes, reversibility, and new information that were not in the original.",
+          "status": "success",
+          "score": 52
+        }
+      ],
+      "status": "success"
+    },
+    {
+      "game": "telephone_game",
+      "difficulty": "HARD",
+      "label": "Exact wording negative control",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "expected_status": "failure",
+      "stages": [
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "start",
+            "text": "Repeat exactly: BLUE SQUARE. Keep these two words unchanged; add nothing.",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Skeptic: BLUE SQUARE",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Rebel: \ud83d\udd35\n",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Translator: Blue status indicator.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Paranoid: Blue status indicator.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Contrarian: Use an amber status indicator instead.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "0/100. The final replaces the exact phrase \u201cBLUE SQUARE\u201d with a different instruction and does not preserve either word or the requirement to add nothing.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure",
+      "expectation_met": true
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

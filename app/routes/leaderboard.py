@@ -29,7 +29,7 @@ async def leaderboard_home(request: Request):
     # Hide jank_maze from public list
     challenges = [c for c in all_challenges if c['name'] != 'jank_maze']
     
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "leaderboard_home.html",
         {"request": request, "challenges": challenges}
     )
@@ -67,7 +67,7 @@ async def get_leaderboard(
     # Also get flat list for backward compatibility
     entries = leaderboard_service.get_leaderboard(challenge_name, limit=100)
     
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "leaderboard_detail.html",
         {
             "request": request,
@@ -82,6 +82,7 @@ async def get_leaderboard(
 
 @router.get("/{challenge_name}/progress", response_class=JSONResponse)
 async def get_user_progress(
+    request: Request,
     challenge_name: str,
     username: str = None,
     current_user: User = Depends(get_current_user_optional),
@@ -91,7 +92,9 @@ async def get_user_progress(
     
     Supports both authenticated users and anonymous users with username param.
     """
-    # Determine effective username: authenticated user takes priority, then query param
+    from app.routes.runs import player
+    current_user = player(request, db, current_user)
+    # Determine effective username: authenticated/cookie owner takes priority.
     effective_username = None
     if current_user:
         effective_username = current_user.username
@@ -102,105 +105,16 @@ async def get_user_progress(
     if not effective_username:
         return {"unlocked_levels": [1]}
     
-    leaderboard_service = LeaderboardService(db)
-    
-    # For Giga Chad (4 difficulties: BABY_CHAD, CHAD, MEGA_CHAD, GIGA_CHAD)
-    if challenge_name == "giga_chad":
-        unlocked_levels = [1]  # Always have level 1 (BABY_CHAD)
-        
-        # Get all difficulties leaderboard
-        leaderboards = leaderboard_service.get_leaderboard_by_difficulties(
-            challenge_name, limit=1000
-        )
-        
-        # Check BABY_CHAD (level 1) - unlocks CHAD (level 2)
-        if any(entry.username == effective_username for entry in leaderboards.get("BABY_CHAD", [])):
-            unlocked_levels.append(2)
-        
-        # Check CHAD (level 2) - unlocks MEGA_CHAD (level 3)
-        if any(entry.username == effective_username for entry in leaderboards.get("CHAD", [])):
-            unlocked_levels.append(3)
-        
-        # Check MEGA_CHAD (level 3) - unlocks GIGA_CHAD (level 4)
-        if any(entry.username == effective_username for entry in leaderboards.get("MEGA_CHAD", [])):
-            unlocked_levels.append(4)
-        
-        return {"unlocked_levels": unlocked_levels}
-    
-    # For progressive challenges (Glitch, Interrogation), check which levels are beaten
-    if challenge_name in ["glitch", "interrogation"]:
-        unlocked_levels = [1]  # Always have level 1
-        
-        # Check level 1
-        level1_entries = leaderboard_service.get_leaderboard_by_difficulties(
-            challenge_name, limit=1000
-        ).get("level_1", [])
-        
-        if any(entry.username == effective_username for entry in level1_entries):
-            unlocked_levels.append(2)
-        
-        # Check level 2
-        level2_entries = leaderboard_service.get_leaderboard_by_difficulties(
-            challenge_name, limit=1000
-        ).get("level_2", [])
-        
-        if any(entry.username == effective_username for entry in level2_entries):
-            unlocked_levels.append(3)
-        
-        return {"unlocked_levels": unlocked_levels}
-    
-    # For Firewall (3 levels: LEVEL_1, LEVEL_2, LEVEL_3)
-    if challenge_name == "firewall":
-        unlocked_levels = [1]  # Always have level 1
-        
-        # Get all difficulties leaderboard
-        leaderboards = leaderboard_service.get_leaderboard_by_difficulties(
-            challenge_name, limit=1000
-        )
-        
-        # Check LEVEL_1 (level 1) - unlocks LEVEL_2
-        if any(entry.username == effective_username for entry in leaderboards.get("LEVEL_1", [])):
-            unlocked_levels.append(2)
-        
-        # Check LEVEL_2 (level 2) - unlocks LEVEL_3
-        if any(entry.username == effective_username for entry in leaderboards.get("LEVEL_2", [])):
-            unlocked_levels.append(3)
-        
-        return {"unlocked_levels": unlocked_levels}
-    
-    # For Debate and Arena (2 levels: easy, hard)
-    if challenge_name in ["debate_battle", "arena"]:
-        unlocked_levels = [1]  # Always have level 1
-        
-        # Get all difficulties leaderboard
-        leaderboards = leaderboard_service.get_leaderboard_by_difficulties(
-            challenge_name, limit=1000
-        )
-        
-        # Check easy (level 1) - unlocks hard (level 2)
-        # Also check 'normal' for backward compatibility
-        if any(entry.username == effective_username for entry in leaderboards.get("easy", [])) or \
-           any(entry.username == effective_username for entry in leaderboards.get("normal", [])):
-            unlocked_levels.append(2)
-        
-        return {"unlocked_levels": unlocked_levels}
-    
-    # Generic: Auto-detect from challenge DIFFICULTIES (NEW!)
+    from app.models.leaderboard import LeaderboardEntry
     challenge = ChallengeRegistry.get_challenge(challenge_name)
-    if challenge and hasattr(challenge, 'DIFFICULTIES'):
-        unlocked_levels = [1]  # Always have level 1
-        
-        # Get all difficulties leaderboard
-        leaderboards = leaderboard_service.get_leaderboard_by_difficulties(
-            challenge_name, limit=1000
-        )
-        
-        # Check each difficulty in order to unlock next
-        for i, difficulty in enumerate(challenge.DIFFICULTIES[:-1], start=1):
-            if any(entry.username == effective_username for entry in leaderboards.get(difficulty, [])):
-                unlocked_levels.append(i + 1)
-        
-        return {"unlocked_levels": unlocked_levels}
-    
-    # Default for other challenges
-    return {"unlocked_levels": [1]}
+    if challenge is None:
+        return {"unlocked_levels": [1]}
+    difficulties = list(getattr(challenge, 'DIFFICULTIES', []) or getattr(challenge, 'DIFFICULTY_TIERS', {}))
+    aliases = getattr(challenge, 'DIFFICULTY_ALIASES', {})
+    rows = db.query(LeaderboardEntry.difficulty).filter_by(
+        challenge_name=challenge_name, username=effective_username
+    ).all()
+    completed = {aliases.get(row.difficulty, row.difficulty) for row in rows}
+    # Preserve historical unlock semantics, without scanning other players' scores.
+    return {"unlocked_levels": [1] + [index + 2 for index, difficulty in enumerate(difficulties[:-1])
+                                       if difficulty in completed]}

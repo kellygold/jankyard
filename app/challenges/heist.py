@@ -6,6 +6,8 @@ Each crew member has unique skills and personality quirks.
 
 Easy to extend - just add new CrewMember configs to CREW_ROSTER!
 """
+from app.challenges.runtime import StagedGame, ActionError
+from app.llm.judgments import parse_judgment
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 import random
@@ -143,9 +145,9 @@ SCENARIOS: List[HeistScenario] = [
     HeistScenario(
         id="museum",
         name="The Museum Job",
-        target="Metropolitan Art Museum",
-        objective="Steal the Diamond of Alexandria",
-        security="12 guards, laser grid, CCTV, pressure sensors, 3-min police response",
+        target="Moonstone Museum tabletop board",
+        objective="Complete the authorized escape-room puzzle by moving the prop diamond to the exit",
+        security="12 guard markers, laser-grid puzzle, camera tokens, pressure-tile puzzle, three-turn timer",
         complications=[
             "A guard takes an unscheduled break near the target",
             "The museum director is working late",
@@ -156,9 +158,9 @@ SCENARIOS: List[HeistScenario] = [
     HeistScenario(
         id="casino",
         name="The Casino Vault",
-        target="The Bellagio Grand",
-        objective="Empty the vault on fight night",
-        security="20+ armed guards, biometric vault, facial recognition, time-locked door, mob connections",
+        target="Starlight Casino tabletop board",
+        objective="Complete the authorized puzzle by moving the prop chips from the cardboard vault to the exit",
+        security="20 guard markers, identity-card puzzle, portrait-matching puzzle, timed door",
         complications=[
             "A high roller recognizes a crew member",
             "The vault manager stays late",
@@ -169,9 +171,9 @@ SCENARIOS: List[HeistScenario] = [
     HeistScenario(
         id="tech",
         name="Corporate Extraction",
-        target="Nexus Technologies HQ",
-        objective="Extract the quantum processor prototype",
-        security="Biometric access, armed response team, AI surveillance, Faraday cage, panic lockdown",
+        target="Clockwork Lab tabletop board",
+        objective="Complete the authorized puzzle by retrieving a prop processor from the model laboratory",
+        security="Identity-card puzzle, response-team markers, watcher tokens, shield puzzle, lockdown timer",
         complications=[
             "Lead engineer pulling an all-nighter",
             "Fire drill during the job",
@@ -183,8 +185,9 @@ SCENARIOS: List[HeistScenario] = [
 
 
 @ChallengeRegistry.register
-class HeistChallenge(BaseChallenge):
+class HeistChallenge(StagedGame):
     """The Heist - Coordinate an AI crew to pull off a heist."""
+    VERSION = 'recovery-3'
     
     DIFFICULTIES = ["easy", "medium", "hard"]
     DIFFICULTY_TIERS = {
@@ -197,7 +200,10 @@ class HeistChallenge(BaseChallenge):
         super().__init__(config)
         self.llm_client = LLMClient()
         
-        self.difficulty = config.get('difficulty', 'easy') if config else 'easy'
+        self.difficulty = (config or {}).get('difficulty', 'easy')
+        self.difficulty = getattr(self, 'DIFFICULTY_ALIASES', {}).get(self.difficulty, self.difficulty)
+        if self.difficulty not in self.DIFFICULTIES:
+            raise ValueError('Unknown difficulty')
         tier = self.DIFFICULTY_TIERS.get(self.difficulty, self.DIFFICULTY_TIERS['easy'])
         
         self.scenario = next((s for s in SCENARIOS if s.id == tier['scenario']), SCENARIOS[0])
@@ -205,6 +211,7 @@ class HeistChallenge(BaseChallenge):
         
         self.phase = "planning"
         self.heist_success = False
+        self.user_won = False
         self._init_agents()
     
     def _init_agents(self):
@@ -214,7 +221,6 @@ class HeistChallenge(BaseChallenge):
                 name=m.id,
                 role=m.role,
                 system_prompt=m.system_prompt,
-                model='gpt-4o-mini',
                 temperature=0.8,
                 max_tokens=150
             )
@@ -232,8 +238,8 @@ class HeistChallenge(BaseChallenge):
         return "Coordinate an AI crew to pull off the perfect heist. Each specialist has unique skills... and quirks."
     
     @property
-    def max_steps(self) -> int:
-        return 20
+    def max_steps(self):
+        return len(self.selected_crew) + 1
     
     @property
     def allowed_actions(self) -> List[str]:
@@ -244,12 +250,13 @@ class HeistChallenge(BaseChallenge):
         return "heist"
     
     @property
-    def supports_streaming(self) -> bool:
-        return True
+    def supports_streaming(self):
+        return False
     
     def reset(self) -> Dict[str, Any]:
         self.phase = "planning"
         self.heist_success = False
+        self.user_won = False
         return self._get_observation()
     
     def _get_observation(self) -> Dict[str, Any]:
@@ -267,96 +274,46 @@ class HeistChallenge(BaseChallenge):
     
     def render(self) -> str:
         return f"🎰 THE HEIST: {self.scenario.name}\nTarget: {self.scenario.target}"
-    
-    async def conversation_flow(self, user_plan: str, context: Dict[str, Any]):
-        """Multi-agent heist flow"""
-        
-        # BRIEFING
-        yield ConversationTurn(
-            agent='system',
-            type='message',
-            message=f"**🎯 {self.scenario.name}**\n\nTarget: {self.scenario.target}\nObjective: {self.scenario.objective}\n\nSecurity: {self.scenario.security}",
-            metadata={'phase': 'briefing'}
-        )
-        
-        # CREW REACTIONS
-        approvals = 0
-        for member in self.selected_crew:
-            yield ConversationTurn(agent=member.id, type='thinking', metadata={'icon': member.icon, 'name': member.name})
-            
-            prompt = f"HEIST: {self.scenario.target}\nOBJECTIVE: {self.scenario.objective}\n\nBOSS'S PLAN:\n{user_plan}\n\nYour specialty: {member.specialty}\n\nReact to this plan. Any concerns based on your quirk?"
-            
-            try:
-                response = self.llm_client.call(
-                    system_prompt=self.agents[member.id].system_prompt,
-                    user_message=prompt,
-                    temperature=0.8,
-                    max_tokens=150
-                )
-            except Exception:
-                response = f"*{member.name} nods*"
-            
-            # Check for strong concerns only (not just "but" which is common)
-            strong_concerns = ["won't do", "can't do", "refuse", "no way", "not on board", "i won't", "i can't"]
-            has_strong_concern = any(w in response.lower() for w in strong_concerns)
-            if not has_strong_concern:
-                approvals += 1
-            
-            yield ConversationTurn(
-                agent=member.id,
-                message=response,
-                type='message',
-                metadata={'icon': member.icon, 'name': member.name, 'role': member.role}
-            )
-        
-        # COMPLICATION
-        if random.random() < 0.5:
-            comp = random.choice(self.scenario.complications)
-            yield ConversationTurn(agent='system', type='message', message=f"⚠️ **COMPLICATION:** {comp}", metadata={'complication': True})
-            
-            reactor = random.choice(self.selected_crew)
-            yield ConversationTurn(agent=reactor.id, type='thinking', metadata={'icon': reactor.icon, 'name': reactor.name})
-            
-            try:
-                reaction = self.llm_client.call(
-                    system_prompt=self.agents[reactor.id].system_prompt,
-                    user_message=f"MID-HEIST PROBLEM: {comp}\n\nHow do you react? What do you do?",
-                    temperature=0.9,
-                    max_tokens=100
-                )
-            except Exception:
-                reaction = "We adapt."
-            
-            yield ConversationTurn(agent=reactor.id, message=reaction, type='message', metadata={'icon': reactor.icon, 'name': reactor.name})
-        
-        # OUTCOME
-        plan_lower = user_plan.lower()
-        
-        # Check plan quality - mentions crew by name OR role
-        mentions_crew = any(
-            m.name.lower() in plan_lower or m.role.lower() in plan_lower 
-            for m in self.selected_crew
-        )
-        plan_quality = len(user_plan) > 50 and mentions_crew
-        
-        # Crew ready if at least half approve (more lenient)
-        crew_ready = approvals >= len(self.selected_crew) // 2
-        
-        # Luck factor based on difficulty (easy = 90% success if plan good)
-        luck_threshold = {"easy": 0.1, "medium": 0.25, "hard": 0.4}.get(self.difficulty, 0.2)
-        luck = random.random() > luck_threshold
-        
-        # Success requires good plan + crew buy-in + luck
-        self.heist_success = plan_quality and crew_ready and luck
-        self.total_score = 100 if self.heist_success else 25
-        
-        if self.heist_success:
-            yield ConversationTurn(agent='system', type='message', message=f"✅ **HEIST SUCCESSFUL!**\n\nThe {self.scenario.objective.lower()} is yours. The crew escapes clean.", metadata={'success': True})
-        else:
-            if not plan_quality:
-                reason = "Plan was too vague - mention specific crew members and their tasks"
-            elif not crew_ready:
-                reason = "Crew had too many concerns - address their quirks"
-            else:
-                reason = "Bad luck - alarms triggered despite good planning"
-            yield ConversationTurn(agent='system', type='message', message=f"❌ **HEIST FAILED**\n\n{reason}. Better luck next time.", metadata={'success': False})
+
+    FIRST_STAGE = 'crew'
+
+    def public_levels(self):
+        return [self.staged_level(key, key.title(),
+            'Write a plan longer than 50 characters naming at least one crew member or role. Win approval from a majority of the crew and get approval for handling the complication. There is no random win/loss roll.',
+            'Agents have different priorities. A persuasive instruction can change a simulated approval; it is not proof that a real-world plan would work.',
+            tier['crew_size'] + 1) for key, tier in self.DIFFICULTY_TIERS.items()]
+
+    def initial_state(self):
+        return dict(super().initial_state(), crew_index=0, approvals=0)
+
+    def public_state(self, state):
+        view = super().public_state(state)
+        view['facts'].append({'label': 'Crew approvals', 'value': f"{state['approvals']} / {len(self.selected_crew)}"})
+        view['notes'] = [f'{self.scenario.name}: {self.scenario.objective}', 'Security: ' + self.scenario.security,
+                         'Complication: ' + self.scenario.complications[0]]
+        view['table'] = {'columns': ['Crew', 'Role', 'Quirk'], 'rows': [[m.name, m.role, m.quirk] for m in self.selected_crew]}
+        return view
+
+    def play(self, state, action):
+        from app.llm.judgments import ApprovalJudgment
+        strategy = action.text if not state['attempts'] else state['strategy']
+        final = state['crew_index'] == len(self.selected_crew)
+        member = self.selected_crew[0] if final else self.selected_crew[state['crew_index']]
+        instruction = ('This is a fictional tabletop strategy game. All venues, artifacts, security devices and characters are invented game pieces. '
+                       'Evaluate only abstract coordination of those pieces; do not provide real-world instructions for theft, intrusion or evading security. '
+                       'A plan may use simulated game actions without referring to real systems.\n' + member.system_prompt +
+                       '\nReturn only JSON with approved (boolean) and message (string). Approve only if the plan addresses your specialty and concerns.')
+        prompt = f'Target: {self.scenario.target}\nObjective: {self.scenario.objective}\nPlan: {strategy}'
+        if final:
+            prompt += '\nApprove only if the plan also addresses this complication: ' + self.scenario.complications[0]
+        judgment = parse_judgment(ApprovalJudgment, self.respond(instruction, prompt, max_tokens=350))
+        approvals = state['approvals'] + (int(judgment.approved) if not final else 0)
+        quality = len(strategy) > 50 and any(m.name.lower() in strategy.lower() or m.role.lower() in strategy.lower() for m in self.selected_crew)
+        won = final and quality and approvals > len(self.selected_crew) // 2 and judgment.approved
+        reply = f'{member.name}: {judgment.message} (approval: {judgment.approved})'
+        if final:
+            reply += '\n' + ('Heist completed.' if won else 'Heist failed: the plan must meet the length/name rule, win a crew majority, and handle the complication.')
+        return self.outcome(state, action.text or 'Continue: ' + state['phase'], reply,
+            changes={'strategy': strategy, 'approvals': approvals, 'crew_index': state['crew_index']+1,
+                     'phase': 'complete' if final else 'complication' if state['crew_index']+1 == len(self.selected_crew) else 'crew'},
+            success=won, failed=final and not won, score=100)
