@@ -148,7 +148,7 @@ Available themes: `glitch` (cyan terminal), `firewall` (green security terminal)
 `giga` (blue arcade console), `arena` (red combat), `courtroom` (wood and gold),
 `heist` (navy planning room), `honeypot` (amber surveillance), `interrogation`
 (case desk), and `telephone` (purple relay). These names identify reusable skins,
-not a routing registry. Set `composer_position: 'top'` for a relay-style screen.
+not a routing registry. All games keep the briefing and input before the history.
 Set `density: 'compact'` for short repeated-prompt consoles like Glitch and
 Honeypot; it keeps the objective, target and controls close together.
 Omit `UI` entirely for the default accessible console.

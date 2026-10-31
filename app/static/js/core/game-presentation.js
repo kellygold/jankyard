@@ -26,7 +26,11 @@
             const scene = run?.presentation?.scene || level.presentation?.scene || {};
             this.scene({...scene, title: copy.title || scene.title || level.title,
                 body: copy.context || scene.body || this.ui.introduction});
-            this.el('task').textContent = this.ui.action_help?.[action?.id] || copy.task ||
+            const finished = run && run.status !== 'in_progress';
+            this.el('task').textContent = finished
+                ? (run.status === 'success' ? 'This win is saved. Choose an unlocked level or start a new run to play again.'
+                    : 'This run is finished. Start a new run to try a different approach, or choose an unlocked level.')
+                : this.ui.action_help?.[action?.id] || copy.task ||
                 (action?.text_hidden ? 'Continue to see the next stage of your saved game.' : 'Write your message below and submit it to try the objective above.');
             const example = this.el('example');
             example.hidden = !copy.example || Boolean(run?.attempts);

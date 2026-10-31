@@ -295,6 +295,6 @@
  .game-win-condition p { font-size:.85rem; }
  .game-level-card small:not(.game-level-state) { display:none; }
 }
-.game-reference #game-intelligence,#game-reference #game-intelligence { margin:.8rem 0; padding:0; background:transparent; border:0; }
+#game-reference #game-intelligence { margin:.8rem 0; padding:0; background:transparent; border:0; }
 #game-reference #game-intelligence>h2 { display:none; }
 @media(max-width:600px) { .game-layout-wide .game-fact { min-width:120px; } }

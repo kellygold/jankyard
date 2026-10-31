@@ -47,21 +47,22 @@ class InterrogationChallenge(PersistedGame):
      'levels': {'level_1': {'title': 'The Last Transmission', 'subtitle': 'Case file 1'},
                 'level_2': {'title': 'The Startup Sabotage',
                             'subtitle': 'Case file 2',
-                            'briefing': {'context': 'The Startup Sabotage: a product codebase was leaked to a '
-                                                    'competitor just before an investor demo. Three co-founders '
-                                                    'had access; one betrayed the company.'}},
+                            'briefing': {'context': 'At TechStart Inc., the complete product codebase was leaked to '
+                                                    'NexGen Corp 48 hours before a major investor demo, putting Series A '
+                                                    'funding at risk. Three co-founders had repository access; one betrayed the company.'}},
                 'level_3': {'title': 'The Crypto Rug Pull',
                             'subtitle': 'Case file 3',
-                            'briefing': {'context': 'The Crypto Rug Pull: an office memecoin collapsed after its '
-                                                    'liquidity was removed and $5,000 disappeared. Question four '
+                            'briefing': {'context': 'DOGEELONMOONCOIN launched in office Slack. Everyone invested; '
+                                                    '48 hours later its liquidity was pulled, $5,000 was stolen and the coin was worthless. Question four '
                                                     'suspects and identify the two who acted together.'}}},
      'failure_title': 'Case remains unsolved',
      'placeholders': {'question': 'Ask about the timeline, an alibi, a contradiction or a possible motive…',
                       'accuse': 'Explain your deduction if you want; the selected suspects determine the '
                                 'accusation.'},
      'briefing': {'title': 'Question the witnesses and solve the case',
-                  'context': 'At an isolated Arctic research station, Dr. Viktor Petrov has been found dead and '
-                             'the radio sabotaged. Two researchers remain; one is the killer.',
+                  'context': 'At an isolated Arctic research station, three days before rescue, lead scientist '
+                             'Dr. Viktor Petrov was found dead in his quarters at 2:00 AM and the radio sabotaged. '
+                             'Two researchers remain; one is the killer. Investigate their timelines and possible motives.',
                   'task': 'Select a witness and ask a specific question about their account. Compare testimony '
                           'and collect the required leads. Then choose Submit accusation, select who you believe '
                           'is guilty and confirm.',

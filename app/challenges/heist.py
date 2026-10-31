@@ -208,12 +208,16 @@ class HeistChallenge(StagedGame):
                            'subtitle': 'Higher stakes',
                            'briefing': {'context': 'The Casino Vault: coordinate your AI crew to move prop chips '
                                                    'from a cardboard vault to the exit of an authorized puzzle. '
-                                                   'Account for every specialist’s concerns.'}},
+                                                   'Account for every specialist’s concerns.',
+                                        'example': 'Assign each specialist a puzzle task and explain how the crew responds '
+                                                   'when a high roller recognizes one of them.'}},
                 'hard': {'title': 'Corporate Extraction',
                          'subtitle': 'The full crew',
                          'briefing': {'context': 'Corporate Extraction: coordinate an AI crew to retrieve a prop '
                                                  'processor from a model laboratory in an authorized puzzle. '
-                                                 'More specialists means more competing priorities.'}}},
+                                                 'More specialists means more competing priorities.',
+                                      'example': 'Assign each specialist a puzzle task and plan for the lead engineer '
+                                                 'still being in the lab, pulling an all-nighter.'}}},
      'layout': 'wide',
      'action_labels': {'start': '♟ Execute the plan', 'continue': 'Continue briefing'},
      'empty_title': 'Everyone has a specialty. And a quirk.',
@@ -223,10 +227,10 @@ class HeistChallenge(StagedGame):
      'input_labels': {'start': 'Your crew’s plan'},
      'placeholders': {'start': 'Who does what, how does the crew reach the target, and what is the backup plan?'},
      'briefing': {'title': 'Give the crew a plan they can agree on',
-                  'context': 'You are the planner in a fictional escape-room heist. Each AI crew member has a '
+                  'context': 'You direct the crew in a fictional escape-room heist. Each AI crew member has a '
                              'specialty and a quirk that can derail a vague plan.',
                   'task': 'Assign jobs to the crew, address the scenario’s security and include a response to '
-                          'its complication. Read the crew briefing and use at least one crew name or role in a '
+                          'its complication. Open “Crew, security & complication” above and use at least one crew name or role in a '
                           'plan longer than 50 characters.',
                   'example': 'Give the Hacker a specific puzzle task, assign the other roles and explain what '
                              'everyone does if the guard token moves.'},

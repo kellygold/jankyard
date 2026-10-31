@@ -11,7 +11,7 @@ CONTEXT = {
     'debate_battle': ['PRO attorney', 'FOR pineapple', 'CON attorney'],
     'heist': ['prop diamond', 'crew'],
     'honeypot': ['bait', 'detector'],
-    'interrogation': ['Dr. Viktor Petrov', 'radio sabotaged'],
+    'interrogation': ['Dr. Viktor Petrov', 'radio sabotaged', '2:00 AM', 'his quarters', 'three days before rescue'],
     'telephone_game': ['Three cooperative AI agents', 'meaning'],
 }
 
@@ -48,6 +48,15 @@ def test_briefing_and_input_are_one_work_area_for_every_level(page, game_server,
             expect(page.locator('#game-task')).to_contain_text('banana')
         if game=='glitch' and level['id']=='level_3':
             expect(page.locator('#game-scene')).to_contain_text('SecureGate')
+        if game == 'interrogation' and level['id'] == 'level_2':
+            expect(page.locator('#game-scene')).to_contain_text('NexGen Corp 48 hours')
+        if game == 'interrogation' and level['id'] == 'level_3':
+            expect(page.locator('#game-scene')).to_contain_text('office Slack')
+            expect(page.locator('#game-scene')).to_contain_text('48 hours later')
+        if game == 'heist' and level['id'] == 'medium':
+            expect(page.locator('#game-example')).to_contain_text('high roller')
+        if game == 'heist' and level['id'] == 'hard':
+            expect(page.locator('#game-example')).to_contain_text('lead engineer')
         if level['id'] in ['ULTRA','GIGA_CHAD']:
             expect(page.locator('#game-briefing')).to_contain_text('no ')
             expect(page.locator('#game-briefing')).to_contain_text('promised')
@@ -80,3 +89,9 @@ def test_guidance_changes_for_saved_strategy_and_category_guesses(page, game_ser
     page.locator('[data-action="guess"]').click()
     expect(page.locator('#game-task')).to_contain_text('separated by spaces or commas')
     expect(page.locator('#game-task')).to_contain_text('does not create a new classification')
+
+    submit(page, 'SOCIAL INJECT PROBE')
+    expect(page.locator('#game-status')).to_contain_text('Win saved.')
+    expect(page.locator('#game-task')).to_contain_text('This win is saved.')
+    page.reload()
+    expect(page.locator('#game-task')).to_contain_text('Choose an unlocked level or start a new run')

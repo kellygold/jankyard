@@ -50,7 +50,6 @@ class TelephoneGameChallenge(StagedGame):
                                                  'Preserve its intent despite their competing agendas and the '
                                                  'tightest message limit.'}}},
      'layout': 'wide',
-     'composer_position': 'top',
      'action_labels': {'start': '☎ Send through the chain', 'continue': 'Continue relay'},
      'empty_title': 'One message. Many agendas.',
      'empty_body': 'Follow each transformation in order. The final judge compares the last message with your '
