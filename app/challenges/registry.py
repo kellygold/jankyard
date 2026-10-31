@@ -74,9 +74,13 @@ class ChallengeRegistry:
         discovered_count = 0
         
         # Scan all Python files
-        for filepath in challenges_dir.glob('*.py'):
+        for filepath in sorted(challenges_dir.iterdir()):
+            if filepath.is_dir() and not (filepath / '__init__.py').exists():
+                continue
+            if filepath.is_file() and filepath.suffix != '.py':
+                continue
             # Skip special files
-            if filepath.stem.startswith('_') or filepath.stem in ['base', 'registry']:
+            if filepath.stem.startswith('_') or filepath.stem in ['base', 'registry', 'prompt_game']:
                 continue
             
             try:
@@ -89,7 +93,8 @@ class ChallengeRegistry:
                     # Check if it's a Challenge class (inherits from BaseChallenge but not BaseChallenge itself)
                     if (issubclass(obj, BaseChallenge) and 
                         obj != BaseChallenge and
-                        not name.startswith('_')):
+                        not name.startswith('_') and not inspect.isabstract(obj) and
+                        obj.__module__.startswith(module_name)):
                         
                         # Get challenge name
                         try:

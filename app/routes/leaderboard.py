@@ -29,7 +29,7 @@ async def leaderboard_home(request: Request):
     # Hide jank_maze from public list
     challenges = [c for c in all_challenges if c['name'] != 'jank_maze']
     
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "leaderboard_home.html",
         {"request": request, "challenges": challenges}
     )
@@ -67,7 +67,7 @@ async def get_leaderboard(
     # Also get flat list for backward compatibility
     entries = leaderboard_service.get_leaderboard(challenge_name, limit=100)
     
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "leaderboard_detail.html",
         {
             "request": request,
@@ -82,6 +82,7 @@ async def get_leaderboard(
 
 @router.get("/{challenge_name}/progress", response_class=JSONResponse)
 async def get_user_progress(
+    request: Request,
     challenge_name: str,
     username: str = None,
     current_user: User = Depends(get_current_user_optional),
@@ -91,7 +92,9 @@ async def get_user_progress(
     
     Supports both authenticated users and anonymous users with username param.
     """
-    # Determine effective username: authenticated user takes priority, then query param
+    from app.routes.runs import player
+    current_user = player(request, db, current_user)
+    # Determine effective username: authenticated/cookie owner takes priority.
     effective_username = None
     if current_user:
         effective_username = current_user.username

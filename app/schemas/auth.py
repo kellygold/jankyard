@@ -1,6 +1,7 @@
 """Pydantic schemas for authentication"""
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
+import re
 
 
 class UserCreate(BaseModel):
@@ -12,7 +13,7 @@ class UserCreate(BaseModel):
     @field_validator('username')
     @classmethod
     def username_alphanumeric(cls, v):
-        if not v.isalnum() and '_' not in v:
+        if not re.fullmatch(r'[A-Za-z0-9_]+', v):
             raise ValueError('Username must be alphanumeric (underscores allowed)')
         if len(v) < 3 or len(v) > 50:
             raise ValueError('Username must be between 3 and 50 characters')
@@ -21,6 +22,8 @@ class UserCreate(BaseModel):
     @field_validator('password')
     @classmethod
     def password_strength(cls, v):
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError('Password must be at most 72 UTF-8 bytes')
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters')
         return v

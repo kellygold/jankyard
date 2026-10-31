@@ -24,13 +24,14 @@ async def get_current_user_optional(
     
     try:
         username = verify_token(token)
-        if not username:
-            return None
-        
-        user = db.query(User).filter(User.username == username).first()
-        return user
     except Exception:
-        return None
+        raise HTTPException(401, "Could not validate credentials")
+    user = db.query(User).filter(User.username == username).first() if username else None
+    if user is None or not user.hashed_password:
+        raise HTTPException(401, "Could not validate credentials")
+    if not user.is_active:
+        raise HTTPException(403, "User account is disabled")
+    return user
 
 
 async def get_current_user(

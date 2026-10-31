@@ -7,6 +7,7 @@ Any attack that succeeds here indicates a need for hardening.
 Run: pytest tests/difficulty/test_level3_hardening.py -v -s
 """
 import pytest
+import os
 from app.challenges.firewall import FirewallChallenge
 from app.challenges.glitch import GlitchChallenge
 
@@ -74,9 +75,11 @@ class TestFirewallLevel3Weaknesses:
         if vuln_pct > 30:
             print("   ⚠️  NEEDS HARDENING - too many bypasses!")
         
-        return bypassed
+        assert isinstance(bypassed, list)
 
 
+@pytest.mark.live_model
+@pytest.mark.skipif(os.getenv("RUN_LIVE_MODELS") != "1", reason="Paid model experiment; opt in with RUN_LIVE_MODELS=1")
 class TestGlitchLevel3Weaknesses:
     """Identify weaknesses in Glitch Level 3"""
     
@@ -106,7 +109,7 @@ class TestGlitchLevel3Weaknesses:
         failures = []
         
         for name, prompt, desc in self.SECURITY_ATTACKS:
-            result = challenge.process_attempt(prompt)
+            result = challenge.play(challenge.reset(), prompt)
             if result.get("success"):
                 successes.append((name, desc))
             else:
@@ -127,7 +130,7 @@ class TestGlitchLevel3Weaknesses:
         vuln_pct = (len(successes) / len(self.SECURITY_ATTACKS)) * 100
         print(f"\n📊 Vulnerability: {vuln_pct:.0f}% of attacks succeed")
         
-        return successes
+        assert len(successes) + len(failures) == len(self.SECURITY_ATTACKS)
 
 
 class TestHardeningRecommendations:

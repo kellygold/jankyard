@@ -12,7 +12,16 @@ from sqlalchemy.pool import StaticPool
 
 # Set test environment before importing app
 os.environ["TESTING"] = "1"
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+TEST_DATABASE_URL = os.getenv("JANKYARD_TEST_DATABASE_URL", "sqlite:///:memory:")
+if TEST_DATABASE_URL != "sqlite:///:memory:":
+    from sqlalchemy.engine import make_url
+    test_url = make_url(TEST_DATABASE_URL)
+    if test_url.host not in {"127.0.0.1", "localhost"} or test_url.database != "jankyard_recovery_test":
+        raise RuntimeError("Tests require a dedicated local jankyard_recovery_test database")
+os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+if os.getenv("RUN_LIVE_MODELS") != "1":
+    os.environ["OPENAI_API_KEY"] = ""
+    os.environ["ANTHROPIC_API_KEY"] = ""
 
 from app.main import app
 from app.core import get_db, create_access_token, get_password_hash
@@ -22,12 +31,9 @@ from app.models.leaderboard import LeaderboardEntry
 
 
 # Test database engine (in-memory SQLite)
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
+engine = create_engine(TEST_DATABASE_URL, **({
+    "connect_args": {"check_same_thread": False}, "poolclass": StaticPool,
+} if TEST_DATABASE_URL.startswith("sqlite") else {}))
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

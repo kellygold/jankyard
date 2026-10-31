@@ -223,7 +223,6 @@ Round {round_num}/{max_rounds}. Previous debate:
             name='user',
             role='PRO Debater',
             system_prompt=user_system_prompt,
-            model='gpt-4',
             temperature=0.7,
             max_tokens=150
         )
@@ -234,7 +233,6 @@ Round {round_num}/{max_rounds}. Previous debate:
             name='chad',
             role='CON Debater',
             system_prompt=house_bot_prompt,
-            model='gpt-4',
             temperature=0.8,
             max_tokens=100
         )
@@ -258,7 +256,6 @@ Return your judgment as JSON:
     "scores": {{"pro": 0-100, "con": 0-100}},
     "reasoning": "Your detailed analysis"
 }}""",
-            model='gpt-4',
             temperature=0.3,
             max_tokens=300
         )

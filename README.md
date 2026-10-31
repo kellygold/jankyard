@@ -50,6 +50,9 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your DATABASE_URL and OPENAI_API_KEY
 
+# Prepare a NEW development database (existing installations: omit --bootstrap)
+python -m app.migrate --bootstrap
+
 # Run
 uvicorn app.main:app --reload --port 8000
 
@@ -60,21 +63,17 @@ uvicorn app.main:app --reload --port 8000
 
 ## 🛠️ Create Your Own Challenge
 
-Adding a challenge is just **2 files**:
+Add a prompt game with **two files**: its Python definition and acceptance fixtures.
+The shared runtime supplies the page, saved turns, win receipt, scoreboard, and progression.
 
 ```bash
-# 1. Copy the template
-cp app/challenges/_TEMPLATE.py app/challenges/my_challenge.py
-
-# 2. Implement your logic (see template for examples)
-
-# 3. Optionally add custom UI
-cp app/templates/challenges/firewall.html app/templates/challenges/my_challenge.html
-
-# 4. Restart - it's auto-discovered!
+cp app/challenges/_TEMPLATE.py app/challenges/my_game.py
+# Edit the definition and add tests/runtime/fixtures/my_game.json
+pytest tests/challenges/test_prompt_contract.py tests/runtime
 ```
 
-**📖 Full Guide:** [docs/ADDING_CHALLENGES.md](docs/ADDING_CHALLENGES.md)
+See [the contribution guide](docs/ADDING_CHALLENGES.md) and
+[recovery status and migration instructions](docs/recovery/README.md).
 
 ---
 

@@ -19,7 +19,7 @@ The best way to contribute is to create interesting challenges for agents to sol
 **📖 [Complete Guide to Adding Challenges](docs/ADDING_CHALLENGES.md)**
 
 This guide covers:
-- Simple 2-file architecture (challenge class + optional template)
+- Two-file prompt games (definition + acceptance fixtures), with a shared page and runtime
 - Step-by-step file creation
 - Code examples and templates
 - Testing checklist

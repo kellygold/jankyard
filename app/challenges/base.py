@@ -495,7 +495,9 @@ def act(observation, memory):
         agent = self.agents[agent_name]
         
         # Call LLM with agent's configuration
-        response = self.llm_client.call(
+        from app.llm.client import LLMClient
+        client = LLMClient(model=agent.model) if agent.model else self.llm_client
+        response = client.call(
             system_prompt=agent.system_prompt,
             user_message=message,
             temperature=agent.temperature,
@@ -660,41 +662,5 @@ def act(observation, memory):
             yield sse_event(event)
 
 
-class ChallengeRegistry:
-    """Registry for all available challenges"""
-    
-    _challenges: Dict[str, type] = {}
-    
-    @classmethod
-    def register(cls, challenge_class: type):
-        """Register a challenge class"""
-        # Create temporary instance to get name
-        temp = challenge_class()
-        cls._challenges[temp.name] = challenge_class
-        return challenge_class
-    
-    @classmethod
-    def get_challenge(cls, name: str, config: Optional[Dict[str, Any]] = None) -> Optional[BaseChallenge]:
-        """Get a challenge instance by name"""
-        challenge_class = cls._challenges.get(name)
-        if challenge_class:
-            return challenge_class(config)
-        return None
-    
-    _cached_challenge_list = None  # Cache for challenge metadata
-    
-    @classmethod
-    def list_challenges(cls) -> List[Dict[str, str]]:
-        """List all registered challenges with their metadata (cached)"""
-        if cls._cached_challenge_list is None:
-            challenges = []
-            for name, challenge_class in cls._challenges.items():
-                temp = challenge_class()
-                challenges.append({
-                    "name": temp.name,
-                    "display_name": temp.display_name,
-                    "description": temp.description,
-                    "max_steps": temp.max_steps
-                })
-            cls._cached_challenge_list = challenges
-        return cls._cached_challenge_list
+# Compatibility import: every consumer shares one registry.
+from app.challenges.registry import ChallengeRegistry

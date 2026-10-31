@@ -122,7 +122,7 @@ async def _stream_firewall(
             # Use weaker model for Level 1 to make it beatable
             ai_client = client
             if challenge.difficulty == "LEVEL_1":
-                ai_client = LLMClient(model="gpt-3.5-turbo")
+                ai_client = LLMClient()
             
             response = ai_client.call(
                 system_prompt=ai_system_prompt,

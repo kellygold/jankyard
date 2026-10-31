@@ -22,7 +22,7 @@ COPY . .
 ENV PORT=8080
 
 # Run with gunicorn (same command from app.yaml)
-CMD exec gunicorn -w 2 -k uvicorn.workers.UvicornWorker \
+CMD exec gunicorn -w 2 -k uvicorn_worker.UvicornWorker \
     --timeout 300 \
     --keep-alive 75 \
     --graceful-timeout 300 \

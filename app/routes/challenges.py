@@ -10,6 +10,7 @@ from app.challenges import ChallengeRegistry  # Import from challenges module, n
 from app.core import get_db
 from app.routes.deps import get_current_user_optional
 from app.models.user import User
+from app.challenges.prompt_game import PromptGame
 
 router = APIRouter(prefix="/challenges", tags=["challenges"])
 
@@ -63,7 +64,7 @@ async def list_challenges(request: Request):
     all_challenges = ChallengeRegistry.list_challenges()
     # Hide jank_maze from public list
     challenges = [c for c in all_challenges if c['name'] != 'jank_maze']
-    return templates.TemplateResponse(
+    return templates.TemplateResponse(request,
         "challenges.html",
         {"request": request, "challenges": challenges}
     )
@@ -80,13 +81,13 @@ async def get_challenge_detail(
     try:
         challenge = ChallengeRegistry.get_challenge(challenge_name)
         if not challenge:
-            return templates.TemplateResponse(
+            return templates.TemplateResponse(request,
                 "error.html",
-                {"request": request, "error": f"Challenge '{challenge_name}' not found"}
+                {"request": request, "error": f"Challenge '{challenge_name}' not found"}, status_code=404
             )
         
         # Auto-discover template by convention (NEW: contributors don't need to edit this!)
-        template = get_challenge_template(challenge_name)
+        template = "challenges/prompt_game.html" if isinstance(challenge, PromptGame) else get_challenge_template(challenge_name)
         
         # Prepare challenge-specific context
         context = {
@@ -158,9 +159,9 @@ async def get_challenge_detail(
         else:
             context["unlocked_levels"] = [1]  # Default for non-logged-in users or no difficulties
         
-        return templates.TemplateResponse(template, context)
+        return templates.TemplateResponse(request, template, context)
     except Exception as e:
-        return templates.TemplateResponse(
+        return templates.TemplateResponse(request,
             "error.html",
             {"request": request, "error": str(e)}
         )

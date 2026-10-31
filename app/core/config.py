@@ -35,7 +35,7 @@ class Config:
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     DEFAULT_LLM_PROVIDER: str = os.getenv("DEFAULT_LLM_PROVIDER", "openai")
-    DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
+    DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "gpt-6-luna")
     
     # File upload
     MAX_UPLOAD_SIZE: int = 50 * 1024  # 50KB max for agent.py

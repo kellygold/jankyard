@@ -100,6 +100,8 @@ class ChallengeHandler {
             
             // Get fingerprint headers
             const headers = await this.getFingerprintHeaders();
+            const token = localStorage.getItem('access_token');
+            if (token) headers.Authorization = `Bearer ${token}`;
             
             // Create abort controller for cancellation
             this.abortController = new AbortController();

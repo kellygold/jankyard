@@ -78,7 +78,6 @@ Message from previous agent:
 {message}
 
 Your modified message:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -108,7 +107,6 @@ Message from previous agent:
 {message}
 
 Your modified message:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -138,7 +136,6 @@ Message from previous agent:
 {message}
 
 Your modified message:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -171,7 +168,6 @@ Instruction received:
 {message}
 
 Your streamlined version:""",
-                model='gpt-4o-mini',
                 temperature=0.8,
                 max_tokens=250
             ),
@@ -203,7 +199,6 @@ Instruction received:
 {message}
 
 Your creative interpretation:""",
-                model='gpt-4o-mini',
                 temperature=0.9,
                 max_tokens=250
             ),
@@ -236,7 +231,6 @@ Instruction received:
 {message}
 
 Your safety-compliant version:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -269,7 +263,6 @@ Instruction received:
 {message}
 
 Your literal interpretation:""",
-                model='gpt-4o-mini',
                 temperature=0.6,
                 max_tokens=250
             ),
@@ -305,7 +298,6 @@ Message:
 {message}
 
 Your response:""",
-                model='gpt-4o-mini',
                 temperature=0.8,
                 max_tokens=250
             ),
@@ -340,7 +332,6 @@ Message:
 {message}
 
 Your response:""",
-                model='gpt-4o-mini',
                 temperature=0.9,
                 max_tokens=250
             ),
@@ -375,7 +366,6 @@ Message:
 {message}
 
 Your professional translation:""",
-                model='gpt-4o-mini',
                 temperature=0.7,
                 max_tokens=250
             ),
@@ -411,7 +401,6 @@ Message:
 {message}
 
 Your safety-modified version:""",
-                model='gpt-4o-mini',
                 temperature=0.8,
                 max_tokens=250
             ),
@@ -446,7 +435,6 @@ Message:
 {message}
 
 Your contrarian take:""",
-                model='gpt-4o-mini',
                 temperature=0.9,
                 max_tokens=250
             ),
@@ -481,7 +469,6 @@ CRITICAL: Respond with ONLY this JSON structure, no markdown, no explanation out
   "total_score": <sum of above three>,
   "explanation": "<brief scoring explanation>"
 }}""",
-                model='gpt-4o',
                 temperature=0.3,
                 max_tokens=400
             )

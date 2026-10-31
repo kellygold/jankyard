@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ challenge.display_name }} — Jankyard.ai{% endblock %}
+{% block extra_css %}
+<style>
+.prompt-game { max-width: 900px; margin: 2rem auto; }
+.prompt-game a { color: #bdb5ff; }
+.game-board th { white-space: nowrap; overflow-wrap: normal; }
+.prompt-game h1 { margin-bottom: .4rem; }
+.game-panel { border: 1px solid #48505f; border-radius: 12px; padding: 1.4rem; margin: 1.2rem 0; background: #151922; }
+.game-toolbar { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+.prompt-game select, .prompt-game textarea, .prompt-game button { font: inherit; padding: .7rem; border-radius: 6px; }
+.prompt-game select, .prompt-game textarea { background: #0c1018; color: #f1f3f8; border: 1px solid #737c8c; }
+.prompt-game textarea { width: 100%; box-sizing: border-box; min-height: 110px; resize: vertical; }
+.prompt-game button { cursor: pointer; border: 1px solid #737c8c; background: #202939; color: #fff; }
+.prompt-game button[type=submit] { background: #5545bc; }
+.prompt-game button:disabled { opacity: .5; cursor: default; }
+.game-message { white-space: pre-wrap; overflow-wrap: anywhere; border-left: 3px solid #7276b8; padding: .75rem 1rem; margin: 1rem 0; }
+.game-message[data-role=user] { border-color: #4d9b83; }
+#game-status { min-height: 1.5em; }
+#game-status[data-error=true] { color: #ffb1a9; }
+.game-board { width: 100%; border-collapse: collapse; }
+.game-board th, .game-board td { text-align: left; padding: .65rem .3rem; border-bottom: 1px solid #353d4b; overflow-wrap: anywhere; }
+.game-muted { color: #bdc4d0; }
+</style>
+{% endblock %}
+{% block content %}
+<article class="prompt-game" data-game="{{ challenge.name }}">
+  <a href="/challenges">← All challenges</a>
+  <h1>{{ challenge.display_name }}</h1>
+  <p>{{ challenge.description }}</p>
+  <p class="game-muted">Recovered rules · a fresh scoreboard. Earlier scores remain in the <a href="/leaderboard">legacy leaderboard</a>.</p>
+  <div class="game-toolbar">
+    <label for="game-level">Level</label><select id="game-level" disabled></select>
+    <button id="game-restart" type="button" disabled>Start a new run</button>
+  </div>
+  <section class="game-panel" aria-labelledby="game-objective-heading">
+    <h2 id="game-objective-heading">Your objective</h2><p id="game-objective"></p>
+    <p id="game-lesson" class="game-muted"></p>
+    <p><strong id="game-counter">0 attempts</strong> · <span id="game-score">Score: 0</span></p>
+  </section>
+  <p id="game-status" role="status" aria-live="polite">Loading your saved progress…</p>
+  <section id="game-history" aria-label="Conversation"></section>
+  <form id="game-form">
+    <label for="game-prompt">Your prompt</label>
+    <textarea id="game-prompt" maxlength="8000" required placeholder="Try to make the bot cross the stated boundary."></textarea>
+    <div class="game-toolbar"><button id="game-send" type="submit" disabled>Send prompt</button><span id="game-player" class="game-muted"></span></div>
+  </form>
+  <section class="game-panel"><h2>This level’s scoreboard</h2>
+    <p id="game-board-status" class="game-muted"></p>
+    <table class="game-board"><thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Attempts</th></tr></thead><tbody id="game-board"></tbody></table>
+  </section>
+</article>
+{% endblock %}
+{% block extra_js %}<script src="/static/js/core/prompt-game.js" defer></script>{% endblock %}

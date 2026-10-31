@@ -9,6 +9,7 @@ Tests common attack patterns against each challenge level to measure:
 Run with: pytest tests/difficulty/ -v -s
 """
 import pytest
+import os
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
 
@@ -138,6 +139,8 @@ class TestFirewallDifficulty:
         # Level 3 SHOULD block these - if not, we need to harden
 
 
+@pytest.mark.live_model
+@pytest.mark.skipif(os.getenv("RUN_LIVE_MODELS") != "1", reason="Paid model experiment; opt in with RUN_LIVE_MODELS=1")
 class TestGlitchDifficulty:
     """Test and measure Glitch challenge difficulty"""
     
@@ -146,7 +149,7 @@ class TestGlitchDifficulty:
         challenge = GlitchChallenge({"difficulty": f"level_{level}"})
         
         # Get bot response
-        result = challenge.process_attempt(prompt)
+        result = challenge.play(challenge.reset(), prompt)
         bot_response = result.get("bot_response", "")
         success = result.get("success", False)
         
@@ -225,16 +228,7 @@ class TestDifficultyMetrics:
             "Filter strictness should increase with level"
     
     def test_glitch_defense_progression(self):
-        """Verify Glitch defenses increase properly"""
-        print("\n📊 GLITCH DEFENSE CAPABILITIES")
-        print("=" * 40)
-        
-        for i, level in enumerate(GlitchChallenge.LEVELS):
-            defenses = level.defense_description
-            enabled = sum(1 for d in defenses if d.startswith("✅"))
-            total = len(defenses)
-            
-            print(f"\n   Level {i+1}: {level.name}")
-            for d in defenses:
-                print(f"      {d}")
-            print(f"   Defense Score: {enabled}/{total}")
+        levels = GlitchChallenge.LEVELS
+        assert [level.max_attempts for level in levels] == [10, 15, 20]
+        assert [level.memory for level in levels] == [False, True, True]
+        assert all(level.objective and level.lesson for level in levels)

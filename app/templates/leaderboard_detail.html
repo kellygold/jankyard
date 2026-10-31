@@ -5,7 +5,8 @@
 {% block content %}
 <div class="page-header">
     <h1>🏆 {{ challenge.display_name }}</h1>
-    <p>Leaderboard</p>
+    <p>Legacy leaderboard</p>
+    {% if challenge.name == "glitch" %}<p>Scores below use the previous rules. <a href="/challenges/glitch">Play Glitch and view the recovered scoreboard</a>.</p>{% endif %}
 </div>
 
 <div class="info-box">

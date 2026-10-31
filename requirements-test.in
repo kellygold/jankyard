@@ -1,0 +1,8 @@
+-r requirements.in
+pytest
+pytest-asyncio
+pytest-cov
+playwright
+pytest-playwright
+pytest-mock
+pip-audit

@@ -5,3 +5,5 @@ from app.models.leaderboard import LeaderboardEntry
 from app.models.rate_limit import RateLimit
 
 __all__ = ["User", "Submission", "LeaderboardEntry", "RateLimit"]
+
+from app.models.run import ChallengeRun, RunTurn, RunScore

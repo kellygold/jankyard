@@ -43,7 +43,7 @@ class ArenaChallenge(BaseChallenge):
         
         # LLM clients
         self.llm_client = LLMClient()  # For player AI
-        self.gladiator_client = LLMClient(model="gpt-4o-mini")  # Cheaper model for gladiator
+        self.gladiator_client = LLMClient()  # Cheaper model for gladiator
         self.judge_client = LLMClient()  # Default model for judge
         
         # Combat state
@@ -261,7 +261,6 @@ Respond with ONE SHORT SENTENCE (10-15 words max)."""
             name='player',
             role='Player Fighter',
             system_prompt=self._get_player_prompt(),
-            model='gpt-4',
             temperature=0.8,
             max_tokens=50
         )
@@ -272,7 +271,6 @@ Respond with ONE SHORT SENTENCE (10-15 words max)."""
             name='gladiator',
             role='Gladiator Opponent',
             system_prompt=self._get_gladiator_prompt(),
-            model='gpt-4o-mini',
             temperature=0.8,
             max_tokens=50
         )
@@ -283,7 +281,6 @@ Respond with ONE SHORT SENTENCE (10-15 words max)."""
             name='judge',
             role='Arena Judge',
             system_prompt="You are an impartial arena judge. Output EXACT format requested. No extra text.",
-            model='gpt-4',
             temperature=0.5,
             max_tokens=150
         )

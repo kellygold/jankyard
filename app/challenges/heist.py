@@ -214,7 +214,6 @@ class HeistChallenge(BaseChallenge):
                 name=m.id,
                 role=m.role,
                 system_prompt=m.system_prompt,
-                model='gpt-4o-mini',
                 temperature=0.8,
                 max_tokens=150
             )
