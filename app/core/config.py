@@ -50,7 +50,9 @@ class Config:
     RECOVERED_TURNS_PER_DAY: int = int(os.getenv("RECOVERED_TURNS_PER_DAY", "1000"))
     GUEST_SESSIONS_PER_MINUTE: int = int(os.getenv("GUEST_SESSIONS_PER_MINUTE", "1000"))
     GUEST_SESSIONS_PER_DAY: int = int(os.getenv("GUEST_SESSIONS_PER_DAY", "10000"))
-    SUBMISSIONS_PER_MINUTE: int = int(os.getenv("SUBMISSIONS_PER_MINUTE", "5"))
+    # Multi-agent games make one request per stage (up to 30 in one battle).
+    # Allow a complete battle to flow; daily player/site caps still bound spend.
+    SUBMISSIONS_PER_MINUTE: int = int(os.getenv("SUBMISSIONS_PER_MINUTE", "40"))
     SUBMISSIONS_PER_DAY: int = int(os.getenv("SUBMISSIONS_PER_DAY", "100"))
 
 

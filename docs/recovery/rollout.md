@@ -29,7 +29,7 @@ parsing submissions or creating accounts. All nine public games use `/api/runs`.
 
 `ENVIRONMENT=production`, `DEFAULT_LLM_PROVIDER=openai`,
 `DEFAULT_MODEL=gpt-6-luna`, `RATE_LIMIT_ENABLED=true`,
-`RECOVERED_TURNS_PER_DAY=1000`, `SUBMISSIONS_PER_MINUTE=5`,
+`RECOVERED_TURNS_PER_DAY=1000`, `SUBMISSIONS_PER_MINUTE=40`,
 `SUBMISSIONS_PER_DAY=100`, `GUEST_SESSIONS_PER_MINUTE=1000`,
 `GUEST_SESSIONS_PER_DAY=10000`, `FORWARDED_ALLOW_IPS=127.0.0.1`.
 
@@ -39,6 +39,14 @@ admission even when a stored receipt avoids another provider call.
 Cloud Run exposes the shared peer `169.254.169.126`. Forwarded client headers
 are deliberately untrusted. Guest provisioning shares a site-wide peer bucket;
 playing budgets use verified player IDs plus an independent global paid cap.
+
+The minute allowance was raised from 5 to 40 after a real GigaChad run stopped
+at round two. Each internal agent stage consumes one admission; GigaChad needs
+15 stages and Arena can need 30, plus run creation. Daily caps remain unchanged.
+Release proof must use the production minute/day settings with limiting enabled.
+The browser also displays a persistent countdown for short throttles, blocks
+premature retries, and reuses the same request when the window resets. Reload
+preserves the cooldown but requires explicit continuation.
 
 ## Emergency maintenance rollback
 
