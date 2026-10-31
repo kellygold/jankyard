@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models.submission import Submission
 from app.models.user import User
+from app.models.run import RunScore
 from app.repositories.submission_repo import SubmissionRepository
 from app.repositories.user_repo import UserRepository
 from app.repositories.leaderboard_repo import LeaderboardRepository
@@ -129,13 +130,15 @@ class SubmissionService:
             return None
         
         # Count submissions
-        all_submissions = self.submission_repo.get_by_user(user.id, limit=10000)
-        total_submissions = len(all_submissions)
-        successful_submissions = sum(1 for s in all_submissions if s.success)
+        submissions = self.db.query(Submission).filter_by(user_id=user.id)
+        total_submissions = submissions.count()
+        successful_submissions = submissions.filter_by(success=True).count()
         
         # Count leaderboard entries
         leaderboard_entries = self.leaderboard_repo.get_by_user(username)
-        challenges_completed = len({entry.challenge_name for entry in leaderboard_entries})
+        completed = {entry.challenge_name for entry in leaderboard_entries}
+        completed.update(name for (name,) in self.db.query(RunScore.challenge).filter_by(user_id=user.id).distinct())
+        challenges_completed = len(completed)
         
         return {
             'username': username,

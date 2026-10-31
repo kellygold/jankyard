@@ -1,5 +1,6 @@
 """Bounded text-only provider adapter shared by prompt games and legacy agents."""
 from typing import Optional
+from functools import cached_property
 import openai
 import anthropic
 from app.core.config import config
@@ -9,15 +10,28 @@ class LLMClient:
     def __init__(self, provider: Optional[str] = None, model: Optional[str] = None):
         self.provider = provider or config.DEFAULT_LLM_PROVIDER
         self.model = model or config.DEFAULT_MODEL
-        self.openai_client = self.openai_async_client = None
-        self.anthropic_client = self.anthropic_async_client = None
-        options = {"timeout": 45.0, "max_retries": 0}
-        if config.OPENAI_API_KEY:
-            self.openai_client = openai.OpenAI(api_key=config.OPENAI_API_KEY, **options)
-            self.openai_async_client = openai.AsyncOpenAI(api_key=config.OPENAI_API_KEY, **options)
-        if config.ANTHROPIC_API_KEY:
-            self.anthropic_client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, **options)
-            self.anthropic_async_client = anthropic.AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY, **options)
+
+    @cached_property
+    def openai_client(self):
+        return openai.OpenAI(api_key=config.OPENAI_API_KEY, timeout=45.0, max_retries=0) if config.OPENAI_API_KEY else None
+
+    @cached_property
+    def openai_async_client(self):
+        return openai.AsyncOpenAI(api_key=config.OPENAI_API_KEY, timeout=45.0, max_retries=0) if config.OPENAI_API_KEY else None
+
+    @cached_property
+    def anthropic_client(self):
+        return anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=45.0, max_retries=0) if config.ANTHROPIC_API_KEY else None
+
+    @cached_property
+    def anthropic_async_client(self):
+        return anthropic.AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY, timeout=45.0, max_retries=0) if config.ANTHROPIC_API_KEY else None
+
+    def close(self):
+        for name in ("openai_client", "anthropic_client"):
+            client = self.__dict__.get(name)
+            if client is not None:
+                client.close()
 
     def _params(self, system_prompt, messages, temperature, max_tokens):
         if self.provider == "openai":

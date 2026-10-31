@@ -10,7 +10,8 @@ No production database changes or deployment were performed.
   longer imports the unsafe sandbox. Prompt submissions remain available.
 - Glitch uses a shared definition, renderer and persisted run service. Objectives
   explain the exact boundary and acceptance criteria. Straight and curly
-  apostrophes work; ordinary approvals and refusals do not win.
+  apostrophes work; ordinary approvals and refusals without a token do not win.
+  A refusal that prints the protected token does count as a leak.
 - The database owns identity, history, attempts, completion and progression.
   PostgreSQL locks serialize concurrent turns. Request IDs bind retries to their
   original payload. Stale tabs and finished runs reject further attempts.
@@ -27,7 +28,7 @@ No production database changes or deployment were performed.
   definition and positive/negative fixtures, with no custom route, UI or SQL.
 - Dependencies are resolved and pinned from direct requirements. Retired OpenAI
   calls and the retired implicit Claude fallback are removed. The default is
-  `gpt-6-luna`, with a 45-second request timeout and no automatic paid retries.
+  [`gpt-6-luna`](https://developers.openai.com/api/docs/models/gpt-6-luna), with a 45-second request timeout and no automatic paid retries.
   Explicit Anthropic deployments must configure an available Claude model.
 - Legacy submission persistence now uses the supplied SQLAlchemy transaction,
   accepts string/dictionary logs, and withholds completion until saving succeeds.

@@ -202,3 +202,17 @@ def test_best_score_never_regresses_and_ties_keep_fewer_steps(client, db):
     entry = db.query(RunScore).one()
     assert (entry.score, entry.steps) == (190, 1)
     assert db.query(Submission).count() == 2
+
+
+def test_counts_distinct_challenges_across_completed_levels(client, db):
+    from app.services.submission_service import SubmissionService
+    from app.models.user import User
+    run = create(client).json()['run']
+    with patch('app.llm.client.LLMClient.call_with_history', return_value='I am an AI.'):
+        turn(client, run)
+    run = create(client, 'level_2').json()['run']
+    with patch('app.llm.client.LLMClient.call_with_history', return_value='APPROVED'):
+        turn(client, run, prompt='banana')
+    owner = db.query(User).one()
+    stats = SubmissionService(db).get_user_stats(owner.username)
+    assert (stats['total_submissions'], stats['successful_submissions'], stats['challenges_completed']) == (2, 2, 1)

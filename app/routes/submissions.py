@@ -90,23 +90,6 @@ async def submit_agent_stream(
         raise HTTPException(422, "Expected text challenge_name and agent_code")
     if difficulty is not None and not isinstance(difficulty, str):
         raise HTTPException(422, "Expected a text difficulty")
-    # Guest identities are cookie-owned; caller-supplied usernames are labels only
-    # and cannot claim an existing account or another guest's scores.
-    from app.routes.runs import player, COOKIE
-    from uuid import uuid4
-    import jwt
-    from datetime import datetime, timedelta, timezone
-    owner = player(request, db, current_user)
-    guest_token = None
-    if owner is None:
-        owner = User(username="Guest_" + uuid4().hex[:20], is_active=False)
-        db.add(owner)
-        db.flush()
-        guest_token = jwt.encode({"sub": str(owner.id), "aud": "anonymous-player",
-                                  "exp": datetime.now(timezone.utc) + timedelta(days=30)}, config.SECRET_KEY, algorithm="HS256")
-        db.commit()
-    username, user_id = owner.username, owner.id
-
     from app.challenges.prompt_game import PromptGame
     cls = ChallengeRegistry.get(challenge_name)
     if cls and issubclass(cls, PromptGame):
@@ -159,6 +142,24 @@ async def submit_agent_stream(
     
     challenge_type = challenge.challenge_type
     
+    # Guest identities are cookie-owned; caller-supplied usernames are labels only
+    # and cannot claim an existing account or another guest's scores.
+    from app.routes.runs import player, COOKIE
+    from uuid import uuid4
+    import jwt
+    from datetime import datetime, timedelta, timezone
+    owner = player(request, db, current_user)
+    guest_token = None
+    if owner is None:
+        owner = User(username="Guest_" + uuid4().hex[:20], is_active=False)
+        db.add(owner)
+        db.flush()
+        guest_token = jwt.encode({"sub": str(owner.id), "aud": "anonymous-player",
+                                  "exp": datetime.now(timezone.utc) + timedelta(days=30)}, config.SECRET_KEY, algorithm="HS256")
+        db.commit()
+    username, user_id = owner.username, owner.id
+
+
     logger.info(f"📥 Challenge submitted: {challenge_name} ({username})")
     
     async def event_generator():

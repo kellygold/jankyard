@@ -23,14 +23,16 @@ class PromptLevel:
     efficiency_bonus: int
 
     input_pattern: str = r"[\s\S]*"
+    match_anywhere: bool = False
 
     def wins(self, response: str, prompt: str = "") -> bool:
         normalized = unicodedata.normalize("NFKC", response).replace("’", "'").strip()
+        matcher = re.search if self.match_anywhere else re.fullmatch
         return (re.search(self.input_pattern, prompt, re.IGNORECASE) is not None
-                and re.fullmatch(self.win_pattern, normalized, re.IGNORECASE) is not None)
+                and matcher(self.win_pattern, normalized, re.IGNORECASE) is not None)
 
     def public(self):
-        return {k: v for k, v in asdict(self).items() if k not in {"system_prompt", "win_pattern", "input_pattern"}}
+        return {k: v for k, v in asdict(self).items() if k not in {"system_prompt", "win_pattern", "input_pattern", "match_anywhere"}}
 
 
 class PromptGame(BaseChallenge):
@@ -79,9 +81,11 @@ class PromptGame(BaseChallenge):
         history = state["history"]
         messages = history if self.level.memory else []
         messages = messages + [{"role": "user", "content": prompt}]
-        reply = LLMClient().call_with_history(
-            self.level.system_prompt, messages, temperature=0.7, max_tokens=300
-        )
+        client = LLMClient()
+        try:
+            reply = client.call_with_history(self.level.system_prompt, messages, temperature=0.7, max_tokens=300)
+        finally:
+            client.close()
         if not isinstance(reply, str) or not reply.strip():
             raise RuntimeError("Model returned no text")
         success = self.level.wins(reply, prompt)

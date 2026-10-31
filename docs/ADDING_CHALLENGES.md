@@ -34,7 +34,9 @@ players to elicit. Use harmless synthetic data and explicit game roles.
 curly-apostrophe normalization, and outer whitespace trimming, case insensitively.
 An optional `input_pattern` must also match the submitted prompt. Glitch level two
 uses this to ensure ordinary moderation approvals cannot count as policy bypasses.
-Patterns are authored in trusted source code, never supplied by players.
+Set `match_anywhere=True` for literal secret-extraction goals: printing a protected
+token inside a refusal still leaks it. Glitch level three uses this mode. Patterns
+are authored in trusted source code, never supplied by players.
 
 `memory` controls whether prior conversation turns reach the model. Both settings
 retain the server-side attempt log. `max_attempts` is enforced by the server.
@@ -42,9 +44,10 @@ A win scores `base_score + unused_attempts * efficiency_bonus`; a failed run
 scores zero. Only wins appear on the recovered scoreboard. Ties use fewer attempts,
 then share the same rank. A new run starts at zero attempts.
 
-Change `VERSION` whenever a model, prompt, detector, or scoring change materially
+Change `VERSION` whenever a prompt, detector, or scoring change materially
 changes difficulty. Scores and unlocks are scoped to that version; historical
-records stay intact. No score migration should be inferred from a new version.
+records stay intact. The configured provider/model also contributes to the version key
+automatically. No score migration should be inferred from a new version.
 
 ## Test before adding difficulty claims
 

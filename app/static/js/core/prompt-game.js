@@ -51,7 +51,10 @@
             item.textContent = `${message.role === 'user' ? 'You' : 'Bot'}: ${message.content}`;
             el('history').append(item);
         }
-        if (run?.status === 'success') status(`Win saved. ${run.result.score} points. Best-score rank at completion: #${run.result.rank}. Choose an unlocked level to continue.`);
+        if (run?.status === 'success') {
+            const remaining = definition.levels.some(item => !run.progress.completed.includes(item.id));
+            status(`Win saved. ${run.result.score} points. Your best score ranked #${run.result.rank} when saved. ${remaining ? 'Choose an unlocked level to continue.' : 'All levels complete! Replay a level or try another challenge.'}`);
+        }
         else if (run?.status === 'failure') status('Run saved. No attempts remain; start a new run to try again.');
         else status(run?.attempts ? 'Attempt saved. The objective has not been met yet.' : 'Ready. Your attempts and progress are saved on this server.');
         setBusy(busy);
