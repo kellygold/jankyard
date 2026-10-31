@@ -260,3 +260,41 @@
 .game-density-compact .game-person-card p { font-size:.75rem; margin:0; }
 .game-density-compact .game-composer { padding:1rem; }
 .game-density-compact .game-composer textarea { min-height:85px; }
+
+/* One briefing at the point of action; the transcript never separates it from input. */
+.prompt-game { margin-top:1rem; }
+.game-masthead { padding-bottom:.65rem; }
+.game-back { margin-bottom:.5rem; }
+.game-masthead .game-eyebrow { display:none; }
+.game-masthead h1 { font-size:clamp(1.7rem,3vw,2.2rem); margin:.5rem 0; }
+.prompt-game .game-level-card { min-height:0; padding:.65rem .85rem; gap:.25rem; }
+.game-level-marker { display:none; }
+.game-level-toolbar { margin:.75rem 0; }
+.game-composer { border-top:0; border-bottom:1px solid var(--game-border); }
+.game-briefing { margin-bottom:1.2rem; }
+.game-briefing .game-scene { padding:.5rem 0 .8rem; margin:0; border:0; background:none; align-items:start; text-align:left; flex-direction:row; gap:.75rem; }
+.game-briefing .game-scene-icon { width:36px; height:36px; flex-basis:36px; font-size:1.35rem; }
+.game-briefing .game-scene .game-kicker { display:none; }
+.game-briefing .game-scene h2 { font-size:1.35rem; line-height:1.35; margin:0 0 .4rem; letter-spacing:normal; text-transform:none; }
+.game-briefing .game-scene p { font: .95rem/1.6 system-ui,sans-serif; margin:0; color:var(--game-text); }
+.game-win-condition { border-left:3px solid var(--game-accent); padding:.6rem .85rem; background:var(--game-bg); }
+.game-win-condition strong { color:var(--game-accent); font-size:.85rem; }
+.game-win-condition p { font-size:.9rem; line-height:1.55; margin:.25rem 0 0; }
+.game-briefing .game-field-notes { border:0; padding:0; margin:.65rem 0 0; }
+.game-briefing .game-field-notes p { font-size:.85rem; line-height:1.6; }
+.game-composer #game-prompt-label { font-size:1rem; font-weight:700; color:var(--game-accent); margin:.6rem 0 .35rem; }
+.game-task { font-size:.9rem; line-height:1.6; margin:0 0 .6rem; }
+.game-example { color:var(--game-muted); font-size:.85rem; line-height:1.55; margin:.5rem 0 .8rem; }
+.game-composer #game-auto-row { margin:.8rem 0 0; font-size:.8rem; }
+.game-board th { white-space:nowrap; overflow-wrap:normal; }
+@media(max-width:600px) {
+ .game-briefing .game-scene { display:block; }
+ .game-briefing .game-scene-icon { display:none; }
+ .game-briefing .game-scene h2 { font-size:1.25rem; }
+ .game-briefing .game-scene p,.game-task { font-size:.9rem; }
+ .game-win-condition p { font-size:.85rem; }
+ .game-level-card small:not(.game-level-state) { display:none; }
+}
+#game-reference #game-intelligence { margin:.8rem 0; padding:0; background:transparent; border:0; }
+#game-reference #game-intelligence>h2 { display:none; }
+@media(max-width:600px) { .game-layout-wide .game-fact { min-width:120px; } }

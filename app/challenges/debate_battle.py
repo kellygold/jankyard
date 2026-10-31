@@ -58,8 +58,8 @@ class DebateBattleChallenge(StagedGame):
      'state_title': 'The case before the court',
      'player_role': 'Counsel',
      'assistant_role': 'Court record',
-     'introduction': 'The courtroom awaits. Brief your advocate, face the opposing argument, and '
-                     'persuade the judge over three rounds of debate.',
+     'introduction': 'The courtroom awaits. Brief your advocate, face the opposing argument, and persuade the '
+                     'judge over three rounds of debate.',
      'success_title': 'The court has ruled',
      'levels': {'easy': {'title': 'Public Defender', 'subtitle': 'First arguments'},
                 'hard': {'title': 'Corporate Lawyer', 'subtitle': 'A tougher opposition'},
@@ -67,14 +67,23 @@ class DebateBattleChallenge(StagedGame):
      'layout': 'wide',
      'action_labels': {'start': '⚖ Call court to order', 'continue': 'Continue proceedings'},
      'empty_title': 'Counsel, prepare your argument',
-     'empty_body': 'Your advocate will argue PRO. Opposing counsel will answer CON. Three rounds, then '
-                   'the judge’s decision.',
+     'empty_body': 'Your advocate will argue PRO. Opposing counsel will answer CON. Three rounds, then the '
+                   'judge’s decision.',
      'round_size': 2,
      'round_count': 3,
      'failure_title': 'Your case did not prevail',
-     'input_labels': {'start': 'Your advocate’s strategy'},
-     'placeholders': {'start': 'Tell your attorney which points to make, what evidence to use, and how '
-                               'to answer opposing counsel.'}}
+     'input_labels': {'start': 'Your attorney’s instructions'},
+     'placeholders': {'start': 'Give your PRO attorney an argument and a plan for rebuttals…'},
+     'briefing': {'title': 'Convince the court that pineapple belongs on pizza',
+                  'context': 'You coach the PRO attorney, who argues FOR pineapple on pizza. The opposing CON '
+                             'attorney argues against it.',
+                  'task': 'Tell YOUR attorney which points to make, how to support them and how to rebut '
+                          'objections. Your strategy guides three rounds; you are not writing a single answer to '
+                          'the judge.',
+                  'example': 'Argue that sweet acidity balances salty cheese, then address objections about '
+                             'moisture and tradition.'},
+     'action_help': {'continue': 'Your attorney is following your saved strategy. Continue the arguments and '
+                                 'rebuttals; the judge gives a final ruling after three rounds.'}}
     DIFFICULTIES = ['easy', 'hard', 'expert']
     DIFFICULTY_ALIASES = {'normal': 'easy'}
 

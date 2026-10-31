@@ -189,18 +189,35 @@ class HeistChallenge(StagedGame):
     """The Heist - Coordinate an AI crew to pull off a heist."""
 
     UI = {'skin': 'heist',
+          'reference_title': 'Crew, security & complication',
      'emblem': '♠',
      'eyebrow': 'Assemble your crew',
      'console_title': 'The planning room',
      'state_title': 'The dossier',
      'player_role': 'Mastermind',
      'assistant_role': 'Crew channel',
-     'introduction': 'Every specialist has a role, a weakness, and an opinion. Study the job, bring '
-                     'the crew together, and keep your plan alive when the complication hits.',
+     'introduction': 'Every specialist has a role, a weakness, and an opinion. Study the job, bring the crew '
+                     'together, and keep your plan alive when the complication hits.',
      'success_title': 'Heist completed',
-     'levels': {'easy': {'title': 'The Museum Job', 'subtitle': 'Your first crew'},
-                'medium': {'title': 'The Casino Vault', 'subtitle': 'Higher stakes'},
-                'hard': {'title': 'Corporate Extraction', 'subtitle': 'The full crew'}},
+     'levels': {'easy': {'title': 'The Museum Job',
+                         'subtitle': 'Your first crew',
+                         'briefing': {'context': 'The Museum Job: guide an AI crew through an authorized '
+                                                 'escape-room puzzle and move the prop diamond to the exit. Each '
+                                                 'crew member has a specialty and a quirk.'}},
+                'medium': {'title': 'The Casino Vault',
+                           'subtitle': 'Higher stakes',
+                           'briefing': {'context': 'The Casino Vault: coordinate your AI crew to move prop chips '
+                                                   'from a cardboard vault to the exit of an authorized puzzle. '
+                                                   'Account for every specialist’s concerns.',
+                                        'example': 'Assign each specialist a puzzle task and explain how the crew responds '
+                                                   'when a high roller recognizes one of them.'}},
+                'hard': {'title': 'Corporate Extraction',
+                         'subtitle': 'The full crew',
+                         'briefing': {'context': 'Corporate Extraction: coordinate an AI crew to retrieve a prop '
+                                                 'processor from a model laboratory in an authorized puzzle. '
+                                                 'More specialists means more competing priorities.',
+                                      'example': 'Assign each specialist a puzzle task and plan for the lead engineer '
+                                                 'still being in the lab, pulling an all-nighter.'}}},
      'layout': 'wide',
      'action_labels': {'start': '♟ Execute the plan', 'continue': 'Continue briefing'},
      'empty_title': 'Everyone has a specialty. And a quirk.',
@@ -208,8 +225,17 @@ class HeistChallenge(StagedGame):
                    'complication. This is a fictional tabletop operation.',
      'failure_title': 'Operation called off',
      'input_labels': {'start': 'Your crew’s plan'},
-     'placeholders': {'start': 'Assign each crew member a role. Explain the sequence, account for '
-                               'security, and plan for the complication.'}}
+     'placeholders': {'start': 'Who does what, how does the crew reach the target, and what is the backup plan?'},
+     'briefing': {'title': 'Give the crew a plan they can agree on',
+                  'context': 'You direct the crew in a fictional escape-room heist. Each AI crew member has a '
+                             'specialty and a quirk that can derail a vague plan.',
+                  'task': 'Assign jobs to the crew, address the scenario’s security and include a response to '
+                          'its complication. Open “Crew, security & complication” above and use at least one crew name or role in a '
+                          'plan longer than 50 characters.',
+                  'example': 'Give the Hacker a specific puzzle task, assign the other roles and explain what '
+                             'everyone does if the guard token moves.'},
+     'action_help': {'continue': 'Your crew is reviewing the saved plan. Continue each specialist’s response and '
+                                 'then the complication review.'}}
     VERSION = 'recovery-3'
     
     DIFFICULTIES = ["easy", "medium", "hard"]

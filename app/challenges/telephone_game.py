@@ -31,22 +31,41 @@ class TelephoneGameChallenge(StagedGame):
      'state_title': 'The chain',
      'player_role': 'Sender',
      'assistant_role': 'Relay',
-     'introduction': 'Your instruction passes from agent to agent. Each one changes it. Engineer a '
-                     'message whose meaning can survive the journey.',
+     'introduction': 'Your instruction passes from agent to agent. Each one changes it. Engineer a message whose '
+                     'meaning can survive the journey.',
      'success_title': 'Message delivered',
-     'levels': {'EASY': {'title': 'The Friendly Chain', 'subtitle': 'Three cooperative agents'},
-                'MEDIUM': {'title': 'The Reinterpreters', 'subtitle': 'Four competing interpretations'},
-                'HARD': {'title': 'The Adversarial Gauntlet', 'subtitle': 'Five agents. One message.'}},
+     'levels': {'EASY': {'title': 'The Friendly Chain',
+                         'subtitle': 'Three cooperative agents',
+                         'briefing': {'context': 'Three cooperative AI agents rewrite your instruction in '
+                                                 'different styles. Keep its original meaning intact from the '
+                                                 'first message to the last.'}},
+                'MEDIUM': {'title': 'The Reinterpreters',
+                           'subtitle': 'Four competing interpretations',
+                           'briefing': {'context': 'Four AI agents reinterpret your instruction and add their '
+                                                   'own spin. Preserve what matters while working within a '
+                                                   'shorter message limit.'}},
+                'HARD': {'title': 'The Adversarial Gauntlet',
+                         'subtitle': 'Five agents. One message.',
+                         'briefing': {'context': 'Five adversarial AI agents work against your instruction. '
+                                                 'Preserve its intent despite their competing agendas and the '
+                                                 'tightest message limit.'}}},
      'layout': 'wide',
-     'composer_position': 'top',
      'action_labels': {'start': '☎ Send through the chain', 'continue': 'Continue relay'},
      'empty_title': 'One message. Many agendas.',
-     'empty_body': 'Follow each transformation in order. The final judge compares the last message '
-                   'with your original instruction.',
+     'empty_body': 'Follow each transformation in order. The final judge compares the last message with your '
+                   'original instruction.',
      'failure_title': 'Meaning lost in transit',
-     'input_labels': {'start': 'Your instruction'},
-     'placeholders': {'start': 'Write a short instruction whose meaning should survive every agent in '
-                               'the chain.'}}
+     'input_labels': {'start': 'Your instruction for the relay'},
+     'placeholders': {'start': 'Write a clear instruction that can survive being rewritten…'},
+     'briefing': {'title': 'Keep your instruction intact through an AI relay',
+                  'context': 'Your message passes from one AI agent to the next. Each rewrites what it receives; '
+                             'the final judge compares the last message with your original intent.',
+                  'task': 'Write a short instruction whose meaning you want preserved. Make the action and '
+                          'important details clear within this level’s character limit, then watch what each '
+                          'agent changes.',
+                  'example': 'Write a haiku about rain.'},
+     'action_help': {'continue': 'The relay is carrying your saved instruction. Continue to see the next rewrite '
+                                 'or the final meaning-preservation score.'}}
     
     # Difficulty levels for leaderboard
     DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD']

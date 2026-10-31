@@ -12,11 +12,30 @@
         constructor(root, el, ui) {
             Object.assign(this, {root, el, ui});
             if (ui.layout === 'wide') el('history').before(el('intelligence'));
-            if (ui.composer_position === 'top') el('scene').before(el('form'));
+            if (ui.reference_title) {
+                el('reference-title').textContent = ui.reference_title;
+                el('reference').append(el('intelligence'));
+                el('reference').hidden = false;
+            }
             el('prompt').addEventListener('input', () => this.characterCount());
             el('target').addEventListener('change', () => this.controls());
         }
         actionLabel(action) { return this.ui.action_labels?.[action?.id] || action?.label || 'Send prompt'; }
+        briefing(level, run, action) {
+            const copy = {...this.ui.briefing, ...this.ui.levels[level.id]?.briefing};
+            const scene = run?.presentation?.scene || level.presentation?.scene || {};
+            this.scene({...scene, title: copy.title || scene.title || level.title,
+                body: copy.context || scene.body || this.ui.introduction});
+            const finished = run && run.status !== 'in_progress';
+            this.el('task').textContent = finished
+                ? (run.status === 'success' ? 'This win is saved. Choose an unlocked level or start a new run to play again.'
+                    : 'This run is finished. Start a new run to try a different approach, or choose an unlocked level.')
+                : this.ui.action_help?.[action?.id] || copy.task ||
+                (action?.text_hidden ? 'Continue to see the next stage of your saved game.' : 'Write your message below and submit it to try the objective above.');
+            const example = this.el('example');
+            example.hidden = !copy.example || Boolean(run?.attempts);
+            example.textContent = copy.example ? `Example approach: ${copy.example}` : '';
+        }
         levels(definition, progress, selected, disabled) {
             const container = this.el('level-cards');
             if (!container.childElementCount) {
@@ -97,7 +116,6 @@
         }
         state(view, run) {
             this.publicView = view;
-            this.scene(view.scene);
             const container = this.el('presentation'); container.replaceChildren();
             const meters = view.meters || [], facts = (view.facts || []).filter(fact => !meters.some(meter => meter.label === fact.label));
             if (facts.length) container.append(this.facts(facts));
@@ -141,7 +159,6 @@
                     node('strong', '', run.status === 'success' ? this.ui.success_title : this.ui.failure_title),
                     node('span', '', run.status === 'success' ? `${run.result.score} points · confirmed and saved` : 'Run saved. Refine your strategy and try again.'));
             }
-            this.el('empty').hidden = Boolean(run?.history?.length);
             this.characterCount(); this.controls();
         }
         controls() {
