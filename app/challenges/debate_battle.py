@@ -48,6 +48,9 @@ DEBATE_TOPICS = [
 @ChallengeRegistry.register
 class DebateBattleChallenge(BaseChallenge):
     """Debate challenge where agent faces off against house bot"""
+    DIFFICULTIES = ['easy', 'hard']
+    DIFFICULTY_ALIASES = {'normal': 'easy'}
+
     
     def __init__(self, config=None):
         super().__init__(config)

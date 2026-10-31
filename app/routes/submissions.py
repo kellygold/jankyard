@@ -103,6 +103,16 @@ async def submit_agent_stream(
             content={"error": "Missing challenge_name or agent_code"},
             status_code=400
         )
+
+    if cls is None:
+        raise HTTPException(404, 'Challenge not found')
+    default_game = cls()
+    choices = list(getattr(default_game, 'DIFFICULTIES', []) or getattr(default_game, 'DIFFICULTY_TIERS', {}))
+    aliases = getattr(default_game, 'DIFFICULTY_ALIASES', {})
+    difficulty = difficulty or getattr(default_game, 'difficulty', None)
+    difficulty = aliases.get(difficulty, difficulty)
+    if choices and difficulty not in choices:
+        raise HTTPException(422, 'Unknown difficulty')
     
     # Generate user fingerprint for rate limiting (IP + User-Agent hash)
     fingerprint = generate_fingerprint(request)

@@ -82,7 +82,6 @@ class TriviaChallenge(BaseChallenge):
         
         # Calculate score
         score = 100 if is_correct else 0
-        self.total_score = score
         
         # Build observation
         if is_correct:
@@ -102,7 +101,7 @@ class TriviaChallenge(BaseChallenge):
             observation=observation,
             reward=score,
             done=True,  # One question per level
-            info={'correct': is_correct}
+            info={'correct': is_correct, 'success': is_correct}
         )
     
     def render(self) -> str:

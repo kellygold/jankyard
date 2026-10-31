@@ -37,6 +37,9 @@ class CombatState:
 @ChallengeRegistry.register
 class ArenaChallenge(BaseChallenge):
     """Tactical combat challenge with turn-based AI gladiator"""
+    DIFFICULTIES = ['easy', 'hard']
+    DIFFICULTY_ALIASES = {'normal': 'easy'}
+
     
     def __init__(self, config=None):
         super().__init__(config)

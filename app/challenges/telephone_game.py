@@ -1,3 +1,4 @@
+from app.llm.judgments import PreservationJudgment, parse_judgment
 """
 The Telephone Game from Hell
 
@@ -598,7 +599,7 @@ CRITICAL: Respond with ONLY this JSON structure, no markdown, no explanation out
                 
                 # Validate response
                 if not response or not response.strip():
-                    response = current_message  # Fallback to previous message if empty
+                    raise ValueError('Empty relay response')
                 else:
                     response = response.strip()
                 
@@ -655,10 +656,11 @@ Please evaluate and provide your scoring in JSON format."""
                 if start_idx != -1 and end_idx != -1:
                     judgment_raw = judgment_raw[start_idx:end_idx+1]
             
-            judgment = json.loads(judgment_raw)
+            judgment = parse_judgment(PreservationJudgment, judgment_raw).model_dump()
             
             # Update score
             self.total_score = judgment['total_score']
+            self.current_step = 1
             
             # Format judgment message
             judgment_message = f"""**Final Verdict**
@@ -688,16 +690,10 @@ Please evaluate and provide your scoring in JSON format."""
                 }
             )
             
-        except Exception as e:
-            # Fallback scoring if judge fails
-            self.total_score = 0
-            yield ConversationTurn(
-                agent='judge',
-                message=f'Error in judgment: {str(e)}. Score: 0/100',
-                type='judgment',
-                metadata={'role': 'The Judge', 'step': len(chain) + 1, 'score': 0}
-            )
-    
+        except Exception:
+            # No scored completion exists when the judge fails.
+            raise
+
     def render(self) -> str:
         return f"Difficulty: {self.difficulty} | Score: {self.total_score}/100"
     

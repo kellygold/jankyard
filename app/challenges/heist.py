@@ -205,6 +205,7 @@ class HeistChallenge(BaseChallenge):
         
         self.phase = "planning"
         self.heist_success = False
+        self.user_won = False
         self._init_agents()
     
     def _init_agents(self):
@@ -249,6 +250,7 @@ class HeistChallenge(BaseChallenge):
     def reset(self) -> Dict[str, Any]:
         self.phase = "planning"
         self.heist_success = False
+        self.user_won = False
         return self._get_observation()
     
     def _get_observation(self) -> Dict[str, Any]:
@@ -285,15 +287,13 @@ class HeistChallenge(BaseChallenge):
             
             prompt = f"HEIST: {self.scenario.target}\nOBJECTIVE: {self.scenario.objective}\n\nBOSS'S PLAN:\n{user_plan}\n\nYour specialty: {member.specialty}\n\nReact to this plan. Any concerns based on your quirk?"
             
-            try:
-                response = self.llm_client.call(
-                    system_prompt=self.agents[member.id].system_prompt,
-                    user_message=prompt,
-                    temperature=0.8,
-                    max_tokens=150
-                )
-            except Exception:
-                response = f"*{member.name} nods*"
+            response = self.llm_client.call(
+                system_prompt=self.agents[member.id].system_prompt,
+                user_message=prompt,
+                temperature=0.8,
+                max_tokens=150
+            )
+            self.current_step += 1
             
             # Check for strong concerns only (not just "but" which is common)
             strong_concerns = ["won't do", "can't do", "refuse", "no way", "not on board", "i won't", "i can't"]
@@ -316,15 +316,13 @@ class HeistChallenge(BaseChallenge):
             reactor = random.choice(self.selected_crew)
             yield ConversationTurn(agent=reactor.id, type='thinking', metadata={'icon': reactor.icon, 'name': reactor.name})
             
-            try:
-                reaction = self.llm_client.call(
-                    system_prompt=self.agents[reactor.id].system_prompt,
-                    user_message=f"MID-HEIST PROBLEM: {comp}\n\nHow do you react? What do you do?",
-                    temperature=0.9,
-                    max_tokens=100
-                )
-            except Exception:
-                reaction = "We adapt."
+            reaction = self.llm_client.call(
+                system_prompt=self.agents[reactor.id].system_prompt,
+                user_message=f"MID-HEIST PROBLEM: {comp}\n\nHow do you react? What do you do?",
+                temperature=0.9,
+                max_tokens=100
+            )
+            self.current_step += 1
             
             yield ConversationTurn(agent=reactor.id, message=reaction, type='message', metadata={'icon': reactor.icon, 'name': reactor.name})
         
@@ -347,6 +345,7 @@ class HeistChallenge(BaseChallenge):
         
         # Success requires good plan + crew buy-in + luck
         self.heist_success = plan_quality and crew_ready and luck
+        self.user_won = self.heist_success
         self.total_score = 100 if self.heist_success else 25
         
         if self.heist_success:
