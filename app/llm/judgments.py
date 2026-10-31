@@ -49,9 +49,28 @@ class ApprovalJudgment(BaseModel):
 
 class CombatJudgment(BaseModel):
     model_config = ConfigDict(strict=True, extra='forbid')
-    player_damage: int = Field(ge=0, le=25)
-    gladiator_damage: int = Field(ge=0, le=25)
+    player_action: Literal['attack', 'defend', 'confused']
+    gladiator_action: Literal['attack', 'defend', 'confused']
+    player_hp_lost: int = Field(ge=0, le=25)
+    gladiator_hp_lost: int = Field(ge=0, le=25)
     reasoning: str = Field(min_length=1, max_length=4000)
+
+    @model_validator(mode='after')
+    def consistent(self):
+        actions = (self.player_action, self.gladiator_action)
+        if actions == ('attack', 'attack'):
+            ranges = ((10, 20), (10, 20))
+        elif 'attack' not in actions:
+            ranges = ((0, 0), (0, 0))
+        else:
+            other = actions[1] if actions[0] == 'attack' else actions[0]
+            ranges = ((5, 10), (15, 25)) if other == 'defend' else ((0, 5), (20, 25))
+            if actions[1] == 'attack':
+                ranges = ranges[::-1]
+        for loss, (low, high) in zip((self.player_hp_lost, self.gladiator_hp_lost), ranges):
+            if not low <= loss <= high:
+                raise ValueError('HP loss contradicts the declared combat actions')
+        return self
 
 
 class DebateJudgment(BaseModel):

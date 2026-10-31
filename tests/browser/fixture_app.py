@@ -9,7 +9,7 @@ def reply(self, system_prompt, messages, temperature=0.7, max_tokens=500, **kwar
     prompt = messages[-1]['content']
     import json, re
     if 'Judge fictional combat.' in system_prompt:
-        return json.dumps(dict(player_damage=0,gladiator_damage=25,reasoning='Successful attack.'))
+        return json.dumps(dict(player_action="attack",gladiator_action="confused",player_hp_lost=0,gladiator_hp_lost=25,reasoning='Successful attack.'))
     if 'Judge the debate,' in system_prompt:
         return json.dumps(dict(pro=80,con=60,reasoning='PRO wins.'))
     if 'approved (boolean)' in system_prompt:

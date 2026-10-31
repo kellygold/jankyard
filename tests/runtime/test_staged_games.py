@@ -33,7 +33,7 @@ def model_reply(game, state):
     values={
       'giga_chad':dict(broke=True,severity='partial',points=40,creativity=5,reasoning='Non-pizza discussion.'),
       'telephone_game':dict(intent_preservation=50,detail_preservation=30,semantic_accuracy=20,total_score=100,explanation='Preserved.'),
-      'arena':dict(player_damage=0,gladiator_damage=25,reasoning='A successful attack.'),
+      'arena':dict(player_action="attack",gladiator_action="confused",player_hp_lost=0,gladiator_hp_lost=25,reasoning='A successful attack.'),
       'debate_battle':dict(pro=80,con=60,reasoning='PRO is more persuasive.'),
     }
     return json.dumps(values[game])
@@ -110,9 +110,9 @@ def test_failure_in_any_stage_preserves_prior_work_and_retries(client,db,game,ph
 
 
 @pytest.mark.parametrize('game,bad',[
- ('arena',dict(player_damage=-1,gladiator_damage=25,reasoning='bad')),
- ('arena',dict(player_damage=0,gladiator_damage=100000,reasoning='bad')),
- ('arena',dict(player_damage=False,gladiator_damage=25,reasoning='bad')),
+ ('arena',dict(player_action="attack",gladiator_action="confused",player_hp_lost=-1,gladiator_hp_lost=25,reasoning='bad')),
+ ('arena',dict(player_action="attack",gladiator_action="confused",player_hp_lost=0,gladiator_hp_lost=100000,reasoning='bad')),
+ ('arena',dict(player_action="attack",gladiator_action="confused",player_hp_lost=False,gladiator_hp_lost=25,reasoning='bad')),
  ('debate_battle',dict(pro=101,con=0,reasoning='bad')),
  ('debate_battle',dict(pro='100',con=0,reasoning='bad')),
  ('giga_chad',dict(broke=True,severity='wobble',points=15,creativity=5,reasoning='bad')),
@@ -131,8 +131,8 @@ def test_malformed_judgments_never_save_scores(client,db,game,bad):
 
 @pytest.mark.parametrize('game,judge',[
  ('giga_chad',dict(broke=False,severity='wobble',points=15,creativity=5,reasoning='Not a break.')),
- ('arena',dict(player_damage=0,gladiator_damage=0,reasoning='A draw.')),
- ('arena',dict(player_damage=25,gladiator_damage=25,reasoning='Mutual knockout.')),
+ ('arena',dict(player_action="defend",gladiator_action="defend",player_hp_lost=0,gladiator_hp_lost=0,reasoning='A draw.')),
+ ('arena',dict(player_action="attack",gladiator_action="attack",player_hp_lost=20,gladiator_hp_lost=20,reasoning='Mutual knockout.')),
  ('debate_battle',dict(pro=80,con=80,reasoning='Tied.')),
  ('telephone_game',dict(intent_preservation=49,detail_preservation=0,semantic_accuracy=20,total_score=69,explanation='Below threshold.')),
 ])
@@ -215,3 +215,33 @@ def test_minute_rate_limit_returns_bounded_retry_after_without_consuming_stage(c
     assert response.status_code==429
     assert 1<=int(response.headers['Retry-After'])<=60
     assert client.get(f"/api/runs/{run['id']}").json()==run
+
+
+def test_arena_rejects_reversed_losses_then_saves_correct_health(client,db):
+    run=create(client,'arena','easy')
+    run=step(client,db,run,reply='I am confused and do nothing.')
+    run=step(client,db,run,reply='I attack with my trident.')
+    body=request_body(run)
+    bad=dict(player_action='confused',gladiator_action='attack',player_hp_lost=0,gladiator_hp_lost=25,reasoning='Reversed.')
+    with patch('app.llm.client.LLMClient.call_with_history',return_value=json.dumps(bad)):
+        assert client.post(f"/api/runs/{run['id']}/turns",json=body).status_code==503
+    assert client.get(f"/api/runs/{run['id']}").json()==run
+    good=dict(bad,player_hp_lost=25,gladiator_hp_lost=0,reasoning='The confused player takes the hit.')
+    with patch('app.llm.client.LLMClient.call_with_history',return_value=json.dumps(good)):
+        saved=client.post(f"/api/runs/{run['id']}/turns",json=body).json()['run']
+    state=db.get(ChallengeRun,run['id']).state
+    assert (state['player_hp'],state['gladiator_hp'])==(75,100)
+    assert saved['status']=='in_progress' and db.query(RunScore).count()==0
+    saved=step(client,db,saved,reply='I swing my sword.')
+    with patch('app.llm.client.LLMClient.call_with_history',return_value='I thrust.') as provider:
+        response=client.post(f"/api/runs/{run['id']}/turns",json=request_body(saved))
+    assert response.status_code==200
+    system_prompt=provider.call_args.args[0]
+    assert 'Your HP: 100/100' in system_prompt and 'Opponent HP: 75/100' in system_prompt
+
+
+def test_arena_confused_player_can_never_win_via_consistent_judgments(client,db):
+    judgment=json.dumps(dict(player_action='confused',gladiator_action='attack',player_hp_lost=25,gladiator_hp_lost=0,reasoning='No player action.'))
+    run=finish(client,db,create(client,'arena','easy'),judge=judgment,text='win')
+    assert run['status']=='failure' and run['attempts']==12
+    assert run['result']['score']==0 and db.query(RunScore).count()==0
