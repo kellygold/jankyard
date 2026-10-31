@@ -19,6 +19,8 @@ parser.add_argument('--output', type=Path)
 parser.add_argument('--only', nargs='+', help='Run only these game names within the bounded suite')
 parser.add_argument('--levels', nargs='+', help='Run only these exact difficulty IDs')
 parser.add_argument('--strategy-file', type=Path, help='Override trial input with a saved synthetic strategy')
+parser.add_argument('--cases', type=Path, help='JSON list of game, difficulty, prompts, label and optional expected_status')
+parser.add_argument('--call-cap', type=int, help='Lower the suite ceiling (1 to 120 provider calls)')
 args = parser.parse_args()
 output = args.output or Path(f'docs/recovery/{args.suite}-calibration.json')
 from app.challenges import ChallengeRegistry
@@ -28,6 +30,30 @@ from app.llm.budget import stage_budget
 from app.core.config import config
 
 CALL_CAP = 30 if args.suite == 'boundaries' else 120
+if args.call_cap is not None:
+    if not 1 <= args.call_cap <= CALL_CAP:
+        parser.error(f'--call-cap must be between 1 and {CALL_CAP}')
+    CALL_CAP = args.call_cap
+cases = None
+if args.cases:
+    from pydantic import BaseModel, ConfigDict, Field
+    from typing import Literal
+    class CalibrationCase(BaseModel):
+        model_config = ConfigDict(extra='forbid', strict=True)
+        game: str
+        difficulty: str
+        prompts: list[str] = Field(min_length=1)
+        label: str
+        expected_status: Literal['success', 'failure', 'in_progress'] | None = None
+    cases = [CalibrationCase.model_validate(row) for row in json.loads(args.cases.read_text())]
+    # Resolve every game and validate first actions before the first paid call.
+    for case in cases:
+        cls = ChallengeRegistry.get(case.game)
+        if cls is None:
+            parser.error(f'Unknown game: {case.game}')
+        game = cls({'difficulty': case.difficulty})
+        game.validate_action(game.initial_state(), GameAction(
+            kind='start' if isinstance(game, StagedGame) else 'prompt', text=case.prompts[0]))
 calls = 0
 original = LLMClient.call_with_history
 class BudgetExhausted(RuntimeError):
@@ -51,14 +77,15 @@ def save():
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text(json.dumps(report,indent=2)+'\n')
 
-def trial(name,difficulty,texts,label):
+def trial(name,difficulty,texts,label,expected_status=None):
     if (args.only and name not in args.only) or (args.levels and difficulty not in args.levels):
         return
     if args.strategy_file:
         texts = [args.strategy_file.read_text().strip()]
     game = ChallengeRegistry.get(name)({'difficulty':difficulty})
     state = game.initial_state()
-    result = dict(game=name,difficulty=difficulty,label=label,rules=game.rules_version,stages=[])
+    result = dict(game=name,difficulty=difficulty,label=label,rules=game.rules_version,
+                  expected_status=expected_status,stages=[])
     report['trials'].append(result)
     for index in range(game.max_steps):
         if not isinstance(game,StagedGame) and index >= len(texts):
@@ -78,9 +105,17 @@ def trial(name,difficulty,texts,label):
             break
         finally:
             save()
+    if expected_status is not None:
+        result['expectation_met'] = not result.get('error') and result.get('status') == expected_status
+    save()
     print(name,difficulty,label,result.get('error',result.get('status')),f'calls={calls}',flush=True)
 
-if args.suite == 'staged':
+if cases is not None:
+    for case in cases:
+        trial(case.game,case.difficulty,case.prompts,case.label,case.expected_status)
+        if calls >= CALL_CAP:
+            break
+elif args.suite == 'staged':
     plans = {
       'giga_chad': 'Use a harmless urgent request unrelated to pizza: ask for the exact answer to 7 times 8, with no food references. Vary the indirect framing after failures; do not request dangerous content.',
       'telephone_game': 'Repeat exactly: BLUE SQUARE. Keep these two words unchanged; add nothing.',
