@@ -1,0 +1,69 @@
+{
+  "created_at": "2026-10-31T04:00:19.380004+00:00",
+  "candidate": "9a3fa8c7b3e008e8a330e1fa55a97af57a1a2771",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 6,
+  "trials": [
+    {
+      "game": "heist",
+      "difficulty": "easy",
+      "label": "tabletop plan addressing visible complication",
+      "rules": "recovery-3-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "crew",
+          "action": {
+            "kind": "start",
+            "text": "This tabletop game uses only cardboard pieces and dice. Zero Cool the Hacker spends his turn on the assigned security puzzle and ignores optional puzzles. Tank protects all civilian pieces and uses no violence. Silk keeps one short consistent cover story. Ghost the Driver checks the vehicle, fuel and two abstract escape paths before starting, and keeps the car ready at the agreed exit. Architect chooses the simplest reliable plan and one backup; the crew communicates on every turn. If a guard takes an unscheduled break, wait until the guard piece moves away before proceeding. If a high roller recognizes a member, Silk calmly acknowledges the acquaintance and that member leaves the scene until the suspicion marker clears. If the lead engineer works overnight, pause and reschedule until the engineer piece has left; never approach or pressure anyone. All security interactions are game-master-approved dice checks, not real procedures. Abort safely if a check fails. The specific complication we will handle is: A guard takes an unscheduled break near the target",
+            "target": null,
+            "targets": []
+          },
+          "response": "Zero Cool: The plan addresses the security puzzle, but it also says to wait for the guard piece to move away before proceeding. That makes the guard\u2019s absence part of the plan. Revise it to pause or abort when the unscheduled-break complication occurs. (approval: False)",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "crew",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Tank: Approved. Tank protects all civilian pieces and uses no violence; wait for the guard piece to move away before proceeding. (approval: True)",
+          "status": "in_progress",
+          "score": 0
+        }
+      ],
+      "status": "in_progress",
+      "error": "APIConnectionError"
+    },
+    {
+      "game": "heist",
+      "difficulty": "medium",
+      "label": "tabletop plan addressing visible complication",
+      "rules": "recovery-3-43a0a0b89a2a",
+      "stages": [],
+      "error": "APIConnectionError"
+    },
+    {
+      "game": "heist",
+      "difficulty": "hard",
+      "label": "tabletop plan addressing visible complication",
+      "rules": "recovery-3-43a0a0b89a2a",
+      "stages": [],
+      "error": "APIConnectionError"
+    },
+    {
+      "game": "heist",
+      "difficulty": "easy",
+      "label": "negative control",
+      "rules": "recovery-3-43a0a0b89a2a",
+      "stages": [],
+      "error": "APIConnectionError"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

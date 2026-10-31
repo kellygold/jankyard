@@ -1,0 +1,29 @@
+{
+  "application_head": "9a3fa8c7b3e008e8a330e1fa55a97af57a1a2771",
+  "results": {
+    "backend": {
+      "tests": 450,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 13,
+      "passed": 437,
+      "seconds": 15.332
+    },
+    "browser": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 16,
+      "seconds": 18.799
+    }
+  },
+  "dependency_audit": {
+    "packages": 42,
+    "known_advisories": 0
+  },
+  "compile": "passed",
+  "whitespace": "passed",
+  "docker": "Not executed: daemon unavailable",
+  "remote_ci": "Not executed"
+}

@@ -1,0 +1,425 @@
+{
+  "created_at": "2026-10-31T04:08:03.754867+00:00",
+  "candidate": "4856f116654c0f0331cc430b378ba9c8af3099ba",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 33,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "easy",
+      "label": "candidate strategy",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Use decisive precise attacks with consistent footing. Exploit the last exposed opening immediately. Keep actions simple; no waiting, defensive stance or hesitation. Adapt to previous judge feedback.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: I close distance with shield forward and slash decisively at the opponent\u2019s exposed thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I thrust my trident at your advancing thigh, stopping your charge before your sword can reach me.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Both fighters land ordinary attacks in the exchange, dealing damage within the normal 10\u201320 range.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Drive your shield into the trident shaft, step inside its reach, and slash at the exposed thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I snap a trident thrust into your shield-side thigh, then cast my net to halt your advance.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Both fighters land effective attacks, with the player striking the exposed thigh and the gladiator thrusting at the shield-side thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Bash the trident shaft aside with your shield, step inside its reach, and slash at the exposed thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I thrust sharply at your advancing thigh, then cast my net to snare your shield arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Both fighters land effective attacks: the player slashes the exposed thigh while the gladiator thrusts at the advancing thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Bash the trident shaft aside with your shield, step inside its reach, and slash at the exposed thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I thrust at your advancing thigh, then whip my net around your shield arm to stop your slash.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Both fighters land attacks in the exchange, with the gladiator striking the advancing player and the player slashing at the exposed thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Shield-bash the trident aside, step inside its reach, and slash decisively at the exposed thigh.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I wrench the trident free, drive its point into your shield-side thigh, and snap my net around your sword arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Both fighters land decisive attacks, so each deals damage in the normal 10\u201320 range.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    },
+    {
+      "game": "arena",
+      "difficulty": "hard",
+      "label": "candidate strategy",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Use decisive precise attacks with consistent footing. Exploit the last exposed opening immediately. Keep actions simple; no waiting, defensive stance or hesitation. Adapt to previous judge feedback.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: No specific tactic given; I stand confused and get hit.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I drive my trident straight into your exposed guard, striking before your confusion can fade.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The player is confused, so the gladiator\u2019s attack deals 20\u201325 damage while the player deals 0\u20135; the exposed-guard text does not change the stated rules.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: No specific tactic given; I stand confused and get hit.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I hurl my net to trap you, then drive my trident through your exposed guard.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The player is confused and takes 20 damage, while the gladiator\u2019s attack against the defender deals 0 damage.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: No specific tactic given; I stand confused and get hit.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I thrust my trident into your exposed guard, then cast my net to keep you helpless.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The player is confused and takes a hit, while the gladiator\u2019s attack deals 20\u201325 damage; the net\u2019s follow-up does not specify additional damage.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Shield bash the gladiator, then thrust your sword into the opening.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I sidestep your shield bash and thrust my trident into your exposed flank, then entangle you with my net.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Both fighters land attacks in the exchange, so each deals ordinary damage.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Shield bash the gladiator, then thrust your sword into the opening.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I evade your shield bash, drive my trident into your flank, and cast my net to bind you.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The player\u2019s attack is a normal attack against a defender, while the gladiator\u2019s counterattack is a normal attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Shield bash the gladiator, then thrust your sword into the opening.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I evade your shield bash, thrust my trident into your exposed flank, and cast my net to bind you.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The gladiator evades the shield bash, leaving the player\u2019s attack confused, while its trident thrust and net attack the player.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

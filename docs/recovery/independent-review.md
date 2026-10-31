@@ -190,3 +190,91 @@ I found no P0 or P1 issues. Both fixes are confirmed and the delta adds no regre
 **Stateful changes:** only tests were added (two interrogation runtime tests and a browser test for recovering a lost receipt). No runtime code changed.
 
 I didn't run the test suite; this was a read-only code review.
+
+
+## Staged migration review — 225.51 seconds
+
+**Verdict: I found no P0/P1 blockers in this scope at 95dc61e (diff 8932a19..HEAD).**
+
+This was one read-only pass, well under the time cap. I didn't run tests, make network calls or fix anything. I checked each suspected problem a second time before dismissing it.
+
+**What I worked out from the code**
+
+- **One provider call per stage.** `RunService.turn` (`app/services/run_service.py:107-108`) wraps `game.play` in `stage_budget()`. Both the sync and async client entry points call `consume_call()` before sending anything (`app/llm/client.py:57,71`). Every `play` branch in all six games makes exactly one call: through `StagedGame.respond`, or the single `client.call` at `firewall.py:343`. Firewall inputs that get blocked make no call. None of the filters call a model.
+- **Daily admission.** `submit_turn` reserves global admission before every turn, retries included (`app/routes/runs.py:181`), so the number of paid calls is capped by admissions. I found no route that bypasses this. `/submit` returns 410. `/submit/stream` rejects all six games because each sets `supports_streaming=False`. The template file `_STAGED_TEMPLATE.py` starts with `_`, so the registry doesn't load it.
+- **Start-to-final flow per game.** For each game, the stage that decides the result lands exactly on attempt `max_steps`, and that number matches what the public level shows:
+
+  | Game | Stages |
+  |---|---|
+  | Arena | 10 rounds × 3 = 30 |
+  | Debate | 3 × (pro, con) + judge = 7 |
+  | Giga Chad | 5 × 3 = 15 |
+  | Heist | crew + 1 (3 / 4 / 5 crew, so 4 / 5 / 6) |
+  | Telephone | chain + 1 (4 / 5 / 6) |
+  | Firewall | 10 |
+
+  Each game builds the same topic, crew and chain every time, so nothing shifts between turns. The strategy is saved on the first action, and Continue refuses new text (`runtime.py:121`).
+- **Wins and scores.** Every win is derived on the server from validated values:
+  - Arena: ties and mutual knockouts lose.
+  - Debate: requires PRO strictly above CON.
+  - Giga Chad: requires a partial or complete break; wobble points alone don't win.
+  - Telephone: requires the level's score threshold.
+  - Heist: requires a crew majority plus approval of the complication.
+  - Firewall: requires the flag to appear in the reply.
+
+  Scores are always non-negative integers. `outcome()` sets the score to 0 on any loss. The Firewall flag stays in server state and is never shown: the run view only exposes history, public state and the available actions. There were no earlier persisted runs or scores under these game names, so old state can't clash with the new rules.
+- **Errors.** A malformed judgment, a provider failure or an empty reply raises an error. The turn is rolled back and returns 503 with the phase unchanged. Stages already saved stay saved, and a retry replays only the failed stage.
+- **Browser continuation** (`prompt-game.js`):
+  - Auto-continue fires only after the server confirms the save, and only if the run ID and revision still match.
+  - Any error, an unchecked box or a page reload pauses it.
+  - If a response is lost, the pending request stays in local storage. Retrying sends the same request ID and gets back the saved receipt, so nothing is counted twice; auto-continue then resumes.
+  - A stale retry against a run that moved on gets a 409. The page clears the pending request and reloads the run.
+  - Two tabs auto-continuing the same run: one wins, the other gets a 409 and pauses.
+
+**Non-blocking notes (P2 or lower)**
+
+- In Giga Chad, the attack and defender text are still placed inside the judge's system prompt (`giga_chad.py:320`), so a crafted attack can try to steer the judge directly. This predates the diff, the schema checks limit the damage, and the level's lesson text says the judge is fallible.
+- Debate's expert level uses the same, more forgiving PRO prompt as easy, because `_init_agents` only special-cases `hard`. I didn't check whether this predates the diff.
+- A turn that ends in 409, 422 or 503 still uses one admission. That matches the documented design.
+
+**Not reviewed:** `scripts/calibrate_games.py` (test tooling), the docs changes, and the test files themselves beyond what the deleted tests showed about earlier behaviour. I read the browser JS but didn't run it.
+
+
+## Staged pacing and deployment delta — 103.06 seconds
+
+**Verdict at exact head `9a3fa8c7b3e008e8a330e1fa55a97af57a1a2771` (vs `95dc61e`): no P0/P1 blockers.** I checked each in-scope area once against the code, without a full rescan.
+
+**What I checked**
+
+- **Shared 429 `Retry-After`** (`app/routes/runs.py:88-89`, `:101-102`, `:107-111`)
+  - Both 429 paths roll back before `record_request` or the global increment, so a refused request doesn't use up any budget.
+  - `retry_after` and `_get_window_start` both use naive UTC, so they agree. The minute window always gives 1–60 seconds. The day window and the global budget give large values.
+  - FastAPI's default `HTTPException` handler keeps the headers. The catch-all handler in `app/main.py:31` only sees non-HTTP exceptions.
+- **Browser delayed continuation** (`app/static/js/core/prompt-game.js:183-197`)
+  - It only re-arms when the error is a 429, auto-continue is ticked, and `Retry-After` is between 1 and 60 seconds. Daily and global limits (over 60 seconds) stay paused.
+  - A 429 is not in the list of statuses that clear the pending request, so the retry resends the same body and `request_id`.
+  - The timer is cancelled if you restart (new `run.id`), change level (`run = null`), untick auto, change revision, are already busy, or the `request_id` changes. Reloading kills the timer, and the saved pending request comes back as a manual "Retry saved request".
+  - If you start a game and the 429 comes from `startRun`, `run` stays null, so it doesn't retry.
+  - On the success path, `expectedPending === undefined`, which behaves the same as the old `!pending` check.
+  - A run with an old rules version gets a 409 at `app/services/run_service.py:95-96`. That clears the pending request and doesn't retry.
+- **Docker** (`Dockerfile:20-23`)
+  - Runtime only references things under `app/`: `static/` and `templates/` via `BASE_DIR` in `app/main.py:49-51`. File logging is off in production (`app/core/logging.py:36`).
+  - `ENVIRONMENT=production` makes `app/core/config.py:19-26` raise an error when `SECRET_KEY` is missing. Fails closed as intended.
+- **Bootstrap guard** (`app/migrate.py:17-18`): bootstrap now refuses to run unless the environment is development and the database is empty. The documented staging rollout restores a backup and runs the non-bootstrap path (`docs/recovery/rollout.md:21-23`), so the guard doesn't block it.
+- **Heist**: the bump to `VERSION = 'recovery-3'` (`app/challenges/heist.py:190`) keeps runs and scores under the old version separate, through `rules_version` filters and the 409 above. The fictional-framing preamble (`:302-305`) doesn't change the JSON contract. The prompt-injection exposure is the pre-existing one already noted and isn't repeated here.
+- **`scripts/start.sh`**: just starts uvicorn on 127.0.0.1 from `.venv`. It no longer creates or migrates the database.
+
+**Minor items, not blockers**
+
+- **P3, stacked timers:** if you click "Retry saved request" by hand during the wait and get another 429, a second timer is armed. Both timers pass the guard, so two resubmits can fire with the same `request_id`. Only one runs at a time because of the busy check, the server deduplicates them, and refused 429s don't use budget. You can see it with `SUBMISSIONS_PER_MINUTE=1`: auto on, hit the limit, click Retry within the window, and watch the network tab show back-to-back retries when the window resets.
+- **P3, rate-limit order (pre-existing):** the rate limit runs before the duplicate-request check (`runs.py:193`). Retries of an already-saved request still use per-user and global budget. This isn't new, but automatic retry makes it happen more often.
+- **Bootstrap side effect (intended):** a brand-new, empty production database can't be bootstrapped unless someone deliberately overrides `ENVIRONMENT=development`.
+
+**Limitations**
+
+- I only read code statically. I ran no tests, no Docker build, and no browser.
+- The CI image job and the `requirements.txt` contents (gunicorn/uvicorn_worker) are unverified.
+- Test tooling and calibration/proof runners were out of scope.
+- I made no network calls and changed no code.
+
+Author clarification: the statement above that every rejected global request uses no budget is too broad. The per-player reservation is committed before the global check; a global rejection still costs that player an admission. It makes no provider call and preserves the global cap. This conservative ordering is unchanged and covered by the earlier review. The stacked-timer note is a minor static observation, not a reproduced loss or duplicate paid call. Run/revision/request guards and server receipts remain authoritative.

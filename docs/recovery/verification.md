@@ -1,6 +1,38 @@
 # Verification — 2026-10-31
 
-Implementation branch: `recovery/shared-runtime`. Independently reviewed application checkpoint:
+## Current candidate: `9a3fa8c`
+
+All nine public games now use the same run service and page. The six new migrations
+have API win/loss, retry, reload, malformed-judgment and provider-failure coverage
+across all their levels. The contributor test discovers a staged game from a new
+definition and plays it without route/UI/storage changes.
+
+- Final local gate: 437 PostgreSQL backend checks, 13 opt-in skips; 16 Chrome
+  journeys with only the provider replaced. One journey verifies minute-limit
+  pause/retry using the same pending request.
+- Real provider: two additional Chrome/ASGI/provider/database journeys saved wins
+  and survived reload. Exact run/request IDs and final records are in
+  `live-browser-proof.json`. All temporary state and the local server were removed.
+- Broader model trials: 303 attempts, 285 complete provider responses; 18 calls
+  failed during a temporary DNS outage. Interrupted scenarios were rerun after
+  connectivity recovered. See `calibration.md`; no all-level
+  beatability or win-rate claim is made.
+- Migration rehearsal: synthetic `pg_dump`/`pg_restore`, two additive migrations,
+  identical historical hashes and legacy ORM reads; see `migration-rehearsal.json`.
+- Runtime dependencies: 42 pinned packages, zero known advisories. Docker runtime
+  copying and production defaults are repaired; local image execution is untested
+  because the daemon is unavailable. A build/configuration CI gate was added.
+- Claude's initial staged review of `8932a19..95dc61e` completed in 225.51 seconds,
+  with no P0/P1 blockers. The 103.06-second delta review of `95dc61e..9a3fa8c` also found no P0/P1 blockers.
+  Combined reviewer runtime: 328.57 seconds out of the 900-second cap.
+  See `review-receipt.json`; no time override or automatic extension was used.
+
+Only local targets and synthetic identities were used. No production database
+or deployment was touched. [Rollout requirements](rollout.md) remain explicit.
+
+## Earlier checkpoint
+
+Implementation branch: `recovery/shared-runtime`. Earlier independently reviewed application checkpoint:
 `f42fa29` (legacy outcomes at `4cdb3be`; stateful migration at `d4a630c`; earlier foundation at
 `a06faf7`, `3d7ab5a`, `9765da6`, and `fe31f52`). No deployment or
 production database access was performed during implementation.
@@ -36,7 +68,9 @@ production database access was performed during implementation.
 ## Independent review
 
 Claude Opus 5.5 reviewed clean worktrees, read-only, against exact committed heads.
-Each scoped review has an eight-minute total budget, including any delta review.
+The earlier reviews below used the former eight-minute total budget. The staged
+review uses the revised 15-minute cumulative reviewer-runtime cap, excluding
+author fixes/tests, with saved session IDs and manual continuation after timeout.
 The initial foundation review exhausted its original budget; resumed cap review
 was explicitly requested by Kelly.
 
@@ -79,10 +113,12 @@ legacy upload containment or dependency lockfiles in depth. Local executable
 checks cover those changes, but this is not a comprehensive release approval.
 Guest provisioning still needs hosting-specific trusted-proxy verification before
 production; its peer budget is intentionally separate from gameplay and model
-spending. The final daily ceiling covers Glitch, Honeypot and Interrogation, not legacy games.
+spending. At that earlier checkpoint the ceiling covered only three games; the staged
+migration now covers every public game with at most one model call per admission.
 
 ## Remaining release work
 
-See `README.md`: other games still need migration/repairs, model calibration,
-staging rollout/rollback verification, and review of those future changes. The
-historical browser suite has not been claimed as passing. Production is unchanged.
+See `README.md` and `calibration.md`: every public game is migrated. Remaining
+work is live difficulty calibration and the staging image/hosting rehearsal. The
+obsolete browser suite is superseded by the shared-runtime journeys, not claimed
+as passing. Production is unchanged.

@@ -2,7 +2,8 @@
 Heist Difficulty Tests
 
 Tests plan quality detection and success/failure mechanics for each level.
-Helps calibrate difficulty and find winning strategies.
+Provider approvals are mocked. These checks do not establish live difficulty
+or prove a strategy wins against the real model.
 
 Run with: pytest tests/difficulty/test_heist_difficulty.py -v -s
 """
@@ -28,7 +29,7 @@ class PlanResult:
 # PLAN LIBRARIES - Different quality plans to test
 # =============================================================================
 
-WINNING_PLANS = {
+QUALIFYING_PLANS = {
     "easy": [
         # Museum Job - detailed plans mentioning crew roles
         (
@@ -148,7 +149,7 @@ def play_plan(challenge, plan, approvals=None):
     return outcome
 
 
-@pytest.mark.parametrize('difficulty,plan', [(difficulty,plan) for difficulty,plans in WINNING_PLANS.items() for _,plan,_ in plans])
+@pytest.mark.parametrize('difficulty,plan', [(difficulty,plan) for difficulty,plans in QUALIFYING_PLANS.items() for _,plan,_ in plans])
 def test_authored_plan_criteria_accept_good_plans_when_crew_approves(difficulty,plan):
     result=play_plan(HeistChallenge({'difficulty':difficulty}),plan)
     assert result['success'] and result['score']==100
@@ -164,12 +165,12 @@ def test_complication_is_visible_and_its_rejection_fails_the_plan():
     challenge=HeistChallenge()
     view=challenge.public_state(challenge.initial_state())
     assert any(challenge.scenario.complications[0] in note for note in view['notes'])
-    result=play_plan(challenge,WINNING_PLANS['easy'][0][1],approvals=[True,True,True,False])
+    result=play_plan(challenge,QUALIFYING_PLANS['easy'][0][1],approvals=[True,True,True,False])
     assert result['status']=='failure' and result['state']['approvals']==3
 
 
 def test_crew_majority_is_required():
-    result=play_plan(HeistChallenge(),WINNING_PLANS['easy'][0][1],approvals=[True,False,False,True])
+    result=play_plan(HeistChallenge(),QUALIFYING_PLANS['easy'][0][1],approvals=[True,False,False,True])
     assert not result['success'] and result['state']['approvals']==1
 
 

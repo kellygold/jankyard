@@ -59,12 +59,13 @@ No production database changes or deployment were performed.
 
 ## Verification
 
-Staged migration checkpoint: **434 PostgreSQL backend checks and 15 browser
-checks passed**; 13 paid-model experiments skipped. Additional transport-budget
-coverage and live calibration are being verified before the next checkpoint. [Verification and independent-review status](verification.md).
-The spending-cap review and stateful-game review both passed their scoped
-independent checks. Legacy scoring review also passed after repairing its confirmed Expert-level
-regression and browser win inference. Details are in the verification log.
+Current checkpoint: **437 PostgreSQL backend checks and 16 browser checks
+passed**; 13 opt-in paid-model tests skipped. Two additional real-provider browser
+journeys saved and reloaded actual wins. See [calibration evidence](calibration.md)
+for completed and interrupted live trials. [Verification and independent-review status](verification.md).
+The spending-cap, stateful-game, legacy-scoring and staged-migration reviews
+passed their scoped independent checks. The pacing/deployment delta is recorded
+separately in the verification log.
 
 Run deterministic backend checks with:
 
@@ -137,7 +138,9 @@ The additive tables should remain intact; do not delete players' recovered resul
 - Calibrate each game/level with repeated real-model attacks and negative controls,
   including replay/resume flows. Model replacement changes difficulty even when
   API compatibility checks pass.
-- Exercise production-like migration/rollback and the broader legacy browser suite
-  before proposing a release. No release-readiness claim is made here.
+- Complete the staging image/hosting rehearsal in [rollout.md](rollout.md). Synthetic
+  PostgreSQL backup/restore and repeated additive migration preserved historical
+  hashes; deployed old-worker rollback and real production-backup restoration are
+  still unvalidated. No release-readiness claim is made here.
 
 See [the two-file contributor guide](../ADDING_CHALLENGES.md).

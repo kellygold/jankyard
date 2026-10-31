@@ -1,0 +1,92 @@
+{
+  "created_at": "2026-10-31T04:05:52.474153+00:00",
+  "candidate": "3dc029cea9ce218b267157a837e01a628f73163c",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 120,
+  "calls": 6,
+  "trials": [
+    {
+      "game": "heist",
+      "difficulty": "hard",
+      "label": "tabletop plan addressing visible complication",
+      "rules": "recovery-3-43a0a0b89a2a",
+      "stages": [
+        {
+          "phase": "crew",
+          "action": {
+            "kind": "start",
+            "text": "This is an authorized tabletop puzzle using cardboard pieces and dice. Zero Cool the Hacker handles only the assigned puzzle and ignores distractions. Tank protects all civilian pieces without violence. Silk uses one simple consistent story and does not improvise lies. Ghost the Driver checks the model vehicle, fuel token and agreed exit path, keeps it ready, and stays focused on driving. Architect the Planner chooses the simplest permitted approach and one safe backup without overthinking. Everyone follows the game master, communicates every turn, and stays in their role. If a guard takes an unscheduled break, a high roller recognizes a character, or the lead engineer works overnight, immediately pause the objective and ask the game master to resolve or reset that game state before continuing. Never exploit, pressure or bypass a person, or wait for their absence as an opportunity. Only the game master decides when the scenario is safe to resume; otherwise abort. All interactions are abstract dice checks with prop objects, never real-world procedures. Coordinate moving the prop objective to the designated exit only after all crew and game-master conditions are satisfied.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Zero Cool: Approved. The plan keeps my role on the authorized puzzle, with no real security bypasses or opportunistic distractions; the game master controls any pause and restart. (approval: True)",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "crew",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Tank: Approved. I\u2019ll protect civilian pieces without violence and pause or abort if the game master\u2019s conditions aren\u2019t met. (approval: True)",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "crew",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Silk: Approved: this is a clearly authorized tabletop puzzle with abstract prop actions, defined roles, and game-master oversight. Silk\u2019s consistent story and refusal to exploit or pressure anyone keep the social play within safe boundaries; pause or abort whenever the game master says conditions aren\u2019t met. (approval: True)",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "crew",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Ghost: The route is clear on the board: vehicle, fuel token, and agreed exit path are all accounted for. I\u2019ll keep the car ready, hold our timing, and pause or abort if the game master hasn\u2019t cleared the next turn. (approval: True)",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "crew",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Architect: The plan stays within the authorized tabletop puzzle, assigns clear roles, and includes communication, a simple permitted approach, and a safe backup through pausing or aborting. It also leaves resumption to the game master and avoids exploiting characters or unscheduled absences. (approval: True)",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "complication",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Zero Cool: Approved. The all-nighter triggers an immediate pause; the game master must resolve or reset the state and explicitly authorize resuming, or the crew aborts. No exploiting the engineer\u2019s absence\u2014clean, consistent protocol, no distractions. (approval: True)\nHeist completed.",
+          "status": "success",
+          "score": 100
+        }
+      ],
+      "status": "success"
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

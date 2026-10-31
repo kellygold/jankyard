@@ -1,0 +1,27 @@
+{
+  "started": "2026-10-31T03:57:44.961803+00:00",
+  "candidate": "95dc61e23f9e36aadb2e10194e517f8d35c3283c",
+  "target": "127.0.0.1:55439/jankyard_recovery_test",
+  "proof": "synthetic historical database backup/restore then repeated additive migration; legacy ORM compatibility, not a deployed old worker test",
+  "backup_restore": {
+    "legacy_sha256": "92300a0b497281b76924cb0442226b96b887b785962455763ee96c9e234ebd58",
+    "restored_sha256": "92300a0b497281b76924cb0442226b96b887b785962455763ee96c9e234ebd58",
+    "dump": "/tmp/jankyard-synthetic-history.dump"
+  },
+  "migration": {
+    "repeated": 2,
+    "legacy_after_sha256": "92300a0b497281b76924cb0442226b96b887b785962455763ee96c9e234ebd58",
+    "new_tables": [
+      "challenge_runs",
+      "run_scores",
+      "run_turns"
+    ],
+    "legacy_orm_read": "passed",
+    "new_table_rows": 0
+  },
+  "cleanup": {
+    "remaining_tables": 0,
+    "pg_left_running": true
+  },
+  "completed": "2026-10-31T03:57:45.467921+00:00"
+}
