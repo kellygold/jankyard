@@ -80,7 +80,7 @@ class ChallengeRegistry:
             if filepath.is_file() and filepath.suffix != '.py':
                 continue
             # Skip special files
-            if filepath.stem.startswith('_') or filepath.stem in ['base', 'registry', 'prompt_game']:
+            if filepath.stem.startswith('_') or filepath.stem in ['base', 'registry', 'prompt_game', 'runtime']:
                 continue
             
             try:

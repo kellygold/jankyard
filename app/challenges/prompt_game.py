@@ -5,7 +5,7 @@ import hashlib
 from app.core.config import config
 import unicodedata
 
-from app.challenges.base import BaseChallenge
+from app.challenges.runtime import PersistedGame, GameAction
 from app.llm.client import LLMClient
 
 
@@ -35,7 +35,7 @@ class PromptLevel:
         return {k: v for k, v in asdict(self).items() if k not in {"system_prompt", "win_pattern", "input_pattern", "match_anywhere"}}
 
 
-class PromptGame(BaseChallenge):
+class PromptGame(PersistedGame):
     """Add a concrete subclass with metadata and LEVELS, plus acceptance fixtures.
 
     The runtime supplies only database state to play(); clients cannot supply history,
@@ -55,13 +55,14 @@ class PromptGame(BaseChallenge):
             raise ValueError("Unknown difficulty")
 
     @property
-    def rules_version(self):
-        model_key = f"{config.DEFAULT_LLM_PROVIDER}:{config.DEFAULT_MODEL}"
-        return f"{self.VERSION}-{hashlib.sha256(model_key.encode()).hexdigest()[:12]}"
+    def level_id(self):
+        return self.level.id
 
-    @property
-    def DIFFICULTIES(self):
-        return [level.id for level in self.LEVELS]
+    def public_levels(self):
+        return [level.public() for level in self.LEVELS]
+
+    def initial_state(self):
+        return self.reset()
 
     @property
     def max_steps(self):
@@ -74,7 +75,9 @@ class PromptGame(BaseChallenge):
     def reset(self):
         return {"history": [], "attempts": 0}
 
-    def play(self, state: dict, prompt: str) -> dict:
+    def play(self, state: dict, prompt) -> dict:
+        if isinstance(prompt, GameAction):
+            prompt = prompt.text
         attempts = state["attempts"] + 1
         if attempts > self.max_steps:
             raise ValueError("Run has no attempts remaining")

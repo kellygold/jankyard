@@ -90,9 +90,9 @@ async def submit_agent_stream(
         raise HTTPException(422, "Expected text challenge_name and agent_code")
     if difficulty is not None and not isinstance(difficulty, str):
         raise HTTPException(422, "Expected a text difficulty")
-    from app.challenges.prompt_game import PromptGame
+    from app.challenges.runtime import PersistedGame
     cls = ChallengeRegistry.get(challenge_name)
-    if cls and issubclass(cls, PromptGame):
+    if cls and issubclass(cls, PersistedGame):
         return JSONResponse(status_code=410, content={"error": "This game now uses /api/runs. Reload the challenge page."})
     if len(agent_code or "") > 8000:
         return JSONResponse(status_code=413, content={"error": "Prompt too long"})

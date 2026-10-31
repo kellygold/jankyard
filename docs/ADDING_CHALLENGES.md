@@ -1,7 +1,8 @@
 # Add a prompt game with two files
 
-The recovered runtime currently powers Glitch. New prompt games should use this
-contract. Multi-agent games still use the legacy runtime and are being migrated;
+The recovered runtime powers Glitch, Honeypot, and Interrogation. New prompt games
+should use `PromptGame`; games with multiple actions use its `PersistedGame` base.
+Multi-agent games still use the legacy runtime and are being migrated;
 do not copy their HTTP handlers, templates, or client-side progression logic.
 
 1. Copy `app/challenges/_TEMPLATE.py` to `app/challenges/my_game.py`. Set a unique
@@ -59,3 +60,25 @@ Paid model experiments are opt-in (`RUN_LIVE_MODELS=1`), never the default CI su
 The shared runtime owns identity, retries, transactions, results and rendering.
 If a game needs a new interaction type, extend and test that shared contract first;
 keep transport and storage code out of the challenge definition.
+
+## Stateful games use the same runtime
+
+A stateful contribution has two files too: a `PersistedGame` subclass and a Python
+journey test. The definition supplies `public_levels`, `initial_state`, `actions`,
+`validate_action`, `public_state`, and `play`. See Honeypot for probe/guess actions
+and Interrogation for witness selection and multiple accusations. Public action
+descriptors specify labels, required text, and single/multiple target options;
+the shared page renders them. Public presentation supports facts, notes and a table.
+Keep hidden solutions and prompts out of both public methods.
+
+`play(state, action)` returns a validated `TurnOutcome`, usually via `self.outcome`.
+Each accepted action consumes exactly one attempt. A win must be explicit; a
+positive score alone cannot complete a run. `ActionError` rejects invalid actions
+without consuming a turn. Provider failures must propagate, so the transaction
+rolls back instead of inventing a response or awarding a win. Close provider
+clients in `finally`. Limit each turn to one provider request so the shared daily
+admission ceiling remains a bound on paid calls.
+
+Tests must play through the actual run API, resume between turns, prove a win and
+an exhausted failure, reject invalid actions, and fault-inject provider errors.
+No new route, template, JavaScript, registry entry, or database table is needed.

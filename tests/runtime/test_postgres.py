@@ -46,3 +46,29 @@ def test_simultaneous_same_request_counts_once(db, test_user):
 def test_simultaneous_different_requests_rejects_stale(db, test_user):
     results = race(db, test_user, False)
     assert sum(result == 409 for result in results) == 1
+
+
+@pytest.mark.parametrize('limit', [1, 4])
+def test_global_admission_is_atomic_and_survives_turn_rollback(db, monkeypatch, limit):
+    from app.core.config import config
+    from app.models.rate_limit import RateLimit
+    from app.routes.runs import rate_limit
+    if db.bind.dialect.name != 'postgresql':
+        pytest.skip('Requires real PostgreSQL advisory locks')
+    monkeypatch.setattr(config, 'RATE_LIMIT_ENABLED', True)
+    monkeypatch.setattr(config, 'RECOVERED_TURNS_PER_DAY', limit)
+    barrier = Barrier(8)
+    def worker(user_id):
+        with Session(db.bind) as session:
+            barrier.wait()
+            try:
+                rate_limit(None, session, user_id=user_id, model_request=True)
+                session.rollback()  # Simulate provider/turn failure after admission.
+                return 200
+            except HTTPException as exc:
+                return exc.status_code
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(worker, range(8)))
+    assert results.count(200) == limit
+    assert results.count(429) == 8 - limit
+    assert db.query(RateLimit).filter_by(identifier='global').one().request_count == limit

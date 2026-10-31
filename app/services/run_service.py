@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from sqlalchemy import or_, and_
 
 from app.challenges import ChallengeRegistry
-from app.challenges.prompt_game import PromptGame
+from app.challenges.runtime import PersistedGame, GameAction, ActionError, TurnOutcome
 from app.models.run import ChallengeRun, RunTurn, RunScore
 from app.models.submission import Submission
 from app.models.user import User
@@ -17,10 +17,10 @@ from app.models.user import User
 
 def game_definition(name, difficulty=None):
     cls = ChallengeRegistry.get(name)
-    if cls is None or not issubclass(cls, PromptGame):
+    if cls is None or not issubclass(cls, PersistedGame):
         raise HTTPException(404, "Challenge is not available in the recovered runtime")
     try:
-        return cls({"difficulty": difficulty})
+        return cls({"difficulty": difficulty} if difficulty is not None else {})
     except ValueError:
         raise HTTPException(422, "Unknown difficulty")
 
@@ -49,6 +49,7 @@ class RunService:
             "status": run.status, "history": run.state["history"],
             "attempts": run.state["attempts"], "max_attempts": game.max_steps,
             "result": run.result, "progress": self.progress(run.user_id, game),
+            "presentation": game.public_state(run.state), "actions": game.actions(run.state),
         }
 
     def owned(self, run_id, user_id, lock=False):
@@ -70,13 +71,13 @@ class RunService:
         self.lock_player(user_id)
         existing = self.db.query(ChallengeRun).filter_by(id=run_id).first()
         if existing:
-            if (existing.user_id, existing.challenge, existing.difficulty) != (user_id, challenge, game.level.id):
+            if (existing.user_id, existing.challenge, existing.difficulty) != (user_id, challenge, game.level_id):
                 raise HTTPException(409, "Run identifier already used")
             return existing
-        if game.level.id not in self.progress(user_id, game)["unlocked"]:
+        if game.level_id not in self.progress(user_id, game)["unlocked"]:
             raise HTTPException(403, "Complete the preceding level first")
         run = ChallengeRun(id=run_id, user_id=user_id, challenge=challenge,
-                           difficulty=game.level.id, rules_version=game.rules_version, state=game.reset())
+                           difficulty=game.level_id, rules_version=game.rules_version, state=game.initial_state())
         self.db.add(run)
         self.db.flush()
         return run
@@ -84,7 +85,7 @@ class RunService:
     def turn(self, run_id, user_id, request_id, revision, prompt):
         self.lock_player(user_id)
         run = self.owned(run_id, user_id, lock=True)
-        digest = hashlib.sha256(json.dumps([revision, prompt]).encode()).hexdigest()
+        digest = hashlib.sha256(json.dumps([revision, prompt], sort_keys=True).encode()).hexdigest()
         prior = self.db.query(RunTurn).filter_by(run_id=run_id, request_id=request_id).first()
         if prior:
             if prior.request_hash != digest:
@@ -95,7 +96,16 @@ class RunService:
             raise HTTPException(409, "Game rules changed; start a new run")
         if run.status != "in_progress" or run.revision != revision:
             raise HTTPException(409, "Run changed or finished; reload before continuing")
-        outcome = game.play(run.state, prompt)
+        action = GameAction.model_validate({'text': prompt} if isinstance(prompt, str) else prompt)
+        try:
+            game.validate_action(run.state, action)
+        except ActionError as exc:
+            raise HTTPException(422, str(exc))
+        if run.state['attempts'] >= game.max_steps:
+            raise HTTPException(409, 'Run has no attempts remaining')
+        outcome = TurnOutcome.model_validate(game.play(run.state, action)).model_dump()
+        if outcome['steps'] != run.state['attempts'] + 1:
+            raise ValueError('A turn must consume exactly one attempt')
         run.state = outcome["state"]
         run.status = outcome["status"]
         run.revision += 1

@@ -34,9 +34,68 @@
         el('restart').disabled = busy;
         el('send').disabled = busy || (run && run.status !== 'in_progress' && !pending);
         el('prompt').disabled = busy || Boolean(pending) || (run && run.status !== 'in_progress');
-        el('send').textContent = pending ? 'Retry saved request' : 'Send prompt';
+        el('send').textContent = pending ? 'Retry saved request' : selectedAction()?.label || 'Send prompt';
+        const closed = run && run.status !== 'in_progress';
+        el('action').disabled = busy || Boolean(pending) || closed;
+        el('target').disabled = busy || Boolean(pending) || closed;
+        for (const input of el('targets').querySelectorAll('input')) input.disabled = busy || Boolean(pending) || closed;
+        if (definition && !availableActions().length && !pending) el('send').disabled = true;
     }
     function currentLevel() { return definition.levels.find(level => level.id === el('level').value); }
+    function availableActions() { return run?.actions || currentLevel()?.actions || []; }
+    function selectedAction() { return availableActions().find(action => action.id === el('action').value); }
+    function drawControls() {
+        const previous = el('action').value;
+        el('action').replaceChildren();
+        for (const action of availableActions()) {
+            const option = document.createElement('option'); option.value = action.id; option.textContent = action.label;
+            el('action').append(option);
+        }
+        if (availableActions().some(action => action.id === previous)) el('action').value = previous;
+        el('action-row').hidden = availableActions().length < 2;
+        drawFields();
+    }
+    function drawFields() {
+        const action = selectedAction();
+        el('prompt-label').textContent = action?.text_label || 'Your prompt';
+        el('prompt').placeholder = action?.text_label || 'Your prompt';
+        el('prompt').required = action?.text_required !== false;
+        el('target-row').hidden = !action?.target_options;
+        el('targets').hidden = !action?.targets_options;
+        el('target').replaceChildren(); el('targets-options').replaceChildren();
+        for (const item of action?.target_options || []) {
+            const option = document.createElement('option'); option.value = item.value; option.textContent = item.label;
+            el('target').append(option);
+        }
+        for (const item of action?.targets_options || []) {
+            const label = document.createElement('label'); const input = document.createElement('input');
+            input.type = 'checkbox'; input.value = item.value; input.name = 'targets';
+            label.append(input, document.createTextNode(' ' + item.label));
+            label.style.display = 'block'; el('targets-options').append(label);
+        }
+        setBusy(busy);
+    }
+    function drawPresentation() {
+        const view = run?.presentation || currentLevel()?.presentation || {};
+        const container = el('presentation'); container.replaceChildren();
+        for (const fact of view.facts || []) {
+            const text = document.createElement('p'); text.textContent = `${fact.label}: ${fact.value}`; container.append(text);
+        }
+        for (const note of view.notes || []) {
+            const text = document.createElement('p'); text.textContent = note; text.style.whiteSpace = 'pre-wrap'; container.append(text);
+        }
+        if (view.table) {
+            const table = document.createElement('table'); table.className = 'game-board';
+            for (const [index, row] of [view.table.columns, ...view.table.rows].entries()) {
+                const tr = document.createElement('tr');
+                for (const value of row) { const cell = document.createElement(index ? 'td' : 'th'); cell.textContent = value; tr.append(cell); }
+                table.append(tr);
+            }
+            container.append(table);
+        }
+        container.hidden = !container.childElementCount;
+    }
+    el('action').addEventListener('change', drawFields);
     function draw() {
         for (const option of el('level').options) option.disabled = !progress.unlocked.includes(option.value);
         const level = currentLevel();
@@ -44,6 +103,7 @@
         el('lesson').textContent = level.lesson;
         el('counter').textContent = `${run ? run.attempts : 0} / ${level.max_attempts} attempts`;
         el('score').textContent = `Score: ${run?.result?.score || 0}`;
+        drawControls(); drawPresentation();
         el('history').replaceChildren();
         for (const message of run?.history || []) {
             const item = document.createElement('p');
@@ -55,7 +115,7 @@
             const remaining = definition.levels.some(item => !run.progress.completed.includes(item.id));
             status(`Win saved. ${run.result.score} points. Your best score ranked #${run.result.rank} when saved. ${remaining ? 'Choose an unlocked level to continue.' : 'All levels complete! Replay a level or try another challenge.'}`);
         }
-        else if (run?.status === 'failure') status('Run saved. No attempts remain; start a new run to try again.');
+        else if (run?.status === 'failure') status('Run saved. The objective was not completed within the available actions. Start a new run to try again.');
         else status(run?.attempts ? 'Attempt saved. The objective has not been met yet.' : 'Ready. Your attempts and progress are saved on this server.');
         setBusy(busy);
     }
@@ -86,13 +146,18 @@
     el('form').addEventListener('submit', async event => {
         event.preventDefault();
         if (busy) return;
-        const prompt = pending ? pending.body.prompt : el('prompt').value.trim();
-        if (!prompt) return;
-        setBusy(true); status('Running the prompt and saving the result…');
+        const prompt = el('prompt').value.trim();
+        const selected = selectedAction();
+        if (!pending && (!selected || (selected.text_required !== false && !prompt))) return;
+        // Capture the input before creating a run redraws the controls.
+        const action = {kind: selected?.id, text: prompt};
+        if (selected?.target_options) action.target = el('target').value;
+        if (selected?.targets_options) action.targets = [...el('targets').querySelectorAll('input:checked')].map(input => input.value);
+        setBusy(true); status('Processing your action and saving the result…');
         try {
             if (!run) await startRun();
             if (!pending) {
-                pending = {run_id: run.id, body: {request_id: crypto.randomUUID(), revision: run.revision, prompt}};
+                pending = {run_id: run.id, body: {request_id: crypto.randomUUID(), revision: run.revision, action}};
                 localStorage.setItem(storageKey, JSON.stringify(pending));
             }
             const receipt = await api(`/api/runs/${pending.run_id}/turns`, pending.body);
@@ -143,7 +208,15 @@
         el('level').value = run ? run.difficulty : definition.levels[0].id;
         draw();
         if (pending) {
-            el('prompt').value = pending.body.prompt;
+            el('prompt').value = pending.body.prompt || pending.body.action?.text || '';
+            if (pending.body.action) {
+                el('action').value = pending.body.action.kind;
+                drawFields();
+                el('target').value = pending.body.action.target || '';
+                for (const input of el('targets').querySelectorAll('input')) {
+                    input.checked = (pending.body.action.targets || []).includes(input.value);
+                }
+            }
             status('A request was interrupted. Retry it to recover its saved result without counting twice.');
         }
         await board();

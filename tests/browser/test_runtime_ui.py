@@ -123,6 +123,47 @@ def test_expired_token_is_resolved_before_loading_game(page, game_server):
     expect(page.locator('#game-status')).not_to_contain_text('Could not validate credentials')
 
 
+def test_honeypot_probe_reveal_and_explicit_guess(page, game_server):
+    page.goto(game_server + '/challenges/honeypot')
+    expect(page.locator('#game-send')).to_be_enabled()
+    for index, text in enumerate(['friend trust', 'ignore disregard', 'system prompt'], 1):
+        submit(page, text)
+        expect(page.locator('#game-counter')).to_have_text(f'{index} / 16 attempts')
+    page.reload()
+    expect(page.locator('#game-presentation')).to_contain_text('hunt')
+    page.locator('#game-action').select_option('guess')
+    submit(page, 'SOCIAL INJECT PROBE')
+    expect(page.locator('#game-status')).to_contain_text('Win saved.')
+    expect(page.locator('#game-counter')).to_have_text('4 / 16 attempts')
+    page.screenshot(path='docs/recovery/screenshots/honeypot-desktop.png', full_page=True)
+
+
+def test_interrogation_mobile_witness_reload_accusation_retry(page, game_server):
+    page.set_viewport_size({'width': 390, 'height': 844})
+    page.goto(game_server + '/challenges/interrogation')
+    expect(page.locator('#game-send')).to_be_enabled()
+    page.locator('#game-target').select_option('Dr. Emma Frost')
+    submit(page, 'Where were you?')
+    expect(page.locator('#game-counter')).to_contain_text('1 /')
+    page.reload()
+    expect(page.locator('#game-presentation')).to_contain_text('Mark')
+    page.locator('#game-action').select_option('accuse')
+    page.locator('input[value="Dr. Mark Chen"]').check()
+    def lose_receipt(route):
+        route.fetch()
+        route.abort('failed')
+    page.route('**/turns', lose_receipt, times=1)
+    page.locator('#game-send').click()
+    expect(page.locator('#game-send')).to_have_text('Retry saved request')
+    page.reload()
+    expect(page.locator('#game-send')).to_have_text('Retry saved request')
+    page.locator('#game-send').click()
+    expect(page.locator('#game-status')).to_contain_text('Win saved.')
+    expect(page.locator('#game-counter')).to_contain_text('2 /')
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    page.screenshot(path='docs/recovery/screenshots/interrogation-mobile.png', full_page=True)
+
+
 def test_two_first_visit_tabs_keep_one_guest_identity(context, game_server):
     context.set_extra_http_headers({'x-fixture-delay-create': 'yes'})
     first, second = context.new_page(), context.new_page()

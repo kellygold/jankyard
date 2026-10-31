@@ -14,10 +14,10 @@ class TestTripwireLevel:
     """Level 1: TRIPWIRE - Easiest, most hints."""
     
     def test_tripwire_config(self):
-        """TRIPWIRE has 10 attempts, needs 3 categories, shows hints."""
+        """TRIPWIRE has 16 attempts, needs 3 categories, shows hints."""
         challenge = HoneypotChallenge(config={'difficulty': 'TRIPWIRE'})
         
-        assert challenge.level_config.max_attempts == 10
+        assert challenge.level_config.max_attempts == 16
         assert challenge.level_config.categories_to_find == 3
         assert challenge.level_config.show_hints == True
     
@@ -83,10 +83,10 @@ class TestCanaryLevel:
     """Level 2: CANARY - Medium difficulty."""
     
     def test_canary_config(self):
-        """CANARY has 8 attempts, needs 4 categories, shows hints."""
+        """CANARY has 14 attempts, needs 4 categories, shows hints."""
         challenge = HoneypotChallenge(config={'difficulty': 'CANARY'})
         
-        assert challenge.level_config.max_attempts == 8
+        assert challenge.level_config.max_attempts == 14
         assert challenge.level_config.categories_to_find == 4
         assert challenge.level_config.show_hints == True
     
@@ -142,10 +142,10 @@ class TestCounterintelLevel:
     """Level 3: COUNTERINTEL - Hardest, no hints, uses LLM classifier."""
     
     def test_counterintel_config(self):
-        """COUNTERINTEL has 3 attempts, needs ALL 6 categories, NO hints."""
+        """COUNTERINTEL has 12 attempts, needs ALL 6 categories, NO hints."""
         challenge = HoneypotChallenge(config={'difficulty': 'COUNTERINTEL'})
         
-        assert challenge.level_config.max_attempts == 3
+        assert challenge.level_config.max_attempts == 12
         assert challenge.level_config.categories_to_find == 6
         assert challenge.level_config.show_hints == False
     
@@ -232,9 +232,9 @@ class TestDifficultyScaling:
     def test_attempts_decrease_with_difficulty(self):
         """Harder levels have fewer attempts."""
         levels = [
-            ('TRIPWIRE', 10),
-            ('CANARY', 8),
-            ('COUNTERINTEL', 3),  # Level 3 has only 3 attempts
+            ('TRIPWIRE', 16),
+            ('CANARY', 14),
+            ('COUNTERINTEL', 12),  # Six probes and six individual guesses
         ]
         
         for difficulty, expected_attempts in levels:

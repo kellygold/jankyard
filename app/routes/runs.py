@@ -4,7 +4,8 @@ import logging
 from uuid import UUID, uuid4
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+from app.challenges.runtime import GameAction
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import hashlib
@@ -55,7 +56,14 @@ class CreateRun(BaseModel):
 class SubmitTurn(BaseModel):
     request_id: UUID
     revision: int = Field(ge=0)
-    prompt: str = Field(min_length=1, max_length=8000)
+    prompt: str | None = Field(default=None, min_length=1, max_length=8000)
+    action: GameAction | None = None
+
+    @model_validator(mode='after')
+    def one_action(self):
+        if (self.prompt is None) == (self.action is None):
+            raise ValueError('Provide either prompt or action')
+        return self
 
 
 def rate_limit(request, db, user_id=None, model_request=False):
@@ -97,8 +105,13 @@ def rate_limit(request, db, user_id=None, model_request=False):
 @router.get("/games/{name}")
 def get_game(name: str):
     game = game_definition(name)
+    levels = []
+    for level in game.public_levels():
+        selected = game_definition(name, level['id'])
+        levels.append(dict(level, actions=selected.actions(selected.initial_state()),
+                           presentation=selected.public_state(selected.initial_state())))
     return {"name": game.name, "title": game.display_name, "description": game.description,
-            "version": game.rules_version, "levels": [level.public() for level in game.LEVELS]}
+            "version": game.rules_version, "levels": levels}
 
 
 @router.get("/games/{name}/progress")
@@ -118,7 +131,7 @@ def get_progress(name: str, request: Request, db=Depends(get_db), current_user=D
 def get_scores(name: str, difficulty: str, db=Depends(get_db)):
     game = game_definition(name, difficulty)
     rows = db.query(RunScore, User.username).join(User, User.id == RunScore.user_id).filter(
-        RunScore.challenge == name, RunScore.difficulty == game.level.id, RunScore.rules_version == game.rules_version
+        RunScore.challenge == name, RunScore.difficulty == game.level_id, RunScore.rules_version == game.rules_version
     ).order_by(RunScore.score.desc(), RunScore.steps, RunScore.id).limit(100).all()
     entries, previous, rank = [], None, 0
     for index, (score, username) in enumerate(rows, 1):
@@ -166,11 +179,11 @@ def get_run(run_id: UUID, db=Depends(get_db), user=Depends(require_player)):
 
 @router.post("/runs/{run_id}/turns")
 def submit_turn(run_id: UUID, body: SubmitTurn, request: Request, db=Depends(get_db), user=Depends(require_player)):
-    if not body.prompt.strip():
+    if body.prompt is not None and not body.prompt.strip():
         raise HTTPException(422, "Enter a prompt")
     rate_limit(request, db, user.id, model_request=True)
     try:
-        receipt = RunService(db).turn(str(run_id), user.id, str(body.request_id), body.revision, body.prompt)
+        receipt = RunService(db).turn(str(run_id), user.id, str(body.request_id), body.revision, body.prompt if body.prompt is not None else body.action.model_dump())
         db.commit()
         return receipt
     except HTTPException:

@@ -10,7 +10,7 @@ from app.challenges import ChallengeRegistry  # Import from challenges module, n
 from app.core import get_db
 from app.routes.deps import get_current_user_optional
 from app.models.user import User
-from app.challenges.prompt_game import PromptGame
+from app.challenges.runtime import PersistedGame
 
 router = APIRouter(prefix="/challenges", tags=["challenges"])
 
@@ -87,7 +87,7 @@ async def get_challenge_detail(
             )
         
         # Auto-discover template by convention (NEW: contributors don't need to edit this!)
-        template = "challenges/prompt_game.html" if isinstance(challenge, PromptGame) else get_challenge_template(challenge_name)
+        template = "challenges/prompt_game.html" if isinstance(challenge, PersistedGame) else get_challenge_template(challenge_name)
         
         # Prepare challenge-specific context
         context = {

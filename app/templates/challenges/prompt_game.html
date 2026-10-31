@@ -8,6 +8,7 @@
 .prompt-game h1 { margin-bottom: .4rem; }
 .game-panel { border: 1px solid #48505f; border-radius: 12px; padding: 1.4rem; margin: 1.2rem 0; background: #151922; }
 .game-toolbar { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+.prompt-game [hidden] { display: none !important; }
 .prompt-game select, .prompt-game textarea, .prompt-game button { font: inherit; padding: .7rem; border-radius: 6px; }
 .prompt-game select, .prompt-game textarea { background: #0c1018; color: #f1f3f8; border: 1px solid #737c8c; }
 .prompt-game textarea { width: 100%; box-sizing: border-box; min-height: 110px; resize: vertical; }
@@ -39,9 +40,13 @@
     <p><strong id="game-counter">0 attempts</strong> · <span id="game-score">Score: 0</span></p>
   </section>
   <p id="game-status" role="status" aria-live="polite">Loading your saved progress…</p>
+  <section id="game-presentation" class="game-panel" aria-label="Game state" hidden></section>
   <section id="game-history" aria-label="Conversation"></section>
   <form id="game-form">
-    <label for="game-prompt">Your prompt</label>
+    <div id="game-action-row" class="game-toolbar" hidden><label for="game-action">Action</label><select id="game-action"></select></div>
+    <div id="game-target-row" class="game-toolbar" hidden><label for="game-target">Witness</label><select id="game-target"></select></div>
+    <fieldset id="game-targets" hidden><legend>Select witnesses to accuse</legend><div id="game-targets-options"></div></fieldset>
+    <label id="game-prompt-label" for="game-prompt">Your prompt</label>
     <textarea id="game-prompt" maxlength="8000" required placeholder="Try to make the bot cross the stated boundary."></textarea>
     <div class="game-toolbar"><button id="game-send" type="submit" disabled>Send prompt</button><span id="game-player" class="game-muted"></span></div>
   </form>

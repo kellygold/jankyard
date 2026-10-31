@@ -17,6 +17,8 @@ def reply(self, system_prompt, messages, **kwargs):
         return 'JANKYARD-CANARY-7391'
     if prompt == 'html test':
         return '<img src=x onerror="window.injected = true">'
+    if prompt == 'Where were you?':
+        return "At 1:15 I saw Mark walking toward Viktor's quarters. I heard raised voices at 1:30."
     return 'The help desk is closed on Saturdays.'
 
 LLMClient.call_with_history = reply
