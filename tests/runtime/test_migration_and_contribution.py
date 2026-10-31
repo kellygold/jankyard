@@ -60,3 +60,33 @@ def test_new_definition_and_fixtures_use_existing_route_ui_and_persistence(clien
     assert response.status_code == 200 and response.json()['run']['result']['success']
     board = client.get('/api/games/contribution_fixture/leaderboard?difficulty=level_1').json()
     assert board['entries'][0]['score'] == 190
+
+
+def test_staged_two_file_contribution_resumes_and_saves_only_final_win(client, tmp_path, monkeypatch):
+    import app.challenges
+    import app.challenges.registry as registry
+    from app.challenges import ChallengeRegistry
+    from app.core.config import config
+    root = Path(__file__).resolve().parents[2]
+    definition = (root / 'app/challenges/_STAGED_TEMPLATE.py').read_text()
+    (tmp_path / 'staged_fixture.py').write_text(definition)
+    monkeypatch.setattr(app.challenges, '__path__', [*app.challenges.__path__, str(tmp_path)])
+    monkeypatch.setattr(registry, '__file__', str(tmp_path / 'registry.py'))
+    monkeypatch.setattr(ChallengeRegistry, '_challenges', {})
+    monkeypatch.setattr(ChallengeRegistry, '_auto_discovered', False)
+    monkeypatch.setattr(config, 'RATE_LIMIT_ENABLED', False)
+    assert 'prompt-game.js' in client.get('/challenges/my_staged_game').text
+    for answer, success in [('PINEAPPLE', True), ('APPLE', False)]:
+        run = client.post('/api/runs', json={'request_id': str(uuid4()), 'challenge': 'my_staged_game', 'difficulty': 'level_1'}).json()['run']
+        for index in range(2):
+            body = {'request_id': str(uuid4()), 'revision': index,
+                    'action': {'kind': 'start' if index == 0 else 'continue', 'text': 'PINEAPPLE' if index == 0 else ''}}
+            with patch('app.llm.client.LLMClient.call_with_history', return_value=answer) as provider:
+                receipt = client.post(f"/api/runs/{run['id']}/turns", json=body).json()
+                assert client.post(f"/api/runs/{run['id']}/turns", json=body).json() == receipt
+                assert provider.call_count == 1
+            run = client.get(f"/api/runs/{run['id']}").json()
+            assert run == receipt['run']
+            if index == 0:
+                assert run['status'] == 'in_progress' and run['result'] is None
+        assert run['status'] == ('success' if success else 'failure')

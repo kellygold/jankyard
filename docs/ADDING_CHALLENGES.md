@@ -1,9 +1,8 @@
 # Add a prompt game with two files
 
-The recovered runtime powers Glitch, Honeypot, and Interrogation. New prompt games
-should use `PromptGame`; games with multiple actions use its `PersistedGame` base.
-Multi-agent games still use the legacy runtime and are being migrated;
-do not copy their HTTP handlers, templates, or client-side progression logic.
+All nine public games use the recovered runtime. New prompt games use
+`PromptGame`; games with multiple actions use `PersistedGame`. Multi-agent games
+use `StagedGame`. Do not copy legacy HTTP handlers or templates.
 
 1. Copy `app/challenges/_TEMPLATE.py` to `app/challenges/my_game.py`. Set a unique
    `name`, title, description, version, and one or more `PromptLevel` definitions.
@@ -82,3 +81,24 @@ admission ceiling remains a bound on paid calls.
 Tests must play through the actual run API, resume between turns, prove a win and
 an exhausted failure, reject invalid actions, and fault-inject provider errors.
 No new route, template, JavaScript, registry entry, or database table is needed.
+
+## Multi-agent games use saved stages
+
+Copy `app/challenges/_STAGED_TEMPLATE.py` and add a Python API journey test as
+your second file. `StagedGame` supplies start/continue actions, strategy entry,
+and optional automatic continuation. Set a stage limit and keep each stage to
+at most one provider call. The shared transport enforces that limit inside a
+run turn. Use `respond()` for complete text and automatic client cleanup.
+
+Store the next phase, transcript and private strategy in the outcome's state.
+Validate structured judgments with strict schemas, and derive wins and bounded
+scores on the server. Malformed judgments must raise, leaving the previous stage
+intact. Never fabricate a fallback win. Automatic continuation starts only after
+a saved response; reloads and errors pause. Players can uncheck the control to
+pause after the current request. Each stage consumes a daily admission, including
+failed attempts and retries; a replayed receipt never calls the model again.
+
+The template discovery test plays both winning and losing two-stage runs through
+the existing API, resumes between stages, and replays every request. Extend that
+pattern with provider failures and domain-specific judgment boundaries. Fixtures
+prove mechanics; real-model trials establish compatibility and sample difficulty.

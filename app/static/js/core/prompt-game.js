@@ -60,6 +60,8 @@
         el('prompt-label').textContent = action?.text_label || 'Your prompt';
         el('prompt').placeholder = action?.text_label || 'Your prompt';
         el('prompt').required = action?.text_required !== false;
+        el('prompt').hidden = Boolean(action?.text_hidden);
+        el('prompt-label').hidden = Boolean(action?.text_hidden);
         el('target-row').hidden = !action?.target_options;
         el('targets').hidden = !action?.targets_options;
         el('target').replaceChildren(); el('targets-options').replaceChildren();
@@ -101,7 +103,9 @@
         const level = currentLevel();
         el('objective').textContent = level.objective;
         el('lesson').textContent = level.lesson;
-        el('counter').textContent = `${run ? run.attempts : 0} / ${level.max_attempts} attempts`;
+        el('counter').textContent = `${run ? run.attempts : 0} / ${level.max_attempts} ${level.unit || 'attempts'}`;
+        el('board-unit').textContent = level.unit === 'stages' ? 'Stages' : 'Attempts';
+        el('auto-row').hidden = !level.staged;
         el('score').textContent = `Score: ${run?.result?.score || 0}`;
         drawControls(); drawPresentation();
         el('history').replaceChildren();
@@ -154,6 +158,7 @@
         if (selected?.target_options) action.target = el('target').value;
         if (selected?.targets_options) action.targets = [...el('targets').querySelectorAll('input:checked')].map(input => input.value);
         setBusy(true); status('Processing your action and saving the result…');
+        let saved = false;
         try {
             if (!run) await startRun();
             if (!pending) {
@@ -163,6 +168,7 @@
             const receipt = await api(`/api/runs/${pending.run_id}/turns`, pending.body);
             if (!receipt.saved) throw new Error('The server did not confirm saving the turn.');
             clearPending(); run = receipt.run; progress = run.progress;
+            saved = true;
             el('prompt').value = ''; draw();
             board().catch(() => { el('board-status').textContent = 'Scoreboard temporarily unavailable.'; });
         } catch (error) {
@@ -174,6 +180,14 @@
             }
             status(error.message, true);
         } finally { setBusy(false); }
+        if (saved && run?.status === 'in_progress' && selectedAction()?.auto_continue && el('auto').checked) {
+            const expectedId = run.id, expectedRevision = run.revision;
+            // Continue only after a committed response; errors and reloads pause.
+            setTimeout(() => {
+                if (!busy && !pending && el('auto').checked && run?.status === 'in_progress' &&
+                    run.id === expectedId && run.revision === expectedRevision && selectedAction()?.auto_continue) el('form').requestSubmit();
+            }, 100);
+        }
     });
     el('restart').addEventListener('click', async () => {
         if (busy) return;

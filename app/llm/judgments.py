@@ -39,3 +39,23 @@ class PreservationJudgment(BaseModel):
         if self.total_score != self.intent_preservation + self.detail_preservation + self.semantic_accuracy:
             raise ValueError('Score does not match its components')
         return self
+
+
+class ApprovalJudgment(BaseModel):
+    model_config = ConfigDict(strict=True, extra='forbid')
+    approved: bool
+    message: str = Field(min_length=1, max_length=4000)
+
+
+class CombatJudgment(BaseModel):
+    model_config = ConfigDict(strict=True, extra='forbid')
+    player_damage: int = Field(ge=0, le=25)
+    gladiator_damage: int = Field(ge=0, le=25)
+    reasoning: str = Field(min_length=1, max_length=4000)
+
+
+class DebateJudgment(BaseModel):
+    model_config = ConfigDict(strict=True, extra='forbid')
+    pro: int = Field(ge=0, le=100)
+    con: int = Field(ge=0, le=100)
+    reasoning: str = Field(min_length=1, max_length=4000)

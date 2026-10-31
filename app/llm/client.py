@@ -54,6 +54,8 @@ class LLMClient:
         return await self.acall_with_history(system_prompt, [{"role": "user", "content": user_message}], temperature, max_tokens)
 
     def call_with_history(self, system_prompt, messages, temperature=0.7, max_tokens=500):
+        from app.llm.budget import consume_call
+        consume_call()
         params = self._params(system_prompt, messages, temperature, max_tokens)
         if self.provider == "openai":
             if self.openai_client is None:
@@ -66,6 +68,8 @@ class LLMClient:
         return self._anthropic_text(response)
 
     async def acall_with_history(self, system_prompt, messages, temperature=0.7, max_tokens=500):
+        from app.llm.budget import consume_call
+        consume_call()
         params = self._params(system_prompt, messages, temperature, max_tokens)
         if self.provider == "openai":
             if self.openai_async_client is None:

@@ -43,6 +43,7 @@
   <section id="game-presentation" class="game-panel" aria-label="Game state" hidden></section>
   <section id="game-history" aria-label="Conversation"></section>
   <form id="game-form">
+    <label id="game-auto-row" hidden><input id="game-auto" type="checkbox" checked> Continue stages automatically (uncheck to pause after the current stage)</label>
     <div id="game-action-row" class="game-toolbar" hidden><label for="game-action">Action</label><select id="game-action"></select></div>
     <div id="game-target-row" class="game-toolbar" hidden><label for="game-target">Witness</label><select id="game-target"></select></div>
     <fieldset id="game-targets" hidden><legend>Select witnesses to accuse</legend><div id="game-targets-options"></div></fieldset>
@@ -52,7 +53,7 @@
   </form>
   <section class="game-panel"><h2>This level’s scoreboard</h2>
     <p id="game-board-status" class="game-muted"></p>
-    <table class="game-board"><thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Attempts</th></tr></thead><tbody id="game-board"></tbody></table>
+    <table class="game-board"><thead><tr><th>Rank</th><th>Player</th><th>Score</th><th id="game-board-unit">Attempts</th></tr></thead><tbody id="game-board"></tbody></table>
   </section>
 </article>
 {% endblock %}

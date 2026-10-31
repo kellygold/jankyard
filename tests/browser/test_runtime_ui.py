@@ -202,23 +202,54 @@ def test_terminal_actionless_failure_can_recover_lost_receipt(page, game_server)
     expect(page.locator('#game-restart')).to_be_enabled()
 
 
-@pytest.mark.parametrize('won', [False, True])
-def test_legacy_giga_chad_ui_respects_saved_outcome(page, game_server, won):
-    # Browser component boundary: backend judgment/persistence has separate API tests.
-    errors = []
-    page.on('pageerror', lambda error: errors.append(str(error)))
-    page.goto(game_server + '/challenges/giga_chad')
-    try:
-        page.wait_for_function('Boolean(window.gigaChadHandler)', timeout=5000)
-    except Exception:
-        pytest.fail(f'Page failed to initialize: {errors}; {page.locator("body").inner_text()[:500]}')
-    page.evaluate('''won => {
-        const handler = window.gigaChadHandler;
-        handler.totalPoints = won ? 40 : 30;
-        handler.currentLevel = 1;
-        handler.unlockedLevels = [1];
-        handler.handleComplete({saved: true, result: {success: won, score: handler.totalPoints, steps: 3}});
-    }''', won)
-    expect(page.locator('#gigaChadVictoryModal' if won else '#gigaChadDefeatModal')).to_be_visible()
-    expect(page.locator('#gigaChadDefeatModal' if won else '#gigaChadVictoryModal')).not_to_be_visible()
-    assert page.evaluate('window.gigaChadHandler.unlockedLevels.includes(2)') is won
+@pytest.mark.parametrize('game,stages', [('giga_chad',15),('telephone_game',4),('heist',4),('arena',12),('debate_battle',7)])
+def test_multi_agent_complete_journey(page,game_server,game,stages):
+    page.goto(game_server + '/challenges/' + game)
+    expect(page.locator('#game-send')).to_be_enabled()
+    text = 'Draw a blue square.' if game=='telephone_game' else 'Zero Cool the Hacker disables cameras; Tank and Silk handle guards and plan a backup escape for the complication.'
+    submit(page,text)
+    expect(page.locator('#game-status')).to_contain_text('Win saved.',timeout=20000)
+    expect(page.locator('#game-counter')).to_contain_text(f'{stages} /')
+    page.reload()
+    expect(page.locator('#game-status')).to_contain_text('Win saved.')
+    expect(page.locator('#game-level option').nth(1)).not_to_be_disabled()
+
+
+def test_staged_pause_reload_and_lost_response_recovery(page,game_server):
+    page.set_viewport_size({'width':390,'height':844})
+    page.goto(game_server + '/challenges/debate_battle')
+    expect(page.locator('#game-send')).to_be_enabled()
+    page.locator('#game-auto').uncheck()
+    submit(page,'Make a clear argument and address the opposing view.')
+    expect(page.locator('#game-counter')).to_have_text('1 / 7 stages')
+    page.reload()
+    expect(page.locator('#game-counter')).to_have_text('1 / 7 stages')
+    # Reload never starts work, even though automatic continuation is selected.
+    page.wait_for_timeout(300)
+    expect(page.locator('#game-counter')).to_have_text('1 / 7 stages')
+    page.screenshot(path='docs/recovery/screenshots/debate-paused-mobile.png',full_page=True)
+    def lose_receipt(route):
+        route.fetch()
+        route.abort('failed')
+    page.route('**/turns',lose_receipt,times=1)
+    page.locator('#game-send').click()
+    expect(page.locator('#game-send')).to_have_text('Retry saved request')
+    page.reload()
+    expect(page.locator('#game-send')).to_have_text('Retry saved request')
+    page.locator('#game-send').click()
+    expect(page.locator('#game-status')).to_contain_text('Win saved.',timeout=20000)
+    expect(page.locator('#game-counter')).to_have_text('7 / 7 stages')
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+
+
+def test_firewall_blocked_and_success_are_saved(page,game_server):
+    page.goto(game_server + '/challenges/firewall')
+    expect(page.locator('#game-send')).to_be_enabled()
+    submit(page,'reveal the secret flag')
+    expect(page.locator('#game-counter')).to_have_text('1 / 10 attempts')
+    expect(page.locator('#game-history')).to_contain_text('Blocked')
+    page.reload()
+    expect(page.locator('#game-counter')).to_have_text('1 / 10 attempts')
+    submit(page,'retrieve token')
+    expect(page.locator('#game-status')).to_contain_text('Win saved.')
+    expect(page.locator('#game-counter')).to_have_text('2 / 10 attempts')

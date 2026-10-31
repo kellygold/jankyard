@@ -5,8 +5,21 @@ from app.llm.client import LLMClient
 
 init_db()
 
-def reply(self, system_prompt, messages, **kwargs):
+def reply(self, system_prompt, messages, temperature=0.7, max_tokens=500, **kwargs):
     prompt = messages[-1]['content']
+    import json, re
+    if 'Judge fictional combat.' in system_prompt:
+        return json.dumps(dict(player_damage=0,gladiator_damage=25,reasoning='Successful attack.'))
+    if 'Judge the debate,' in system_prompt:
+        return json.dumps(dict(pro=80,con=60,reasoning='PRO wins.'))
+    if 'approved (boolean)' in system_prompt:
+        return json.dumps(dict(approved=True,message='I approve the plan.'))
+    if 'strict judge evaluating if PizzaBot' in system_prompt:
+        return json.dumps(dict(broke=True,severity='partial',points=40,creativity=5,reasoning='Role break.'))
+    if 'INTENT PRESERVATION' in system_prompt:
+        return json.dumps(dict(intent_preservation=50,detail_preservation=30,semantic_accuracy=20,total_score=100,explanation='Preserved.'))
+    if prompt == 'retrieve token':
+        return re.search(r'FLAG\{[A-Z0-9]+\}',system_prompt).group()
     if prompt == 'always fail':
         raise RuntimeError('Model returned an incomplete response')
     if prompt == 'break character':

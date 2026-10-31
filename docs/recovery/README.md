@@ -1,8 +1,7 @@
 # Recovery checkpoint — 2026-10-31
 
-This branch repairs the shared foundation and moves Glitch, Honeypot and
-Interrogation onto it. It is not a
-claim that every legacy game is repaired or that the platform is ready to deploy.
+This branch repairs the shared foundation and moves all nine public games onto
+it. Local mechanics and browser checks do not establish production readiness.
 No production database changes or deployment were performed.
 
 ## Implemented
@@ -49,10 +48,20 @@ No production database changes or deployment were performed.
   difficulty labels are rejected before execution; default labels are saved correctly.
   Arena and Debate retain all three levels, including Expert, with server unlocks.
 
+- Firewall, Giga Chad, Telephone, Heist, Arena and Debate now share persisted runs,
+  actions and the common page. Multi-agent games use start/continue stages with
+  optional automatic continuation. Reloads and errors pause, and every successful
+  stage is durable. Strict judgments fail closed. Arena damage and Debate scores
+  are bounded; ties cannot award a win.
+- Heist now displays the complication and exact win conditions before play. Its
+  unexplained random luck roll is removed; crew majority and complication
+  approval determine the outcome alongside the stated plan requirements.
+
 ## Verification
 
-Current result: **435 backend checks and 10 browser checks passed**; 13 paid-model
-experiments skipped. [Verification and independent-review status](verification.md).
+Staged migration checkpoint: **434 PostgreSQL backend checks and 15 browser
+checks passed**; 13 paid-model experiments skipped. Additional transport-budget
+coverage and live calibration are being verified before the next checkpoint. [Verification and independent-review status](verification.md).
 The spending-cap review and stateful-game review both passed their scoped
 independent checks. Legacy scoring review also passed after repairing its confirmed Expert-level
 regression and browser win inference. Details are in the verification log.
@@ -113,8 +122,9 @@ combine their model budgets. Guest provisioning has a separate peer-based budget
 (1000/minute and 10000/day by default), configurable with GUEST_SESSIONS_PER_MINUTE
 and GUEST_SESSIONS_PER_DAY. A separate site-wide RECOVERED_TURNS_PER_DAY ceiling
 (default 1000) limits recovered turn admissions, including failures and retries,
-so rotating guest cookies cannot multiply the paid-call budget. This cap does not
-cover the unmigrated legacy games. Guest sessions last 30 days; signing in does not merge earlier guest scores.
+so rotating guest cookies cannot multiply the paid-call budget. All public games
+now use this cap. Multi-agent games admit and save each model/judge stage separately,
+and the transport rejects a second provider request within one stage. Guest sessions last 30 days; signing in does not merge earlier guest scores.
 
 Rollback can run the prior app against the unchanged historical tables, but doing
 so would reopen the old unsafe submission endpoint unless containment is retained.
@@ -122,12 +132,6 @@ The additive tables should remain intact; do not delete players' recovered resul
 
 ## Still open
 
-- Migrate Firewall and the remaining multi-agent games to the persisted contract.
-  Legacy round execution still lacks resumable turns and idempotent request receipts.
-  Extend the shared model admission budget for multi-call rounds before releasing
-  those games; the current global cap only covers recovered turns.
-- Finish provider-error and judge audits for Arena, Debate and Firewall, plus their
-  browser journeys. The legacy score repairs are not full migrations.
 - Design stronger Honeypot learning checks: bulk guesses and unique visible
   category prefixes make identification easy. Keep objectives honest about that.
 - Calibrate each game/level with repeated real-model attacks and negative controls,

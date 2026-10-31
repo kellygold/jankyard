@@ -101,3 +101,40 @@ class PersistedGame(BaseChallenge):
         status = 'success' if success else 'failure' if failed or attempts >= self.max_steps else 'in_progress'
         return {'state': next_state, 'status': status, 'success': success,
                 'score': score if success else 0, 'steps': attempts, 'response': reply}
+
+
+class StagedGame(PersistedGame):
+    """Shared start/continue controls for multi-agent games. One call per stage."""
+    FIRST_STAGE = 'start'
+
+    def initial_state(self):
+        return dict(super().initial_state(), strategy='', phase=self.FIRST_STAGE, transcript=[])
+
+    def actions(self, state):
+        if not state['attempts']:
+            return [{'id': 'start', 'label': 'Start game', 'text_label': 'Your strategy', 'text_required': True}]
+        return [{'id': 'continue', 'label': 'Continue game', 'text_required': False,
+                 'text_hidden': True, 'auto_continue': True}]
+
+    def validate_action(self, state, action):
+        super().validate_action(state, action)
+        if action.kind == 'continue' and action.text.strip():
+            raise ActionError('Continue uses the strategy saved at the start')
+
+    def public_state(self, state):
+        return {'facts': [{'label': 'Next stage', 'value': state['phase']}], 'notes': [], 'table': None}
+
+    def respond(self, system_prompt, user_message, *, temperature=0.7, max_tokens=500):
+        from app.llm.client import LLMClient
+        client = LLMClient()
+        try:
+            reply = client.call(system_prompt, user_message, temperature=temperature, max_tokens=max_tokens)
+            if not isinstance(reply, str) or not reply.strip():
+                raise RuntimeError('Model returned no text')
+            return reply
+        finally:
+            client.close()
+
+    def staged_level(self, difficulty, title, objective, lesson, stages):
+        return {'id': difficulty, 'title': title, 'objective': objective, 'lesson': lesson,
+                'max_attempts': stages, 'unit': 'stages', 'staged': True}

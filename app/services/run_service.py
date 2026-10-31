@@ -103,7 +103,9 @@ class RunService:
             raise HTTPException(422, str(exc))
         if run.state['attempts'] >= game.max_steps:
             raise HTTPException(409, 'Run has no attempts remaining')
-        outcome = TurnOutcome.model_validate(game.play(run.state, action)).model_dump()
+        from app.llm.budget import stage_budget
+        with stage_budget():
+            outcome = TurnOutcome.model_validate(game.play(run.state, action)).model_dump()
         if outcome['steps'] != run.state['attempts'] + 1:
             raise ValueError('A turn must consume exactly one attempt')
         run.state = outcome["state"]

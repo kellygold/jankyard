@@ -26,7 +26,7 @@ class TestLevel1Normal:
         """Level 1 (normal) difficulty initializes correctly."""
         challenge = DebateBattleChallenge(config={'difficulty': 'normal'})
         
-        assert challenge.difficulty == 'normal'
+        assert challenge.difficulty == 'easy'
         assert challenge.current_topic is not None
     
     def test_level1_chad_prompt_is_public_defender(self):
@@ -160,7 +160,7 @@ class TestDifficultyProgression:
         level2 = DebateBattleChallenge(config={'difficulty': 'hard'})
         level3 = DebateBattleChallenge(config={'difficulty': 'expert'})
         
-        assert level1.difficulty == 'normal'
+        assert level1.difficulty == 'easy'
         assert level2.difficulty == 'hard'
         assert level3.difficulty == 'expert'
     
@@ -182,15 +182,11 @@ class TestDifficultyProgression:
         """Default difficulty should be Level 1 (normal)."""
         challenge = DebateBattleChallenge(config={})
         
-        assert challenge.difficulty == 'normal'
+        assert challenge.difficulty == 'easy'
     
-    def test_invalid_difficulty_falls_back_to_normal(self):
-        """Invalid difficulty should fall back to normal (Level 1)."""
-        challenge = DebateBattleChallenge(config={'difficulty': 'invalid_value'})
-        
-        # Should not crash, should use normal
-        prompt = challenge._get_chad_prompt()
-        assert "public defender" in prompt.lower()
+    def test_invalid_difficulty_is_rejected(self):
+        with pytest.raises(ValueError, match='Unknown difficulty'):
+            DebateBattleChallenge(config={'difficulty': 'invalid_value'})
 
 
 class TestLevel3JudgeIntegration:

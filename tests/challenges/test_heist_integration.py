@@ -32,7 +32,7 @@ class TestHeistRegistration:
     def test_heist_supports_streaming(self):
         """Heist should support streaming"""
         challenge = ChallengeRegistry.get_challenge("heist")
-        assert challenge.supports_streaming == True
+        assert challenge.supports_streaming is False
     
     def test_heist_challenge_type(self):
         """Heist should have correct challenge type"""
@@ -139,82 +139,3 @@ class TestHeistReset:
         
         challenge.reset()
         assert challenge.heist_success == False
-
-
-class TestHeistConversationFlow:
-    """Test conversation flow with mocked LLM"""
-    
-    @pytest.mark.asyncio
-    async def test_flow_yields_conversation_turns(self):
-        """Conversation flow should yield turns"""
-        challenge = HeistChallenge()
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Ready, boss."):
-            turns = []
-            async for turn in challenge.conversation_flow("Test plan", {}):
-                turns.append(turn)
-            
-            assert len(turns) > 0
-    
-    @pytest.mark.asyncio
-    async def test_flow_includes_system_messages(self):
-        """Flow should include system briefing"""
-        challenge = HeistChallenge()
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Got it."):
-            system_turns = []
-            async for turn in challenge.conversation_flow("My plan", {}):
-                if turn.agent == 'system':
-                    system_turns.append(turn)
-            
-            assert len(system_turns) >= 2  # Briefing + outcome
-    
-    @pytest.mark.asyncio
-    async def test_flow_includes_crew_responses(self):
-        """Flow should include crew member responses"""
-        challenge = HeistChallenge()
-        crew_ids = {m.id for m in challenge.selected_crew}
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Understood."):
-            crew_turns = []
-            async for turn in challenge.conversation_flow("Plan here", {}):
-                if turn.agent in crew_ids:
-                    crew_turns.append(turn)
-            
-            # At least some crew should respond (thinking + message)
-            assert len(crew_turns) >= len(challenge.selected_crew)
-
-
-class TestHeistOutcomes:
-    """Test heist success/failure determination"""
-    
-    @pytest.mark.asyncio
-    async def test_short_plan_low_quality(self):
-        """Short plans should be detected as low quality"""
-        challenge = HeistChallenge()
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Ok."):
-            async for _ in challenge.conversation_flow("go", {}):
-                pass
-            
-            # Plan quality check: len > 50 and mentions crew
-            plan_quality = len("go") > 50 and any(
-                m.role.lower() in "go".lower() for m in challenge.selected_crew
-            )
-            assert plan_quality == False
-    
-    @pytest.mark.asyncio
-    async def test_detailed_plan_detected(self):
-        """Detailed plans mentioning crew should be detected"""
-        challenge = HeistChallenge()
-        detailed_plan = "Zero Cool hacks the Hacker systems while Tank the Muscle handles guards and Silk the Face distracts staff"
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Great plan."):
-            async for _ in challenge.conversation_flow(detailed_plan, {}):
-                pass
-            
-            # Check plan quality detection (internal logic)
-            plan_quality = len(detailed_plan) > 50 and any(
-                m.role.lower() in detailed_plan.lower() for m in challenge.selected_crew
-            )
-            assert plan_quality == True

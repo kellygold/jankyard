@@ -29,6 +29,22 @@ def test_no_retired_anthropic_fallback():
         client.call('system', 'user')
 
 
+def test_stage_budget_blocks_second_paid_request_and_resets(monkeypatch):
+    from app.llm.budget import stage_budget
+    monkeypatch.setattr(config, 'OPENAI_API_KEY', 'test-only-placeholder')
+    with patch('app.llm.client.openai.OpenAI') as constructor:
+        constructor.return_value.chat.completions.create.return_value = SimpleNamespace(
+            choices=[SimpleNamespace(finish_reason='stop', message=SimpleNamespace(content='Hello'))])
+        client = LLMClient(provider='openai', model='gpt-6-luna')
+        for _ in range(2):
+            with stage_budget():
+                client.call('system', 'user')
+                with pytest.raises(RuntimeError, match='more than one'):
+                    client.call('system', 'another')
+        assert constructor.return_value.chat.completions.create.call_count == 2
+        client.close()
+
+
 @pytest.mark.parametrize('reason,content', [('length', 'JANKYARD-CANARY-7391'), ('content_filter', None), ('stop', None)])
 def test_partial_or_filtered_provider_output_is_error(reason, content):
     response = SimpleNamespace(choices=[SimpleNamespace(finish_reason=reason, message=SimpleNamespace(content=content))])

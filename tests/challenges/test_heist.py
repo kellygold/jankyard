@@ -134,7 +134,7 @@ class TestHeistChallengeProperties:
     
     def test_supports_streaming(self):
         challenge = HeistChallenge()
-        assert challenge.supports_streaming == True
+        assert challenge.supports_streaming is False
     
     def test_challenge_type(self):
         challenge = HeistChallenge()
@@ -192,96 +192,8 @@ class TestHeistReset:
         assert challenge.heist_success == False
 
 
-class TestConversationFlow:
-    """Test the multi-agent conversation flow"""
-    
-    @pytest.mark.asyncio
-    async def test_conversation_flow_yields_turns(self):
-        """Conversation flow should yield ConversationTurn objects"""
-        challenge = HeistChallenge()
-        
-        with patch.object(challenge.llm_client, 'call', return_value="I'm in position."):
-            turns = []
-            async for turn in challenge.conversation_flow("Test plan", {}):
-                turns.append(turn)
-                if len(turns) > 10:  # Safety limit
-                    break
-            
-            assert len(turns) > 0
-            for turn in turns:
-                assert isinstance(turn, ConversationTurn)
-    
-    @pytest.mark.asyncio
-    async def test_conversation_includes_briefing(self):
-        """Should include briefing message"""
-        challenge = HeistChallenge()
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Ready."):
-            turns = []
-            async for turn in challenge.conversation_flow("Test plan", {}):
-                turns.append(turn)
-                if len(turns) > 15:
-                    break
-            
-            messages = [t.message for t in turns if t.message]
-            combined = " ".join(messages)
-            
-            # Should mention the target
-            assert challenge.scenario.target in combined or "Target" in combined
-    
-    @pytest.mark.asyncio
-    async def test_each_crew_member_speaks(self):
-        """Each crew member should have at least one turn"""
-        challenge = HeistChallenge()
-        
-        with patch.object(challenge.llm_client, 'call', return_value="Understood, boss."):
-            agents_seen = set()
-            async for turn in challenge.conversation_flow("Detailed plan here", {}):
-                if turn.agent != 'system':
-                    agents_seen.add(turn.agent)
-            
-            crew_ids = {m.id for m in challenge.selected_crew}
-            # At least some crew should speak
-            assert len(agents_seen & crew_ids) > 0
 
 
-class TestPlanQualityScoring:
-    """Test that plan quality affects outcome"""
-    
-    @pytest.mark.asyncio
-    async def test_short_plan_less_likely_to_succeed(self):
-        """Very short plans should have lower success rate"""
-        results = []
-        
-        for _ in range(5):
-            challenge = HeistChallenge()
-            with patch.object(challenge.llm_client, 'call', return_value="Ok."):
-                async for turn in challenge.conversation_flow("do it", {}):
-                    pass
-                results.append(challenge.heist_success)
-        
-        # Short plan shouldn't always succeed
-        # (can't guarantee failure due to randomness, but check it runs)
-        assert len(results) == 5
-    
-    @pytest.mark.asyncio  
-    async def test_detailed_plan_can_succeed(self):
-        """Detailed plans mentioning crew should have chance to succeed"""
-        detailed_plan = """
-        Zero Cool hacks the cameras at 2AM.
-        Tank handles the guards quietly.
-        Silk distracts the front desk.
-        We grab the diamond and exit via service entrance.
-        """
-        
-        challenge = HeistChallenge()
-        turns_received = 0
-        with patch.object(challenge.llm_client, 'call', return_value="Great plan, I'm ready."):
-            async for turn in challenge.conversation_flow(detailed_plan, {}):
-                turns_received += 1
-        
-        # Verify conversation completed with multiple turns
-        assert turns_received > 5
 
 
 class TestDifficultyProgression:
