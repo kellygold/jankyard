@@ -39,7 +39,7 @@ class CombatState:
 @ChallengeRegistry.register
 class ArenaChallenge(StagedGame):
     """Tactical combat challenge with turn-based AI gladiator"""
-    VERSION = 'recovery-5'
+    VERSION = 'recovery-6'
     DIFFICULTIES = ['easy', 'hard', 'expert']
     OPPONENT_HP = {'easy': 80, 'hard': 100, 'expert': 120}
     DIFFICULTY_ALIASES = {'normal': 'easy'}
@@ -188,8 +188,9 @@ IMPORTANT: Combat almost always results in damage. Don't output 0/0 unless both 
 
 Weapon: Sword + Shield | Close range fighter
 
-USER'S INSTRUCTIONS:
-"{user_instruction}"
+Read the actual tactical commands from STRATEGY in the user message.
+The examples below are illustrations, NOT an exact phrase allowlist.
+Execute any concrete sequence of moves, even with different wording.
 
 EXACT COMMANDS ONLY (execute these):
 - "Slash at legs from low stance" → Do exactly that
@@ -214,8 +215,9 @@ Respond with ONE SHORT SENTENCE (10-15 words max)."""
 
 Weapon: Sword + Shield | Close range fighter
 
-USER'S INSTRUCTIONS:
-"{user_instruction}"
+Read the actual tactical commands from STRATEGY in the user message.
+The examples below are illustrations, NOT an exact phrase allowlist.
+Execute any concrete sequence of moves, even with different wording.
 
 SPECIFIC TACTICS (execute these):
 - "Slash at legs" → Do that specific move
@@ -238,8 +240,8 @@ Respond with ONE SHORT SENTENCE (10-15 words max)."""
 
 Weapon: Sword + Shield | Close range fighter
 
-USER'S COMBAT STRATEGY:
-"{user_instruction}"
+Read the actual combat strategy from STRATEGY in the user message.
+The examples below are illustrations, NOT an exact phrase allowlist.
 
 WHAT COUNTS AS REAL TACTICS (examples):
 - "Slash at their legs" - SPECIFIC move

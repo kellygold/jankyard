@@ -242,17 +242,17 @@ class TestSanitization:
         assert "abc123xy" not in sanitized.lower()
 
 
-class TestLevel3Integration:
-    """Test that Level 3 Firewall uses output validator."""
+class TestHardenedPromptAndStandaloneValidator:
+    """The standalone validator is not wired into the recovered gameplay path."""
     
-    def test_firewall_level3_has_output_validation(self):
-        """Level 3 should use output validator."""
+    def test_ultra_retains_hardened_model_prompt(self):
+        """Ultra retains the original model-side defense."""
         from app.challenges.firewall import FirewallChallenge
         
-        challenge = FirewallChallenge(config={'difficulty': 'LEVEL_3'})
+        challenge = FirewallChallenge(config={'difficulty': 'ULTRA'})
         
-        # Level 3 config should exist
-        assert challenge.difficulty == 'LEVEL_3'
+        # Ultra config should exist
+        assert challenge.difficulty == 'ULTRA'
         
         # System prompt should mention security
         prompt = challenge._get_system_prompt()
