@@ -1,6 +1,7 @@
 # Recovery checkpoint — 2026-10-31
 
-This branch repairs the shared foundation and moves Glitch onto it. It is not a
+This branch repairs the shared foundation and moves Glitch, Honeypot and
+Interrogation onto it. It is not a
 claim that every legacy game is repaired or that the platform is ready to deploy.
 No production database changes or deployment were performed.
 
@@ -12,6 +13,11 @@ No production database changes or deployment were performed.
   explain the exact boundary and acceptance criteria. Straight and curly
   apostrophes work; ordinary approvals and refusals without a token do not win.
   A refusal that prints the protected token does count as a leak.
+- Honeypot and Interrogation now use that same runtime and page. Declarative
+  actions cover probes, guesses, witness questions and accusations. Both games
+  resume from server-owned state; their old stateless streams return 410.
+  Honeypot's hardest level now permits six probes plus six guesses. Only categories
+  from a player's probes count, and only the exact authored guilty set solves a case.
 - The database owns identity, history, attempts, completion and progression.
   PostgreSQL locks serialize concurrent turns. Request IDs bind retries to their
   original payload. Stale tabs and finished runs reject further attempts.
@@ -22,8 +28,8 @@ No production database changes or deployment were performed.
   clients; invalid tokens cannot silently become anonymous play. Conversation
   details require ownership; recent-submission listings omit prompts and logs.
 - Recovered scores use new tables and include the rule version and a hash of the
-  configured provider/model. Historic leaderboard rows remain unchanged. Glitch's
-  page shows the new scoreboard; the old leaderboard is explicitly labeled.
+  configured provider/model. Historic leaderboard rows remain unchanged. Recovered
+  game pages show the new scoreboard; the old leaderboard is explicitly labeled.
 - There is one registry, including package discovery. New prompt games need a
   definition and positive/negative fixtures, with no custom route, UI or SQL.
 - Dependencies are resolved and pinned from direct requirements. Retired OpenAI
@@ -33,13 +39,23 @@ No production database changes or deployment were performed.
 - Legacy submission persistence now uses the supplied SQLAlchemy transaction,
   accepts string/dictionary logs, and withholds completion until saving succeeds.
   Legacy streaming currently buffers events while the challenge runs.
+- Legacy completion requires explicit wins. Heist's consolation points no longer
+  unlock levels; its steps are counted. Trivia awards 100 points once. Giga Chad
+  requires a partial/complete break, not wobble points. Giga Chad and Telephone
+  reject malformed, out-of-range or inconsistent model judgments. Failed provider
+  calls cannot become invented responses or saved results in these repaired paths.
+- Legacy progress queries the player's own entries directly, including scores
+  below the top 1000. Difficulty order comes from game definitions. Unknown legacy
+  difficulty labels are rejected before execution; default labels are saved correctly.
+  Arena and Debate retain all three levels, including Expert, with server unlocks.
 
 ## Verification
 
-Current result: **391 backend checks and 5 browser journeys passed**; 13 paid-model
+Current result: **435 backend checks and 10 browser checks passed**; 13 paid-model
 experiments skipped. [Verification and independent-review status](verification.md).
-The final spending-cap delta still needs independent sign-off after a bounded
-review timeout.
+The spending-cap review and stateful-game review both passed their scoped
+independent checks. Legacy scoring review also passed after repairing its confirmed Expert-level
+regression and browser win inference. Details are in the verification log.
 
 Run deterministic backend checks with:
 
@@ -66,6 +82,13 @@ The desktop/mobile screenshots in this folder come from these tests.
 project API key. It confirms availability, an actual level-one bypass, and negative
 controls. It does **not** establish level-two/three beatability or statistical
 success rates. Acceptance fixtures establish detector behavior separately.
+`stateful-model-smoke.json` adds eight real requests: narration in Honeypot's first
+two levels, three hard-level classifier probes, and testimony for each
+Interrogation case. Every request returned a valid outcome; each witness response
+met that case's lead requirement. These are compatibility samples, not difficulty
+calibration or repeated win-rate estimates. Reproduce with
+`RUN_LIVE_MODELS=1 python -m scripts.smoke_stateful`, supplying only the selected
+provider key through the environment; the script makes exactly eight bounded calls.
 
 The resolved runtime lock was checked with pip-audit: **zero known advisories**
 on 2026-10-31. This does not establish that every application path is secure.
@@ -99,13 +122,14 @@ The additive tables should remain intact; do not delete players' recovered resul
 
 ## Still open
 
-- Migrate Honeypot and Interrogation onto persisted state. Fix Honeypot's third-turn
-  reveal/hunt budget before calling that game playable.
-- Replace the legacy positive-score-means-win inference; fix Heist's failure points
-  and step counts, Trivia's duplicate score addition, and bounded judge results.
-- Replace legacy progression's top-1000 leaderboard scan with direct owner progress.
-  The recovered runtime already queries the owner's complete score set.
-- Finish all-game difficulty validation, provider-error handling and shared outcomes.
+- Migrate Firewall and the remaining multi-agent games to the persisted contract.
+  Legacy round execution still lacks resumable turns and idempotent request receipts.
+  Extend the shared model admission budget for multi-call rounds before releasing
+  those games; the current global cap only covers recovered turns.
+- Finish provider-error and judge audits for Arena, Debate and Firewall, plus their
+  browser journeys. The legacy score repairs are not full migrations.
+- Design stronger Honeypot learning checks: bulk guesses and unique visible
+  category prefixes make identification easy. Keep objectives honest about that.
 - Calibrate each game/level with repeated real-model attacks and negative controls,
   including replay/resume flows. Model replacement changes difficulty even when
   API compatibility checks pass.

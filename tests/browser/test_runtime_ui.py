@@ -205,17 +205,20 @@ def test_terminal_actionless_failure_can_recover_lost_receipt(page, game_server)
 @pytest.mark.parametrize('won', [False, True])
 def test_legacy_giga_chad_ui_respects_saved_outcome(page, game_server, won):
     # Browser component boundary: backend judgment/persistence has separate API tests.
+    errors = []
+    page.on('pageerror', lambda error: errors.append(str(error)))
     page.goto(game_server + '/challenges/giga_chad')
-    page.wait_for_function('Boolean(window.gigaChadHandler)')
+    try:
+        page.wait_for_function('Boolean(window.gigaChadHandler)', timeout=5000)
+    except Exception:
+        pytest.fail(f'Page failed to initialize: {errors}; {page.locator("body").inner_text()[:500]}')
     page.evaluate('''won => {
-        window.showCompletionModal = () => { window.fixtureModal = 'win'; };
-        window.showDefeatModal = () => { window.fixtureModal = 'loss'; };
         const handler = window.gigaChadHandler;
         handler.totalPoints = won ? 40 : 30;
         handler.currentLevel = 1;
         handler.unlockedLevels = [1];
         handler.handleComplete({saved: true, result: {success: won, score: handler.totalPoints, steps: 3}});
     }''', won)
-    page.wait_for_function('window.fixtureModal !== undefined')
-    assert page.evaluate('window.fixtureModal') == ('win' if won else 'loss')
+    expect(page.locator('#gigaChadVictoryModal' if won else '#gigaChadDefeatModal')).to_be_visible()
+    expect(page.locator('#gigaChadDefeatModal' if won else '#gigaChadVictoryModal')).not_to_be_visible()
     assert page.evaluate('window.gigaChadHandler.unlockedLevels.includes(2)') is won
