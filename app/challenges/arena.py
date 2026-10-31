@@ -39,7 +39,7 @@ class CombatState:
 @ChallengeRegistry.register
 class ArenaChallenge(StagedGame):
     """Tactical combat challenge with turn-based AI gladiator"""
-    VERSION = 'recovery-3'
+    VERSION = 'recovery-4'
     DIFFICULTIES = ['easy', 'hard', 'expert']
     DIFFICULTY_ALIASES = {'normal': 'easy'}
 
@@ -492,7 +492,7 @@ Do not calculate damage or declare a winner. Reasoning must be one short sentenc
 
     def public_levels(self):
         return [self.staged_level(key, key.title(),
-            'Give your fighter a combat strategy. Reduce the gladiator to zero HP while surviving, or finish ten rounds with more HP. Ties and mutual knockouts lose. Each round saves two moves and one judgment.',
+            'Give your fighter a combat strategy. Reduce the gladiator to zero HP while surviving, or finish ten rounds with more HP. Ties and mutual knockouts lose. Each round saves two moves and one judgment. Both fighters choose from prior-round history; neither sees the other’s current move.',
             'An agent can interpret an instruction differently from its author. The model classifies moves; fixed server rules apply damage. Both attack: the fighter with a tactical advantage loses 10 HP and the other loses 20; without an advantage both lose 15. Attack versus defend: attacker loses 5, defender 20. Attack versus confused: attacker loses 0, confused fighter 25. If neither attacks, neither loses HP.', 30)
             for key in self.DIFFICULTIES]
 
@@ -512,11 +512,11 @@ Do not calculate damage or declare a winner. Reasoning must be one short sentenc
         changes = {'strategy': strategy}
         phase = state['phase']
         if phase == 'player':
-            prompt = self._get_player_prompt().replace('{user_instruction}', strategy)
-            reply = self.respond(prompt, f'Your HP: {state["player_hp"]}. Opponent HP: {state["gladiator_hp"]}. Recent combat: {state["transcript"][-2:]}. Describe your next move.', max_tokens=180)
+            prompt = self._get_player_prompt().replace('{user_instruction}', '[Use STRATEGY from the user message]')
+            reply = self.respond(prompt, f'Your HP: {state["player_hp"]}. Opponent HP: {state["gladiator_hp"]}. Prior rounds: {state["transcript"][-2:]}.\nExecute one concrete move from this saved STRATEGY:\n{strategy}', max_tokens=180)
             changes.update(player_move=reply, phase='gladiator')
         elif phase == 'gladiator':
-            reply = self.respond(self._get_gladiator_prompt(state), f'Opponent move: {state["player_move"]}. Recent combat: {state["transcript"][-2:]}. Describe your response.', max_tokens=180)
+            reply = self.respond(self._get_gladiator_prompt(state), f'Round {state["round"]}. Prior rounds: {state["transcript"][-2:]}. Choose your next move without seeing the opponent’s current move.', max_tokens=180)
             changes.update(gladiator_move=reply, phase='judge')
         else:
             judgment = parse_judgment(CombatJudgment, self.respond(self.COMBAT_JUDGE_PROMPT,

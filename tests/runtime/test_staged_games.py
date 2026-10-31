@@ -257,3 +257,25 @@ def test_arena_damage_is_server_owned_even_with_irrelevant_advantage(player,oppo
     from app.llm.judgments import CombatJudgment
     judgment=CombatJudgment(player_action=player,gladiator_action=opponent,advantage=advantage,reasoning='Fixture')
     assert judgment.hp_losses()==losses
+
+
+def test_arena_strategy_reaches_player_on_every_round_and_current_move_is_hidden(client,db):
+    strategy='Sidestep left, pin the trident with the shield and slash the exposed leg.'
+    run=create(client,'arena','easy')
+    with patch('app.llm.client.LLMClient.call_with_history',return_value='CURRENT-MOVE-ONLY-731') as provider:
+        run=step(client,db,run,reply='CURRENT-MOVE-ONLY-731',text=strategy)
+    # Use a separate API request after reinstantiating the game; hidden current
+    # player moves must not give the opponent perfect information.
+    with patch('app.llm.client.LLMClient.call_with_history',return_value='Thrust at the shield.') as opponent:
+        result=client.post(f"/api/runs/{run['id']}/turns",json=request_body(run)).json()
+    opponent_input=str(opponent.call_args)
+    assert 'CURRENT-MOVE-ONLY-731' not in opponent_input
+    run=result['run']
+    run=step(client,db,run,reply=json.dumps(dict(player_action='attack',gladiator_action='attack',advantage='neither',reasoning='Matched.')))
+    with patch('app.llm.client.LLMClient.call_with_history',return_value='I execute my saved tactic.') as player:
+        response=client.post(f"/api/runs/{run['id']}/turns",json=request_body(run))
+    assert response.status_code==200
+    system,messages=player.call_args.args[:2]
+    assert strategy not in system
+    assert strategy in messages[-1]['content']
+    assert 'Your HP: 85' in messages[-1]['content']
