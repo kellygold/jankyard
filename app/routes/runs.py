@@ -9,6 +9,7 @@ from app.challenges.runtime import GameAction
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import hashlib
+import math
 from app.core.exceptions import RateLimitExceededError
 
 from app.core import get_db
@@ -84,7 +85,8 @@ def rate_limit(request, db, user_id=None, model_request=False):
         used = limits.rate_limit_repo.get_usage_count(identifier, endpoint, window, limits._get_window_start(window))
         if used >= limit:
             db.rollback()
-            raise HTTPException(429, "Request budget reached. Please try again later.")
+            raise HTTPException(429, "Request budget reached. Your saved progress is safe.",
+                                headers={"Retry-After": str(retry_after(limits, window))})
     limits.record_request(identifier, endpoint, "ip" if bootstrap else "user")
     if model_request:
         # A separate site-wide admission ceiling bounds paid recovered turns even
@@ -96,10 +98,17 @@ def rate_limit(request, db, user_id=None, model_request=False):
         used = limits.rate_limit_repo.get_usage_count("global", "/api/recovered-turns", "day", window)
         if used >= config.RECOVERED_TURNS_PER_DAY:
             db.rollback()
-            raise HTTPException(429, "The playground's daily model budget has been reached. Please try again tomorrow.")
+            raise HTTPException(429, "The playground's daily model budget has been reached. Please try again tomorrow.",
+                                headers={"Retry-After": str(retry_after(limits, 'day'))})
         limits.rate_limit_repo.increment_or_create(identifier="global", identifier_type="global", endpoint="/api/recovered-turns", window_type="day", window_start=window)
         db.commit()
 
+
+def retry_after(limits, window):
+    start = limits._get_window_start(window)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    end = start.replace(tzinfo=None) + (timedelta(minutes=1) if window == 'minute' else timedelta(days=1))
+    return max(1, math.ceil((end - now).total_seconds()))
 
 
 @router.get("/games/{name}")

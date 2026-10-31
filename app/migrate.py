@@ -6,6 +6,7 @@ Empty local database: python -m app.migrate --bootstrap
 import argparse
 from sqlalchemy import inspect
 from app.core.database import engine, Base
+from app.core.config import config
 import app.models  # register every table
 from app.models.run import ChallengeRun, RunTurn, RunScore
 
@@ -13,6 +14,8 @@ from app.models.run import ChallengeRun, RunTurn, RunScore
 def migrate(bootstrap=False):
     with engine.begin() as connection:
         if bootstrap:
+            if config.ENVIRONMENT != 'development' or inspect(connection).get_table_names():
+                raise RuntimeError('--bootstrap requires an empty development database')
             Base.metadata.create_all(connection)
         else:
             existing = set(inspect(connection).get_table_names())

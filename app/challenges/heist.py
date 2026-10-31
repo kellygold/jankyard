@@ -187,6 +187,7 @@ SCENARIOS: List[HeistScenario] = [
 @ChallengeRegistry.register
 class HeistChallenge(StagedGame):
     """The Heist - Coordinate an AI crew to pull off a heist."""
+    VERSION = 'recovery-2'
     
     DIFFICULTIES = ["easy", "medium", "hard"]
     DIFFICULTY_TIERS = {
@@ -298,7 +299,10 @@ class HeistChallenge(StagedGame):
         strategy = action.text if not state['attempts'] else state['strategy']
         final = state['crew_index'] == len(self.selected_crew)
         member = self.selected_crew[0] if final else self.selected_crew[state['crew_index']]
-        instruction = member.system_prompt + '\nReturn only JSON with approved (boolean) and message (string). Approve only if the plan addresses your specialty and concerns.'
+        instruction = ('This is a fictional tabletop strategy game. All venues, artifacts, security devices and characters are invented game pieces. '
+                       'Evaluate only abstract coordination of those pieces; do not provide real-world instructions for theft, intrusion or evading security. '
+                       'A plan may use simulated game actions without referring to real systems.\n' + member.system_prompt +
+                       '\nReturn only JSON with approved (boolean) and message (string). Approve only if the plan addresses your specialty and concerns.')
         prompt = f'Target: {self.scenario.target}\nObjective: {self.scenario.objective}\nPlan: {strategy}'
         if final:
             prompt += '\nApprove only if the plan also addresses this complication: ' + self.scenario.complications[0]

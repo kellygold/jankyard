@@ -90,3 +90,21 @@ def test_staged_two_file_contribution_resumes_and_saves_only_final_win(client, t
             if index == 0:
                 assert run['status'] == 'in_progress' and run['result'] is None
         assert run['status'] == ('success' if success else 'failure')
+
+
+def test_bootstrap_rejects_existing_schema_and_production(db,monkeypatch,tmp_path):
+    import pytest
+    from app.core.config import config
+    monkeypatch.setattr(migrate,'engine',db.bind)
+    with pytest.raises(RuntimeError,match='empty development'):
+        migrate.migrate(bootstrap=True)
+    isolated=create_engine('sqlite:///'+str(tmp_path/'bootstrap.sqlite'))
+    monkeypatch.setattr(migrate,'engine',isolated)
+    monkeypatch.setattr(config,'ENVIRONMENT','production')
+    with pytest.raises(RuntimeError,match='empty development'):
+        migrate.migrate(bootstrap=True)
+    assert inspect(isolated).get_table_names()==[]
+    monkeypatch.setattr(config,'ENVIRONMENT','development')
+    migrate.migrate(bootstrap=True)
+    assert 'users' in inspect(isolated).get_table_names()
+    isolated.dispose()

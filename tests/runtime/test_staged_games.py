@@ -203,3 +203,15 @@ def test_service_blocks_second_provider_call_and_rolls_back_stage(client,db):
     db.expire_all()
     assert db.get(ChallengeRun,run['id']).state==before
     assert db.query(Submission).count()==db.query(RunScore).count()==0
+
+
+def test_minute_rate_limit_returns_bounded_retry_after_without_consuming_stage(client,db,monkeypatch):
+    run=create(client,'heist','easy')
+    monkeypatch.setattr(config,'RATE_LIMIT_ENABLED',True)
+    monkeypatch.setattr(config,'SUBMISSIONS_PER_MINUTE',1)
+    run=step(client,db,run)
+    with patch('app.llm.client.LLMClient.call_with_history',side_effect=AssertionError('Rate limit must precede model')):
+        response=client.post(f"/api/runs/{run['id']}/turns",json=request_body(run))
+    assert response.status_code==429
+    assert 1<=int(response.headers['Retry-After'])<=60
+    assert client.get(f"/api/runs/{run['id']}").json()==run

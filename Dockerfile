@@ -15,8 +15,12 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy only runtime code. Local secrets, test artifacts and virtualenvs never
+# belong in the image, even if an ignore rule is accidentally changed.
+COPY app ./app
+
+# Require explicit production secrets; config fails closed without SECRET_KEY.
+ENV ENVIRONMENT=production
 
 # Expose port (Cloud Run will set $PORT)
 ENV PORT=8080

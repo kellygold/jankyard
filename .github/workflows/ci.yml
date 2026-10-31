@@ -42,3 +42,14 @@ jobs:
           path: |
             test-results/
             docs/recovery/screenshots/
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t jankyard-candidate .
+      - name: Production configuration and packaged files
+        run: |
+          docker run --rm -e SECRET_KEY=ci-only-not-a-deployment-secret -e DATABASE_URL=sqlite:///:memory: jankyard-candidate python -c "from app.core.config import config; from pathlib import Path; assert config.ENVIRONMENT == 'production' and not config.DEBUG; assert not Path('/app/.env').exists(); assert not Path('/app/.venv').exists(); assert not Path('/app/tests').exists()"
+          if docker run --rm jankyard-candidate python -c 'from app.core.config import config'; then
+            echo 'Image accepted missing production secret'; exit 1
+          fi

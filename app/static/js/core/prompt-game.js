@@ -20,6 +20,7 @@
         if (!response.ok) {
             const error = new Error(typeof data.detail === 'string' ? data.detail : 'The request could not be completed.');
             error.status = response.status;
+            error.retryAfter = Number(response.headers.get('Retry-After'));
             throw error;
         }
         return data;
@@ -158,7 +159,7 @@
         if (selected?.target_options) action.target = el('target').value;
         if (selected?.targets_options) action.targets = [...el('targets').querySelectorAll('input:checked')].map(input => input.value);
         setBusy(true); status('Processing your action and saving the result…');
-        let saved = false;
+        let saved = false, retryDelay = null;
         try {
             if (!run) await startRun();
             if (!pending) {
@@ -179,14 +180,20 @@
                 }
             }
             status(error.message, true);
+            if (error.status === 429 && selectedAction()?.auto_continue && el('auto').checked &&
+                Number.isFinite(error.retryAfter) && error.retryAfter > 0 && error.retryAfter <= 60) {
+                retryDelay = error.retryAfter * 1000;
+                status(`Paused for the request limit. Continuing in ${error.retryAfter} seconds; uncheck automatic continuation to stay paused.`);
+            }
         } finally { setBusy(false); }
-        if (saved && run?.status === 'in_progress' && selectedAction()?.auto_continue && el('auto').checked) {
+        if ((saved || retryDelay !== null) && run?.status === 'in_progress' && selectedAction()?.auto_continue && el('auto').checked) {
             const expectedId = run.id, expectedRevision = run.revision;
+            const expectedPending = pending?.body.request_id;
             // Continue only after a committed response; errors and reloads pause.
             setTimeout(() => {
-                if (!busy && !pending && el('auto').checked && run?.status === 'in_progress' &&
+                if (!busy && pending?.body.request_id === expectedPending && el('auto').checked && run?.status === 'in_progress' &&
                     run.id === expectedId && run.revision === expectedRevision && selectedAction()?.auto_continue) el('form').requestSubmit();
-            }, 100);
+            }, retryDelay ?? 100);
         }
     });
     el('restart').addEventListener('click', async () => {

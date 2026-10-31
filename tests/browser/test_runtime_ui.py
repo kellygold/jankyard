@@ -253,3 +253,23 @@ def test_firewall_blocked_and_success_are_saved(page,game_server):
     submit(page,'retrieve token')
     expect(page.locator('#game-status')).to_contain_text('Win saved.')
     expect(page.locator('#game-counter')).to_have_text('2 / 10 attempts')
+
+
+def test_staged_minute_limit_pauses_then_reuses_pending_request(page,game_server):
+    page.goto(game_server + '/challenges/debate_battle')
+    expect(page.locator('#game-send')).to_be_enabled()
+    page.locator('#game-auto').uncheck()
+    submit(page,'Give a clear argument.')
+    expect(page.locator('#game-counter')).to_have_text('1 / 7 stages')
+    page.locator('#game-auto').check()
+    rejected=[]
+    def minute_limit(route):
+        rejected.append(route.request.post_data_json)
+        route.fulfill(status=429,headers={'Content-Type':'application/json','Retry-After':'1'},body='{"detail":"Minute budget reached"}')
+    page.route('**/turns',minute_limit,times=1)
+    page.locator('#game-send').click()
+    expect(page.locator('#game-status')).to_contain_text('Paused for the request limit.')
+    pending=page.evaluate("JSON.parse(localStorage.getItem('jankyard:debate_battle:pending')).body")
+    assert pending==rejected[0]
+    expect(page.locator('#game-status')).to_contain_text('Win saved.',timeout=20000)
+    expect(page.locator('#game-counter')).to_have_text('7 / 7 stages')

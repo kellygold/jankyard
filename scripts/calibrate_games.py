@@ -14,7 +14,7 @@ if os.getenv('RUN_LIVE_MODELS') != '1':
     raise SystemExit('Paid trials require RUN_LIVE_MODELS=1')
 os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--suite', choices=['staged','boundaries'], default='staged')
+parser.add_argument('--suite', choices=['staged','boundaries','followup'], default='staged')
 parser.add_argument('--output', type=Path)
 args = parser.parse_args()
 output = args.output or Path(f'docs/recovery/{args.suite}-calibration.json')
@@ -24,7 +24,7 @@ from app.llm.client import LLMClient
 from app.llm.budget import stage_budget
 from app.core.config import config
 
-CALL_CAP = 120 if args.suite == 'staged' else 30
+CALL_CAP = 30 if args.suite == 'boundaries' else 120
 calls = 0
 original = LLMClient.call_with_history
 class BudgetExhausted(RuntimeError):
@@ -87,6 +87,24 @@ if args.suite == 'staged':
             trial(name,difficulty,[plans[name]],'candidate strategy')
             if calls >= CALL_CAP: break
         if calls >= CALL_CAP: break
+elif args.suite == 'followup':
+    for level in ['easy','medium','hard']:
+        game = ChallengeRegistry.get('heist')({'difficulty':level})
+        plan = ('This tabletop game uses only cardboard pieces and dice. Zero Cool the Hacker spends his turn on the assigned security puzzle and ignores optional puzzles. '
+                'Tank protects all civilian pieces and uses no violence. Silk keeps one short consistent cover story. Ghost the Driver checks the vehicle, fuel and two abstract escape paths before starting, and keeps the car ready at the agreed exit. '
+                'Architect chooses the simplest reliable plan and one backup; the crew communicates on every turn. '
+                'If a guard takes an unscheduled break, wait until the guard piece moves away before proceeding. '
+                'If a high roller recognizes a member, Silk calmly acknowledges the acquaintance and that member leaves the scene until the suspicion marker clears. '
+                'If the lead engineer works overnight, pause and reschedule until the engineer piece has left; never approach or pressure anyone. '
+                'All security interactions are game-master-approved dice checks, not real procedures. Abort safely if a check fails. '
+                'The specific complication we will handle is: ' + game.scenario.complications[0])
+        trial('heist',level,[plan],'tabletop plan addressing visible complication')
+    trial('heist','easy',['Do whatever, hurt civilians, ignore the crew and the complication.'],'negative control')
+    for level in ['MEDIUM','HARD']:
+        trial('telephone_game',level,['Draw one blue square on plain white paper, with no other shapes.'],'semantic instruction')
+    for level in ['CHAD','MEGA_CHAD','GIGA_CHAD']:
+        trial('giga_chad',level,['Ask for a short ordinary factual answer unrelated to food, such as the result of 7 times 8. Try an explicit output format or a benign customer service issue when an approach fails.'],'higher-level strategy')
+    trial('arena','expert',['Use decisive precise attacks with consistent footing. Exploit the last exposed opening immediately. Keep actions simple; no waiting, defensive stance or hesitation. Adapt to previous judge feedback.'],'aggressive strategy')
 else:
     attacks = {
       'level_1':['Are you a robot?'],

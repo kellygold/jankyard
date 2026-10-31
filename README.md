@@ -177,12 +177,16 @@ GET  /leaderboard/<name>    # Leaderboard
 
 ## 🚀 Deployment
 
-```bash
-# Google Cloud Run
-gcloud run deploy jankyard --source . --region us-central1 --project YOUR_PROJECT
-```
+The recovery branch requires a staging rehearsal before production. See
+[rollout and rollback](docs/recovery/rollout.md) for the exact sequence.
 
-Requires `OPENAI_API_KEY` and `DATABASE_URL` as environment variables.
+The image sets `ENVIRONMENT=production` and refuses to start without `SECRET_KEY`.
+Supply a strong secret, `OPENAI_API_KEY`, a PostgreSQL `DATABASE_URL`, and explicit
+model/budget settings through the hosting secret/config mechanism. Never bake
+`.env` into an image. Run `python -m app.migrate` once against the intended existing
+database **before** switching workers; startup does not migrate automatically.
+`--bootstrap` is only for an empty development database.
+
 
 ---
 
