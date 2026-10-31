@@ -19,7 +19,7 @@ The best way to contribute is to create interesting challenges for agents to sol
 **📖 [Complete Guide to Adding Challenges](docs/ADDING_CHALLENGES.md)**
 
 This guide covers:
-- Two-file prompt games (definition + acceptance fixtures), with a shared page and runtime
+- Two-file prompt, stateful and staged games, with a shared page and runtime
 - Step-by-step file creation
 - Code examples and templates
 - Testing checklist
@@ -65,33 +65,42 @@ Make it janky but beautiful. Dark mode aesthetic appreciated.
 
 ## Testing
 
-Test your changes:
-```bash
-# Run the server
-python app/main.py
+Install `requirements-test.txt` into `.venv`, then run:
 
-# Test an agent submission
-# Visit http://localhost:8000/challenges/jank_maze
+```bash
+.venv/bin/pytest tests/runtime tests/api tests/challenges tests/difficulty
+.venv/bin/playwright install chromium
+.venv/bin/pytest tests/browser
 ```
+
+Backend concurrency checks need a disposable local PostgreSQL database named
+`jankyard_recovery_test`; see [verification](docs/recovery/README.md). Paid model
+trials are opt-in. Never point tests at a production database.
 
 ## Challenge Contribution Guidelines
 
-When creating a new challenge:
+1. Define an objective that precisely matches the win detector.
+2. Keep domain rules in a `PromptGame`, `PersistedGame` or `StagedGame` definition.
+3. Add positive/negative fixtures or an API journey test as the second file.
+4. Make each accepted action use at most one model request. Persist multi-agent
+   conversations as stages rather than a long request.
+5. Prove reload/retry behavior and provider failures. A failed call must not save
+   a win. Model judgments need strict bounds and explicit success conditions.
+6. Calibrate before claiming a level is easy or hard. Bump the rule version when
+   prompts, detectors or scoring materially change difficulty.
 
-1. **Make it interesting** - Not too easy, not impossible
-2. **Clear rules** - Document what the agent can see/do
-3. **Fair scoring** - Reward good strategies
-4. **Reasonable compute** - Should complete in < 10 seconds
-5. **Provide template** - Include starter agent code
+See [the complete guide](docs/ADDING_CHALLENGES.md). No custom route, template,
+controller, registry entry or SQL table is required for a new challenge.
 
 ## Pull Request Checklist
 
-- [ ] Code runs without errors
-- [ ] New dependencies added to requirements.txt
-- [ ] README updated if needed
-- [ ] Challenge includes template agent
-- [ ] Tested locally
-- [ ] Commit messages are clear
+- [ ] Definition and relevant fixtures/journey tests added
+- [ ] Exact objective, win/loss rules and limits documented
+- [ ] Shared HTTP/UI/storage contract used
+- [ ] Provider errors, saved retries and losing outcomes tested
+- [ ] Dependency changes made in the input files and compiled into lockfiles
+- [ ] Model/version and calibration limits recorded
+- [ ] Relevant backend and browser checks pass
 
 ## Community Guidelines
 
