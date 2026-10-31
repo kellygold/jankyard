@@ -50,6 +50,31 @@ DEBATE_TOPICS = [
 @ChallengeRegistry.register
 class DebateBattleChallenge(StagedGame):
     """Debate challenge where agent faces off against house bot"""
+
+    UI = {'skin': 'courtroom',
+     'emblem': '⚖',
+     'eyebrow': 'The court is in session',
+     'console_title': '⚖ The court is in session',
+     'state_title': 'The case before the court',
+     'player_role': 'Counsel',
+     'assistant_role': 'Court record',
+     'introduction': 'The courtroom awaits. Brief your advocate, face the opposing argument, and '
+                     'persuade the judge over three rounds of debate.',
+     'success_title': 'The court has ruled',
+     'levels': {'easy': {'title': 'Public Defender', 'subtitle': 'First arguments'},
+                'hard': {'title': 'Corporate Lawyer', 'subtitle': 'A tougher opposition'},
+                'expert': {'title': 'World Champion', 'subtitle': 'Make your case count'}},
+     'layout': 'wide',
+     'action_labels': {'start': '⚖ Call court to order', 'continue': 'Continue proceedings'},
+     'empty_title': 'Counsel, prepare your argument',
+     'empty_body': 'Your advocate will argue PRO. Opposing counsel will answer CON. Three rounds, then '
+                   'the judge’s decision.',
+     'round_size': 2,
+     'round_count': 3,
+     'failure_title': 'Your case did not prevail',
+     'input_labels': {'start': 'Your advocate’s strategy'},
+     'placeholders': {'start': 'Tell your attorney which points to make, what evidence to use, and how '
+                               'to answer opposing counsel.'}}
     DIFFICULTIES = ['easy', 'hard', 'expert']
     DIFFICULTY_ALIASES = {'normal': 'easy'}
 
@@ -428,8 +453,24 @@ Maximum 100 tokens per response."""
 
     def public_state(self, state):
         view = super().public_state(state)
+        view['speakers'] = ([{'label': 'Your advocate · PRO', 'kind': 'player'},
+                             {'label': 'Opposing counsel · CON', 'kind': 'opponent'}] * 3
+                            + [{'label': 'The presiding judge', 'kind': 'judge'}])
         view['notes'] = ['Topic: '+self.current_topic.topic, 'Your position: '+self.current_topic.pro_description]
         view['facts'].append({'label':'Round','value':f"{state['round']} / 3"})
+        view['scene'] = {'icon': '⚖', 'eyebrow': 'The case before the court', 'title': self.current_topic.topic,
+                         'body': 'Your position: ' + self.current_topic.pro_description}
+        view['notes'] = []
+        view['roster'] = [{'icon': '👤', 'name': 'Your advocate', 'detail': 'PRO · makes your case'},
+                          {'icon': '💼', 'name': self.UI['levels'][self.difficulty]['title'], 'detail': 'CON · opposing counsel'},
+                          {'icon': '⚖', 'name': 'The presiding judge', 'detail': 'Argument quality · rebuttals · persuasion · coherence'}]
+        view['timeline'] = [{'label': label, 'active': state['phase'] == key}
+                            for key, label in [('pro', 'PRO argument'), ('con', 'CON rebuttal'), ('judge', 'Final verdict')]]
+        if state.get('verdict'):
+            verdict = state['verdict']
+            view['judgments'] = [{'title': 'The court’s decision', 'metrics': [
+                {'label': 'PRO · your advocate', 'value': verdict['pro'], 'max': 100},
+                {'label': 'CON · opposing counsel', 'value': verdict['con'], 'max': 100}]}]
         return view
 
     def play(self, state, action):
@@ -453,7 +494,7 @@ Maximum 100 tokens per response."""
             judgment = parse_judgment(DebateJudgment,self.respond(prompt,f'Topic: {self.current_topic.topic}\nPlayer strategy: {strategy}\nTranscript: {transcript}',temperature=0,max_tokens=500))
             won = judgment.pro > judgment.con
             return self.outcome(state,'Continue: judge',f'PRO {judgment.pro}/100; CON {judgment.con}/100. {judgment.reasoning}',
-                changes={'phase':'complete'},success=won,failed=not won,score=100+judgment.pro-judgment.con if won else 0)
+                changes={'phase':'complete', 'verdict': judgment.model_dump()},success=won,failed=not won,score=100+judgment.pro-judgment.con if won else 0)
         return self.outcome(state, action.text or 'Continue: '+phase, phase.upper()+': '+reply,
             changes={'strategy':strategy,'phase':next_phase,'round':next_round,
                      'transcript':transcript+[{'speaker':phase.upper(),'round':state['round'],'message':reply}]})

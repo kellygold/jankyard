@@ -39,6 +39,31 @@ class CombatState:
 @ChallengeRegistry.register
 class ArenaChallenge(StagedGame):
     """Tactical combat challenge with turn-based AI gladiator"""
+
+    UI = {'skin': 'arena',
+     'repeat_speakers': True,
+     'emblem': '⚔',
+     'eyebrow': 'Enter the arena',
+     'console_title': 'Combat feed',
+     'state_title': 'The combatants',
+     'player_role': 'Strategist',
+     'assistant_role': 'Arena',
+     'introduction': 'Your fighter takes your instructions into the ring. Across the sand waits an AI '
+                     'gladiator. Give your fighter a plan, then watch every move and ruling.',
+     'success_title': 'Victory in the arena',
+     'levels': {'easy': {'title': 'Veteran Gladiator', 'subtitle': 'Find your footing'},
+                'hard': {'title': 'Legendary Champion', 'subtitle': 'A stronger opponent'},
+                'expert': {'title': 'Immortal Legend', 'subtitle': 'Every move matters'}},
+     'layout': 'wide',
+     'action_labels': {'start': '⚔ Enter arena', 'continue': 'Continue combat'},
+     'empty_title': 'The arena awaits',
+     'empty_body': 'Your fighter and the gladiator choose their moves independently. The judge '
+                   'resolves each exchange; the server applies damage.',
+     'round_size': 3,
+     'failure_title': 'Defeated in the arena',
+     'input_labels': {'start': 'Your fighter’s instructions'},
+     'placeholders': {'start': 'Equip your fighter with a clear plan. Describe a concrete move, how to '
+                               'defend, and when to counterattack.'}}
     VERSION = 'recovery-6'
     DIFFICULTIES = ['easy', 'hard', 'expert']
     OPPONENT_HP = {'easy': 80, 'hard': 100, 'expert': 120}
@@ -504,6 +529,24 @@ Do not calculate damage or declare a winner. Reasoning must be one short sentenc
 
     def public_state(self, state):
         view = super().public_state(state)
+        previous = state['transcript'][-1] if state['transcript'] else {}
+        view['meters'] = [
+            {'label': 'Your HP', 'value': state['player_hp'], 'max': 100,
+             'loss': previous.get('player_hp_lost', 0)},
+            {'label': 'Gladiator HP', 'value': state['gladiator_hp'], 'max': self.OPPONENT_HP[self.difficulty],
+             'loss': previous.get('gladiator_hp_lost', 0)},
+        ]
+        view['speakers'] = [{'label': 'Your fighter', 'kind': 'player'},
+                            {'label': 'The gladiator', 'kind': 'opponent'},
+                            {'label': 'The arena judge', 'kind': 'judge'}]
+        view['scene'] = {'icon': '⚔', 'eyebrow': 'Combat arena', 'title': 'Your fighter vs. the gladiator',
+                         'body': 'A battle of instructions. Choose your tactics; watch the judge resolve each exchange.'}
+        view['timeline'] = [{'label': label, 'active': state['phase'] == key}
+                            for key, label in [('player', '🛡 Your fighter'), ('gladiator', '🔱 Gladiator'), ('judge', '⚖ Ruling')]]
+        view['judgments'] = [{'title': f'Round {index + 1} · damage report', 'metrics': [
+            {'label': 'Your fighter', 'value': item['player_hp_lost'], 'suffix': ' HP lost'},
+            {'label': 'Gladiator', 'value': item['gladiator_hp_lost'], 'suffix': ' HP lost'}]}
+            for index, item in enumerate(state['transcript'])]
         view['notes'] = ['Tactical advantage: a coordinated evade/parry and strike can counter a plain frontal thrust; a net can counter an unprotected charge. Weak, unfocused swings lose to coherent attacks. The model interprets these criteria and can still make mistakes.']
         view['facts'] += [{'label': 'Your HP', 'value': str(state['player_hp'])},
                           {'label': 'Gladiator HP', 'value': str(state['gladiator_hp'])},

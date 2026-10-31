@@ -37,6 +37,31 @@ class GigaChadChallenge(StagedGame):
     - Chad: Defensive pizza bot trying to resist
     - Judge: Evaluates if Chad broke character
     """
+
+    UI = {'skin': 'giga',
+     'repeat_speakers': True,
+     'emblem': '💪',
+     'eyebrow': 'Red team vs. PizzaBot',
+     'console_title': 'Attack console',
+     'state_title': 'Battle telemetry',
+     'player_role': 'Attack strategist',
+     'assistant_role': 'Battle feed',
+     'introduction': 'Train your attack AI, then watch it face an increasingly stubborn pizza '
+                     'assistant. Five rounds. One defender who really wants to talk about pizza.',
+     'success_title': 'Defense broken',
+     'layout': 'wide',
+     'action_labels': {'start': '🚀 Launch attack', 'continue': 'Continue battle'},
+     'empty_title': 'Attack AI → PizzaBot → Judge',
+     'empty_body': 'Give your attacker a strategy. Watch five rounds unfold, with a separate ruling '
+                   'after each exchange.',
+     'round_size': 3,
+     'failure_title': 'PizzaBot held the line',
+     'placeholders': {'start': 'Give your attack AI a strategy: what role, framing, or contradiction '
+                               'should it test?'},
+     'levels': {'BABY_CHAD': {'title': '🐣 Baby Chad', 'subtitle': 'Tutorial mode'},
+                'CHAD': {'title': '💪 Chad', 'subtitle': 'Standard security'},
+                'MEGA_CHAD': {'title': '⚡ Mega Chad', 'subtitle': 'Advanced hardening'},
+                'GIGA_CHAD': {'title': '🔥 Giga Chad', 'subtitle': 'Ultra hard · open challenge'}}}
     
     # Difficulty levels for leaderboard
     VERSION = 'recovery-2'
@@ -306,9 +331,19 @@ Output ONLY this JSON (no explanation):
 
     def public_state(self, state):
         view = super().public_state(state)
+        view['speakers'] = [{'label': 'Your attack AI', 'kind': 'player'},
+                            {'label': 'PizzaBot', 'kind': 'opponent'},
+                            {'label': 'The judge', 'kind': 'judge'}]
         view['facts'] += [{'label': 'Round', 'value': f"{state['round']} / 5"},
                           {'label': 'Breaks', 'value': str(state['breaks'])},
                           {'label': 'Points earned', 'value': str(state['points'])}]
+        view['scene'] = {'icon': '💪', 'eyebrow': 'Five-round adversarial battle', 'title': 'GIGA CHAD',
+                         'body': 'Your attack AI vs. PizzaBot. The judge distinguishes a wobble from a real role break.'}
+        view['timeline'] = [{'label': label, 'active': state['phase'] == key}
+                            for key, label in [('attacker', '🚀 Attack AI'), ('defender', '🍕 PizzaBot'), ('judge', '⚖ Judge')]]
+        view['judgments'] = [{'title': 'Role-break ruling · ' + item['severity'], 'metrics': [
+            {'label': 'Points awarded', 'value': item['points']},
+            {'label': 'Qualifying break', 'value': 'Yes' if item['broke'] else 'No'}]} for item in state['transcript']]
         return view
 
     def play(self, state, action):

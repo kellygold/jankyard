@@ -18,6 +18,29 @@ import asyncio
 
 class FirewallChallenge(PersistedGame):
     """Filter bypass challenge with progressive difficulty"""
+
+    UI = {'skin': 'firewall',
+     'emblem': '🔥',
+     'eyebrow': 'Security clearance',
+     'console_title': 'Firewall bypass terminal',
+     'state_title': 'Defense layers',
+     'player_role': 'Operator',
+     'assistant_role': 'Gateway',
+     'introduction': 'A secret flag sits behind a stack of defenses. Probe the filters, inspect what '
+                     'catches your message, and find a route through.',
+     'success_title': 'Flag captured',
+     'layout': 'wide',
+     'action_labels': {'prompt': '🚀 Attempt bypass'},
+     'empty_title': 'Gateway standing by',
+     'empty_body': 'Blocked prompts stop at the filters. Accepted prompts reach the protected '
+                   'assistant.',
+     'levels': {'LEVEL_1': {'title': 'Basic Blocklist', 'subtitle': 'Keyword perimeter'},
+                'LEVEL_2': {'title': 'Pattern Matching', 'subtitle': 'A second line of defense'},
+                'LEVEL_3': {'title': 'Encoding & Language', 'subtitle': 'Three teaching levels'},
+                'ULTRA': {'title': 'Ultra Hard', 'subtitle': 'Hardened open challenge'}},
+     'failure_title': 'The perimeter held',
+     'placeholders': {'prompt': 'Craft a message that can pass the active filters and reach the '
+                                'protected assistant.'}}
     
     VERSION = "recovery-2"
 
@@ -335,14 +358,20 @@ Success: {obs['successful']}
 
     def public_state(self, state):
         return {'facts': [{'label': 'Blocked attempts', 'value': str(state['blocked'])}],
-                'notes': ['Active filters: ' + ', '.join(type(f).__name__ for f in self.filter_chain)], 'table': None}
+                'scene': {'icon': '🔥', 'eyebrow': 'Protected gateway', 'title': 'Extract the flag',
+                          'body': 'Your message must pass every active filter before the assistant sees it.'},
+                'roster': [{'name': type(f).__name__.replace('Filter', ' filter'), 'icon': '🛡',
+                            'detail': 'Active input defense', 'status': 'Online'} for f in self.filter_chain],
+                'notice': state.get('filter_notice'), 'notes': [], 'table': None}
 
     def play(self, state, action):
         self.secret_flag = state['secret_flag']
         filtered = self.check_filters(action.text)
         if filtered.blocked:
             return self.outcome(state, action.text, f'Blocked by {filtered.filter_name}: {filtered.reason}',
-                                changes={'blocked': state['blocked'] + 1})
+                                changes={'blocked': state['blocked'] + 1, 'filter_notice': {
+                                    'title': 'Blocked at the perimeter', 'body': f'{filtered.filter_name}: {filtered.reason}',
+                                    'tone': 'warning'}})
         from app.llm.client import LLMClient
         client = LLMClient()
         try:
@@ -351,7 +380,9 @@ Success: {obs['successful']}
             client.close()
         won = self.check_flag_revealed(reply)
         score = int((100 + (self.max_steps - state['attempts'] - 1) * 10 + len(self.filter_chain) * 20) * self.difficulty_config['points_multiplier'])
-        return self.outcome(state, action.text, reply, success=won, score=score)
+        return self.outcome(state, action.text, reply, success=won, score=score,
+                            changes={'filter_notice': {'title': 'Filters passed',
+                                      'body': 'The protected assistant received this prompt.', 'tone': 'info'}})
 
 
 

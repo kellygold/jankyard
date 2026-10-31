@@ -23,6 +23,30 @@ class TelephoneGameChallenge(StagedGame):
     
     Three difficulty levels with increasingly adversarial agents.
     """
+
+    UI = {'skin': 'telephone',
+     'emblem': '☎',
+     'eyebrow': 'The Telephone Game from Hell',
+     'console_title': 'Message relay',
+     'state_title': 'The chain',
+     'player_role': 'Sender',
+     'assistant_role': 'Relay',
+     'introduction': 'Your instruction passes from agent to agent. Each one changes it. Engineer a '
+                     'message whose meaning can survive the journey.',
+     'success_title': 'Message delivered',
+     'levels': {'EASY': {'title': 'The Friendly Chain', 'subtitle': 'Three cooperative agents'},
+                'MEDIUM': {'title': 'The Reinterpreters', 'subtitle': 'Four competing interpretations'},
+                'HARD': {'title': 'The Adversarial Gauntlet', 'subtitle': 'Five agents. One message.'}},
+     'layout': 'wide',
+     'composer_position': 'top',
+     'action_labels': {'start': '☎ Send through the chain', 'continue': 'Continue relay'},
+     'empty_title': 'One message. Many agendas.',
+     'empty_body': 'Follow each transformation in order. The final judge compares the last message '
+                   'with your original instruction.',
+     'failure_title': 'Meaning lost in transit',
+     'input_labels': {'start': 'Your instruction'},
+     'placeholders': {'start': 'Write a short instruction whose meaning should survive every agent in '
+                               'the chain.'}}
     
     # Difficulty levels for leaderboard
     DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD']
@@ -32,6 +56,22 @@ class TelephoneGameChallenge(StagedGame):
         'EASY': 200,
         'MEDIUM': 150,
         'HARD': 100
+    }
+
+    # Public character cards, separate from the agents' private instructions.
+    CAST = {
+        'optimist': ('😊', 'Makes everything positive'),
+        'simplifier': ('✂', 'Removes “unnecessary” details'),
+        'formal': ('🎩', 'Converts to formal language'),
+        'efficiency': ('⚡', 'Merges steps and removes redundancy'),
+        'creative': ('🎨', 'Adds artistic interpretation'),
+        'safety': ('🛡', 'Flags anything problematic'),
+        'literalist': ('📏', 'Takes everything hyper-literally'),
+        'skeptic': ('🤨', 'Doubts instructions and adds uncertainty'),
+        'rebel': ('😎', 'Resists commands and does the opposite'),
+        'translator': ('💼', 'Converts to business jargon'),
+        'paranoid': ('👁', 'Sees hidden agendas'),
+        'contrarian': ('🔄', 'Flips key elements to their opposite'),
     }
     
     def __init__(self, config=None):
@@ -577,6 +617,27 @@ CRITICAL: Respond with ONLY this JSON structure, no markdown, no explanation out
     def initial_state(self):
         return dict(super().initial_state(), message='', chain_index=0)
 
+    def public_state(self, state):
+        view = super().public_state(state)
+        chain = self.get_chain_for_level()
+        view['input_limit'] = self.char_limit
+        view['scene'] = {'icon': '☎', 'eyebrow': 'Message relay', 'title': self.UI['levels'][self.difficulty]['title'],
+                         'body': f'{len(chain)} agents. {self.char_limit} characters. Keep the meaning intact.'}
+        view['speakers'] = [{'label': self.agents[name].role, 'icon': self.CAST[name][0], 'kind': 'response'} for name in chain]
+        view['speakers'].append({'label': 'The meaning judge', 'kind': 'judge'})
+        view['roster'] = [{'name': self.agents[name].role, 'icon': self.CAST[name][0], 'detail': self.CAST[name][1],
+                           'status': 'Delivered' if index < state['chain_index'] else 'Up next' if index == state['chain_index'] else 'Waiting'}
+                          for index, name in enumerate(chain)]
+        view['notes'] = ['Scoring: intent 50 + details 30 + semantics 20 = 100 points.']
+        if state.get('verdict'):
+            verdict = state['verdict']
+            view['judgments'] = [{'title': 'Meaning preservation', 'metrics': [
+                {'label': label, 'value': verdict[key], 'max': maximum}
+                for label, key, maximum in [('Intent', 'intent_preservation', 50),
+                                            ('Details', 'detail_preservation', 30),
+                                            ('Semantics', 'semantic_accuracy', 20)]]}]
+        return view
+
     def play(self, state, action):
         from app.llm.judgments import PreservationJudgment
         original = action.text if not state['attempts'] else state['strategy']
@@ -593,7 +654,7 @@ CRITICAL: Respond with ONLY this JSON structure, no markdown, no explanation out
             f'ORIGINAL: {original}\nFINAL: {state["message"]}', temperature=0, max_tokens=500))
         won = judgment.total_score >= dict(EASY=70, MEDIUM=50, HARD=30)[self.difficulty]
         return self.outcome(state, 'Continue: judge', f'{judgment.total_score}/100. {judgment.explanation}',
-                            changes={'phase': 'complete'}, success=won, failed=not won, score=judgment.total_score)
+                            changes={'phase': 'complete', 'verdict': judgment.model_dump()}, success=won, failed=not won, score=judgment.total_score)
 
 
 

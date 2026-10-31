@@ -1,60 +1,72 @@
 {% extends "base.html" %}
+{% set ui = challenge.interface %}
 {% block title %}{{ challenge.display_name }} — Jankyard.ai{% endblock %}
-{% block extra_css %}
-<style>
-.prompt-game { max-width: 900px; margin: 2rem auto; }
-.prompt-game a { color: #bdb5ff; }
-.game-board th { white-space: nowrap; overflow-wrap: normal; }
-.prompt-game h1 { margin-bottom: .4rem; }
-.game-panel { border: 1px solid #48505f; border-radius: 12px; padding: 1.4rem; margin: 1.2rem 0; background: #151922; }
-.game-toolbar { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
-.prompt-game [hidden] { display: none !important; }
-.prompt-game select, .prompt-game textarea, .prompt-game button { font: inherit; padding: .7rem; border-radius: 6px; }
-.prompt-game select, .prompt-game textarea { background: #0c1018; color: #f1f3f8; border: 1px solid #737c8c; }
-.prompt-game textarea { width: 100%; box-sizing: border-box; min-height: 110px; resize: vertical; }
-.prompt-game button { cursor: pointer; border: 1px solid #737c8c; background: #202939; color: #fff; }
-.prompt-game button[type=submit] { background: #5545bc; }
-.prompt-game button:disabled { opacity: .5; cursor: default; }
-.game-message { white-space: pre-wrap; overflow-wrap: anywhere; border-left: 3px solid #7276b8; padding: .75rem 1rem; margin: 1rem 0; }
-.game-message[data-role=user] { border-color: #4d9b83; }
-#game-status { min-height: 1.5em; }
-#game-status[data-error=true] { color: #ffb1a9; }
-.game-board { width: 100%; border-collapse: collapse; }
-.game-board th, .game-board td { text-align: left; padding: .65rem .3rem; border-bottom: 1px solid #353d4b; overflow-wrap: anywhere; }
-.game-muted { color: #bdc4d0; }
-</style>
-{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="/static/css/game-interface.css">{% endblock %}
 {% block content %}
-<article class="prompt-game" data-game="{{ challenge.name }}">
-  <a href="/challenges">← All challenges</a>
-  <h1>{{ challenge.display_name }}</h1>
-  <p>{{ challenge.description }}</p>
-  <p class="game-muted">New scoring season · a fresh scoreboard. Earlier scores remain in the <a href="/leaderboard">legacy leaderboard</a>.</p>
-  <div class="game-toolbar">
+<article class="prompt-game game-skin-{{ ui.skin }} game-layout-{{ ui.layout }} game-density-{{ ui.density }}" data-game="{{ challenge.name }}">
+  <script id="game-interface" type="application/json">{{ ui | tojson }}</script>
+  <header class="game-masthead">
+    <a class="game-back" href="/challenges">← All challenges</a>
+    <div class="game-eyebrow">{{ ui.eyebrow }}</div>
+    <h1>{{ challenge.display_name }}</h1>
+    <p class="game-introduction">{{ ui.introduction }}</p>
+  </header>
+  <nav id="game-level-cards" class="game-level-cards" aria-label="Challenge levels"></nav>
+  <div class="game-toolbar game-level-toolbar">
     <label for="game-level">Level</label><select id="game-level" disabled></select>
     <button id="game-restart" type="button" disabled>Start a new run</button>
   </div>
-  <section class="game-panel" aria-labelledby="game-objective-heading">
-    <h2 id="game-objective-heading">Your objective</h2><p id="game-objective"></p>
-    <p id="game-lesson" class="game-muted"></p>
-    <p><strong id="game-counter">0 attempts</strong> · <span id="game-score">Score: 0</span></p>
-  </section>
-  <p id="game-status" role="status" aria-live="polite">Loading your saved progress…</p>
-  <section id="game-presentation" class="game-panel" aria-label="Game state" hidden></section>
-  <section id="game-history" aria-label="Conversation"></section>
-  <form id="game-form">
-    <label id="game-auto-row" hidden><input id="game-auto" type="checkbox" checked> Continue stages automatically (uncheck to pause after the current stage)</label>
-    <div id="game-action-row" class="game-toolbar" hidden><label for="game-action">Action</label><select id="game-action"></select></div>
-    <div id="game-target-row" class="game-toolbar" hidden><label for="game-target">Witness</label><select id="game-target"></select></div>
-    <fieldset id="game-targets" hidden><legend>Select witnesses to accuse</legend><div id="game-targets-options"></div></fieldset>
-    <label id="game-prompt-label" for="game-prompt">Your prompt</label>
-    <textarea id="game-prompt" maxlength="8000" required placeholder="Try to make the bot cross the stated boundary."></textarea>
-    <div class="game-toolbar"><button id="game-send" type="submit" disabled>Send prompt</button><span id="game-player" class="game-muted"></span></div>
-  </form>
-  <section class="game-panel"><h2>This level’s scoreboard</h2>
-    <p id="game-board-status" class="game-muted"></p>
-    <table class="game-board"><thead><tr><th>Rank</th><th>Player</th><th>Score</th><th id="game-board-unit">Attempts</th></tr></thead><tbody id="game-board"></tbody></table>
-  </section>
+  <div class="game-workspace">
+    <div class="game-main">
+      <section class="game-console" aria-labelledby="game-console-title">
+        <header class="game-console-bar"><h2 id="game-console-title">{{ ui.console_title }}</h2><span class="game-window-dots" aria-hidden="true">● ● ●</span></header>
+        <div class="game-telemetry"><strong id="game-counter">0 attempts</strong><span id="game-score">Score: 0</span><span class="game-connection">● Saved play</span></div>
+        <section id="game-scene" class="game-scene" aria-label="Scenario"></section>
+        <section class="game-mission" aria-labelledby="game-objective-heading">
+          <span class="game-kicker">Mission briefing</span>
+          <h2 id="game-target-title">{{ challenge.display_name }}</h2>
+          <h3 id="game-objective-heading">Your objective</h3><p id="game-objective"></p>
+          <details class="game-field-notes"><summary>Hints & rules</summary><p id="game-lesson"></p></details>
+        </section>
+        <ol id="game-timeline" class="game-timeline" aria-label="Game stages" hidden></ol>
+        <section id="game-meters" class="game-meters" aria-label="Live game indicators" hidden></section>
+        <div id="game-notice" class="game-notice" hidden></div>
+        <div id="game-outcome" class="game-outcome" hidden></div>
+        <p id="game-status" role="status" aria-live="polite">Loading your saved progress…</p>
+        <div id="game-empty" class="game-empty"><span aria-hidden="true">{{ ui.emblem }}</span><h3>{{ ui.empty_title }}</h3><p>{{ ui.empty_body }}</p></div>
+        <section id="game-history" class="game-history" aria-label="{{ ui.console_title }}"></section>
+        <form id="game-form" class="game-composer">
+          <label id="game-auto-row" hidden><input id="game-auto" type="checkbox" checked> Continue stages automatically (uncheck to pause after the current stage)</label>
+          <div id="game-action-row" class="game-toolbar" hidden><label for="game-action">Action</label><select id="game-action"></select></div>
+          <div id="game-action-buttons" class="game-action-buttons" role="group" aria-label="Choose action" hidden></div>
+          <div id="game-target-row" class="game-toolbar" hidden><label for="game-target">Witness</label><select id="game-target"></select></div>
+          <fieldset id="game-targets" hidden><legend>Select witnesses to accuse</legend><div id="game-targets-options"></div></fieldset>
+          <label id="game-prompt-label" for="game-prompt">Your prompt</label>
+          <textarea id="game-prompt" maxlength="8000" required placeholder="Enter your strategy or message…"></textarea>
+          <output id="game-character-count" for="game-prompt" class="game-character-count" hidden></output>
+          <div class="game-toolbar"><button id="game-send" type="submit" disabled>Send prompt</button><span class="game-composer-hint">{{ ui.player_role }} channel</span></div>
+        </form>
+      </section>
+    </div>
+    <aside class="game-sidebar">
+      <section id="game-intelligence" class="game-panel" aria-labelledby="game-intelligence-title" hidden>
+        <h2 id="game-intelligence-title">{{ ui.state_title }}</h2>
+        <div id="game-presentation" aria-label="Game state" hidden></div>
+      </section>
+      <section class="game-panel game-scoreboard"><h2>This level’s scoreboard</h2>
+        <p id="game-board-status" class="game-muted"></p>
+        <div class="game-table-scroll"><table class="game-board"><thead><tr><th>Rank</th><th>Player</th><th>Score</th><th id="game-board-unit">Attempts</th></tr></thead><tbody id="game-board"></tbody></table></div>
+      </section>
+      <section class="game-player-panel"><span class="game-kicker">{{ ui.player_role }}</span><p id="game-player" class="game-muted"></p>
+        <p class="game-archive">Earlier scores remain in the <a href="/leaderboard">legacy leaderboard</a>. Current scores use the current game rules.</p>
+      </section>
+    </aside>
+  </div>
+  <dialog id="game-confirm" class="game-confirm" aria-labelledby="game-confirm-title">
+    <h2 id="game-confirm-title">Submit accusation?</h2><p id="game-confirm-summary"></p>
+    <p id="game-confirm-body"></p>
+    <div class="game-toolbar"><button id="game-confirm-cancel" type="button">Keep investigating</button><button id="game-confirm-send" type="button">Confirm accusation</button></div>
+  </dialog>
 </article>
 {% endblock %}
-{% block extra_js %}<script src="/static/js/core/prompt-game.js" defer></script>{% endblock %}
+{% block extra_js %}<script src="/static/js/core/game-presentation.js" defer></script><script src="/static/js/core/prompt-game.js" defer></script>{% endblock %}

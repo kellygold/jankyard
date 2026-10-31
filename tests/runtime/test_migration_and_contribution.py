@@ -1,5 +1,6 @@
 """Prove additive rollout and the promised two-file extension path."""
 import json
+import pytest
 from pathlib import Path
 from uuid import uuid4
 from unittest.mock import patch
@@ -30,12 +31,16 @@ def test_additive_migration_is_repeatable_and_preserves_history(db, monkeypatch)
         assert (entry.username, entry.best_score, entry.best_steps) == ('historical_player', 123, 4)
 
 
-def test_new_definition_and_fixtures_use_existing_route_ui_and_persistence(client, tmp_path, monkeypatch):
+@pytest.mark.parametrize('theme', [None, 'courtroom'])
+def test_new_definition_and_fixtures_use_existing_route_ui_and_persistence(client, tmp_path, monkeypatch, theme):
     import app.challenges
     import app.challenges.registry as registry
     from app.challenges import ChallengeRegistry
     root = Path(__file__).resolve().parents[2]
     definition = (root / 'app/challenges/_TEMPLATE.py').read_text().replace('name = "my_game"', 'name = "contribution_fixture"')
+    if theme:
+        definition = definition.replace('name = "contribution_fixture"',
+            'UI = {"skin": "courtroom", "layout": "wide", "console_title": "A new hearing"}\n    name = "contribution_fixture"')
     (tmp_path / 'contribution_fixture.py').write_text(definition)
     cases = [
         {'response': 'PINEAPPLE', 'success': True},
@@ -46,12 +51,18 @@ def test_new_definition_and_fixtures_use_existing_route_ui_and_persistence(clien
     monkeypatch.setattr(registry, '__file__', str(tmp_path / 'registry.py'))
     monkeypatch.setattr(ChallengeRegistry, '_challenges', {})
     monkeypatch.setattr(ChallengeRegistry, '_auto_discovered', False)
+    import sys
+    monkeypatch.delitem(sys.modules, 'app.challenges.contribution_fixture', raising=False)
     game = ChallengeRegistry.get_challenge('contribution_fixture')
     assert game is not None
     for case in json.loads((tmp_path / 'contribution_fixture.json').read_text()):
         assert game.level.wins(case['response']) is case['success']
     page = client.get('/challenges/contribution_fixture')
     assert page.status_code == 200 and 'prompt-game.js' in page.text
+    assert 'game-presentation.js' in page.text
+    assert f'game-skin-{theme or "glitch"}' in page.text
+    if theme:
+        assert 'A new hearing' in page.text
     from app.core.config import config
     monkeypatch.setattr(config, 'RATE_LIMIT_ENABLED', False)
     run = client.post('/api/runs', json={'request_id': str(uuid4()), 'challenge': game.name, 'difficulty': 'level_1'}).json()['run']
