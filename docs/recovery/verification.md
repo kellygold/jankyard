@@ -1,3 +1,5 @@
+> Production release update (2026-10-31): the recovery is live. See [the current rollout and rollback runbook](rollout.md) and [PR #4 proof](https://github.com/kellygold/jankyard/pull/4). Earlier entries below record intermediate states.
+
 # Verification — 2026-10-31
 
 ## Current application candidate: `aba1c52`

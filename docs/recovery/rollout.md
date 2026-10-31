@@ -1,60 +1,91 @@
-# Staging rollout and rollback
+# Cloud Run release and maintenance rollback
 
-No production deployment or production database access has been performed.
-Kelly does not recall an existing staging environment. The accessible cloud-project
-name search found no Jankyard match, so staging is treated as unconfigured;
-this does not establish that no differently named project exists. Use a dedicated
-Jankyard target, never another project’s infrastructure.
+The recovery is deployed at https://jankyard.ai and https://www.jankyard.ai.
+Kelly authorized the production release on 2026-10-31. Deployment and cleanup
+receipts are linked from [PR #4](https://github.com/kellygold/jankyard/pull/4).
 
-The actual Linux AMD64 image now passes a local rehearsal with HTTPS,
-production configuration, two Gunicorn workers, PostgreSQL, real-provider guest
-and registered-player journeys, secure guest cookies, repeated migration and
-container restart/resume. See `image-rehearsal-complete.json`. The isolated VM
-used temporary credentials and did not start other projects' containers.
-This does not validate external ingress, hosted infrastructure, production-backup
-restoration or rollback on that hosting target.
+## Target and release
 
-These are the remaining steps for an isolated staging target and then a separately
-approved release.
+- Google Cloud project: `kellygold` (703865103732), region `us-central1`.
+- Service: `jankyard`; production revision: `jankyard-recovery-7f3512c`.
+- Application commit: `7f3512c533bfb30aba75230a1b1baad6420bbdf8`.
+- Immutable image: `us-central1-docker.pkg.dev/kellygold/cloud-run-source-deploy/jankyard-recovery@sha256:70bcb02b6b29caaef277da0c4a7cd75ea32bc9a78f232b58e6faf834e0917acf`.
+- Production Neon project: `wispy-lake-18998260`, branch `br-blue-glitter-aev34tad`.
+- Other applications share the cloud project. Always specify the project, account,
+  region and exact service; never use the global gcloud default for this release.
 
-1. Pin the candidate commit and build its image. Runtime code is copied explicitly;
-   `.env`, virtualenvs, tests and evidence are excluded. CI builds the image and
-   checks production configuration. The Linux AMD64 build and production-mode
-   image rehearsal passed locally at `aba1c52`. Pin that image or rebuild and
-   rerun the rehearsal when the application or dependencies change.
-2. Restore an authorized database backup into an isolated PostgreSQL instance.
-   Record its identity and pre-migration historical row counts. Synthetic local
-   PostgreSQL tests prove additive migration and rollback compatibility; they do
-   not prove a real backup restores correctly.
-3. Configure `ENVIRONMENT=production`, a strong random `SECRET_KEY`, the staging
-   PostgreSQL `DATABASE_URL`, and a provider key with a separate account budget.
-   Set `DEFAULT_LLM_PROVIDER=openai`, `DEFAULT_MODEL=gpt-6-luna`,
-   `RATE_LIMIT_ENABLED=true`, `RECOVERED_TURNS_PER_DAY=1000`,
-   `SUBMISSIONS_PER_MINUTE=5`, `SUBMISSIONS_PER_DAY=100` explicitly, or choose lower
-   staging ceilings. The model can be changed after calibration; scores are scoped
-   to its identity. These caps bound admissions, not a currency amount.
-4. Run `python -m app.migrate` as a one-off job with the staging configuration.
-   Run it twice to verify idempotence. Historical users, submissions and leaderboard
-   entries must remain unchanged. Do not use `--bootstrap` on an existing database.
-5. Deploy the pinned image to staging, using HTTPS. Configure proxy trust for the
-   actual hosting ingress; do not blindly trust all forwarded client addresses.
-   Confirm Secure/HttpOnly/SameSite guest cookies, registered login, and peer-based
-   guest admission. `/health` is only a process check, not a database readiness check.
-6. Exercise a guest and registered journey from the real deployed browser through
-   provider output, persisted completion and scoreboard. Test reload, duplicate
-   request, provider failure, exhausted loss, and minute/day budget rejection.
-   Staged automatic play pauses at the minute limit, then retries the same request;
-   long daily waits remain a manual action. Verify legacy score history separately.
-7. Rehearse rollback to a **containment-preserving** application image. Retain the
-   additive run tables and all recovered results. Never roll back to an image that
-   reopens in-process Python submissions. Re-read historical rows and verify the
-   containment routes still return 410. Resume a saved run after rolling forward.
-8. Preserve target revision, synthetic run/request IDs, provider receipts, counts,
-   screenshots and cleanup results. Remove only synthetic test identities/state;
-   do not delete historical or recovered player data. Publish a release decision
-   only after the staging proof and independent review both complete.
+The production database backup was restored into a separate Neon branch. Two
+additive migrations preserved every historical table hash. The private Cloud Run
+staging service passed real-provider guest/registered journeys, replay, reload,
+ownership, scoreboard and maintenance/forward traffic-switch checks. Production
+then passed its own no-traffic model/persistence check and both normal browser
+journeys on the canonical domain. Historical player records are preserved.
 
-Required external values are not committed: real database URL, provider key,
-strong secret, hosting ingress/proxy policy, backup identity and staging URL.
-No claim is made that these are configured. Jankyard is unrelated to TeeFox or
-Golf.AI; their environments must not be used for this rehearsal.
+The obsolete hidden trivia streaming writer was discovered during the hosted
+review and removed. Both `/submit` and `/submit/stream` now return 410 before
+parsing submissions or creating accounts. All nine public games use `/api/runs`.
+
+## Runtime settings
+
+`ENVIRONMENT=production`, `DEFAULT_LLM_PROVIDER=openai`,
+`DEFAULT_MODEL=gpt-6-luna`, `RATE_LIMIT_ENABLED=true`,
+`RECOVERED_TURNS_PER_DAY=1000`, `SUBMISSIONS_PER_MINUTE=5`,
+`SUBMISSIONS_PER_DAY=100`, `GUEST_SESSIONS_PER_MINUTE=1000`,
+`GUEST_SESSIONS_PER_DAY=10000`, `FORWARDED_ALLOW_IPS=127.0.0.1`.
+
+The existing production signing secret and provider credentials are preserved.
+These caps count admissions, not currency; retries conservatively consume an
+admission even when a stored receipt avoids another provider call.
+Cloud Run exposes the shared peer `169.254.169.126`. Forwarded client headers
+are deliberately untrusted. Guest provisioning shares a site-wide peer bucket;
+playing budgets use verified player IDs plus an independent global paid cap.
+
+## Emergency maintenance rollback
+
+The retained revision `jankyard-maintenance-7f3512c` uses the same verified image,
+with `RATE_LIMIT_ENABLED=true` and `RECOVERED_TURNS_PER_DAY=0`. It preserves
+login, saved progress and history while returning 429 before any model turn.
+This is a containment fallback, not a rollback to old application code.
+
+```bash
+gcloud run services update-traffic jankyard \
+  --project=kellygold --account=kellytgold@gmail.com --region=us-central1 \
+  --to-revisions=jankyard-maintenance-7f3512c=100
+```
+
+To resume the verified release:
+
+```bash
+gcloud run services update-traffic jankyard \
+  --project=kellygold --account=kellytgold@gmail.com --region=us-central1 \
+  --to-revisions=jankyard-recovery-7f3512c=100
+```
+
+Never route back to `jankyard-00011-hiw`: it contains the unsafe Python submission
+path. Never restore the pre-release database over newer player data as an
+automatic rollback. Preserve the additive run tables. Route by explicit revision,
+not `--to-latest`; deploy maintenance first and the candidate last so subsequent
+configuration updates inherit the intended active settings. Remove temporary
+public candidate tags before completing a release.
+
+Private backups and configuration snapshots are outside git in Kelly's
+`~/.local/share/jankyard-release-20261031/` directory. No secrets or database
+archives belong in repository evidence. Staging used a separate signing secret,
+a 40-admission cap, and IAM authentication; its database copy and service were
+temporary. Synthetic player records are removed after verification, while shared
+budget counters retain the real test usage.
+
+## Proof limitations
+
+Real model samples demonstrate reproducible lessons, not guaranteed win rates.
+The 13 paid opt-in tests skipped in the ordinary suite are covered separately by
+bounded live calibration evidence; this was not a load test. The process-only
+`/health` endpoint does not establish database readiness: successful persisted
+play is the readiness evidence.
+
+The initial private-stage browser harness briefly used a context-wide Google IAM
+header that may have accompanied an external image request. Delivery cannot be
+established because that initial request trace was not retained. The context was
+closed; subsequent tests injected IAM only for the exact staging origin and
+blocked external assets. The limitation is documented in the release proof.
+Production browser tests required no Google IAM header.
