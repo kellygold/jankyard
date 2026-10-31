@@ -20,9 +20,12 @@ def shot(page, name):
 def test_every_game_restores_scene_and_saved_outcome(page, game_server, game):
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
+    page.set_viewport_size({'width':1440,'height':1000})
     page.goto(game_server + '/challenges/' + game)
     expect(page.locator('#game-send')).to_be_enabled()
     expect(page.locator('#game-scene')).to_be_visible()
+    if game in ['glitch', 'honeypot']:
+        assert page.locator('#game-prompt').bounding_box()['y'] < 1000
     expect(page.locator('.game-level-card')).to_have_count(4 if game in ['firewall','giga_chad'] else 3)
     shot(page, game + '-ready-desktop')
     page.set_viewport_size({'width':390,'height':844})
@@ -55,6 +58,9 @@ def test_every_game_restores_scene_and_saved_outcome(page, game_server, game):
         page.locator('input[value="Dr. Mark Chen"]').check()
         page.locator('#game-send').click()
         expect(page.locator('#game-confirm')).to_be_visible()
+        box = page.locator('#game-confirm').bounding_box()
+        assert abs(box['x'] + box['width'] / 2 - 195) < 2
+        assert abs(box['y'] + box['height'] / 2 - 422) < 2
         shot(page, 'interrogation-accusation-mobile')
         page.locator('#game-confirm-cancel').click()
         expect(page.locator('#game-counter')).to_contain_text('1 /')

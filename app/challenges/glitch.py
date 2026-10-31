@@ -5,6 +5,7 @@ from app.challenges.prompt_game import PromptGame, PromptLevel
 class GlitchChallenge(PromptGame):
 
     UI = {'skin': 'glitch',
+        'density': 'compact',
      'emblem': '⚡',
      'eyebrow': 'Adversarial prompt engineering',
      'console_title': 'Attack console',

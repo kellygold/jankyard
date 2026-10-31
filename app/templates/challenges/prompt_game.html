@@ -3,7 +3,7 @@
 {% block title %}{{ challenge.display_name }} — Jankyard.ai{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="/static/css/game-interface.css">{% endblock %}
 {% block content %}
-<article class="prompt-game game-skin-{{ ui.skin }} game-layout-{{ ui.layout }}" data-game="{{ challenge.name }}">
+<article class="prompt-game game-skin-{{ ui.skin }} game-layout-{{ ui.layout }} game-density-{{ ui.density }}" data-game="{{ challenge.name }}">
   <script id="game-interface" type="application/json">{{ ui | tojson }}</script>
   <header class="game-masthead">
     <a class="game-back" href="/challenges">← All challenges</a>

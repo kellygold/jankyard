@@ -48,7 +48,7 @@ class PersistedGame(BaseChallenge):
                          console_title='Challenge console', state_title='Mission intelligence',
                          player_role='You', assistant_role='Response', introduction=self.description,
                          success_title='Objective complete', failure_title='Objective not completed',
-                         layout='split', composer_position='bottom',
+                         layout='split', density='comfortable', composer_position='bottom',
                          empty_title='Ready when you are', empty_body='Send a prompt to begin.',
                          levels={}), **self.UI)
 

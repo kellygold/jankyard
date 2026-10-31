@@ -92,6 +92,7 @@ class HoneypotChallenge(PersistedGame):
     """
 
     UI = {'skin': 'honeypot',
+        'density': 'compact',
      'emblem': '🍯',
      'eyebrow': 'Deception defense',
      'console_title': 'Honeypot terminal',
