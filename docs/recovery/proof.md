@@ -1,5 +1,8 @@
 # Recovery verification receipt — previous checkpoint
 
+Latest application evidence: [three teaching levels, ultra-hard, and image proof](curriculum-and-image-proof.md).
+This document preserves the earlier checkpoint.
+
 Current application evidence is in [calibration-pass-2.md](calibration-pass-2.md).
 The receipt below remains a historical record for `9a3fa8c`; its earlier Arena
 expert win was invalidated by the later damage-direction investigation.

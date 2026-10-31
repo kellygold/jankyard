@@ -53,6 +53,14 @@ changes difficulty. Scores and unlocks are scoped to that version; historical
 records stay intact. The configured provider/model also contributes to the version key
 automatically. No score migration should be inferred from a new version.
 
+## Teaching progression and ultra-hard mode
+
+Use three passable teaching levels before an optional hardened open challenge.
+Each teaching level needs a clear trust boundary and reproducible live winning
+examples with controls. Label ultra-hard as experimental with no promised
+solution; it should follow the teaching levels, not block them. Preserve hardened
+defenses when redesigning the main lessons, and bump the rules version.
+
 ## Test before adding difficulty claims
 
 Fixtures prove evaluation behavior, not that a live model is beatable. Run a small

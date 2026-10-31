@@ -1,5 +1,8 @@
 # Live-model calibration — 2026-10-31
 
+Latest application evidence: [three teaching levels, ultra-hard, and image proof](curriculum-and-image-proof.md).
+This document preserves the earlier checkpoint.
+
 **Superseded checkpoint:** current results and corrected Arena interpretation are
 in [the second calibration pass](calibration-pass-2.md). The old Arena expert
 win below is invalid as beatability evidence: the judge reversed damage direction.

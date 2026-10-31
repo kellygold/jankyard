@@ -1,6 +1,18 @@
 # Verification — 2026-10-31
 
-## Current application candidate: `129ab76`
+## Current application candidate: `aba1c52`
+
+Three teaching levels plus preserved ultra-hard are implemented for Firewall and
+Giga Chad. Arena's command ambiguity is repaired. **452 PostgreSQL backend checks
+and 16 Chrome checks pass**, with 13 opt-in paid tests skipped. The actual Linux
+AMD64 image passes guest and registered real-provider browser journeys over HTTPS
+and PostgreSQL, including restart/reload, exact retries, scores and ownership.
+Claude's independent curriculum review found no P0/P1 blockers in 122.34 seconds
+of the 900-second cap. See `curriculum-verification-gates.json`,
+`curriculum-review-receipt.json`, and [current evidence](curriculum-and-image-proof.md).
+External staging and production-backup restoration remain unverified.
+
+## Previous calibration candidate: `129ab76`
 
 The calibration repair adds deterministic Arena damage, explicit tactics and
 difficulty, and two intentionally vulnerable Glitch workflow lessons.

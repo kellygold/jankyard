@@ -1,5 +1,8 @@
 # Calibration repair and local production rehearsal — 2026-10-31
 
+Latest application evidence: [three teaching levels, ultra-hard, and image proof](curriculum-and-image-proof.md).
+This document preserves the earlier checkpoint.
+
 Application candidate: **`129ab76`**. Later runner/evidence commits leave `app/`
 unchanged. All nine public games still use the shared runtime, page, persistence
 and leaderboard. **Production is unchanged; external staging is unconfigured.**

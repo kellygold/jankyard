@@ -6,20 +6,22 @@ name search found no Jankyard match, so staging is treated as unconfigured;
 this does not establish that no differently named project exists. Use a dedicated
 Jankyard target, never another project’s infrastructure.
 
-A local rehearsal has passed HTTPS, production configuration, two Gunicorn workers,
-PostgreSQL, real-model Glitch journeys, secure guest cookies and repeated migration.
-See `https-glitch-proof-complete.json`. It uses host dependencies and a temporary
-certificate trusted only by the test browser. It does not validate the Docker
-image, external ingress, hosted database, registered login on that hosting target,
-or a real production backup.
+The actual Linux AMD64 image now passes a local rehearsal with HTTPS,
+production configuration, two Gunicorn workers, PostgreSQL, real-provider guest
+and registered-player journeys, secure guest cookies, repeated migration and
+container restart/resume. See `image-rehearsal-complete.json`. The isolated VM
+used temporary credentials and did not start other projects' containers.
+This does not validate external ingress, hosted infrastructure, production-backup
+restoration or rollback on that hosting target.
 
 These are the remaining steps for an isolated staging target and then a separately
 approved release.
 
 1. Pin the candidate commit and build its image. Runtime code is copied explicitly;
    `.env`, virtualenvs, tests and evidence are excluded. CI builds the image and
-   checks production configuration. The local Docker daemon was unavailable during
-   recovery, so a local image build has not been claimed as passed.
+   checks production configuration. The Linux AMD64 build and production-mode
+   image rehearsal passed locally at `aba1c52`. Pin that image or rebuild and
+   rerun the rehearsal when the application or dependencies change.
 2. Restore an authorized database backup into an isolated PostgreSQL instance.
    Record its identity and pre-migration historical row counts. Synthetic local
    PostgreSQL tests prove additive migration and rollback compatibility; they do

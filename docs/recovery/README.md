@@ -65,13 +65,15 @@ No production database changes or deployment were performed.
 
 ## Verification
 
-Current checkpoint: **450 PostgreSQL backend checks and 16 browser checks
-passed**; 13 opt-in paid-model tests skipped. All three Glitch levels now pass
-real-provider browser journeys with controls, replay, reload and scores on local
-HTTPS, two production-mode workers and PostgreSQL. Arena’s tutorial passed two
-strong-strategy wins and two weak-strategy losses. Six full Honeypot/Interrogation
-real-provider API journeys also pass. See [current calibration evidence](calibration-pass-2.md)
-for exact scope and the invalidated earlier Arena result. [Verification and independent-review status](verification.md).
+Current checkpoint: **452 PostgreSQL backend checks and 16 browser checks
+passed**; 13 opt-in paid-model tests skipped. Firewall and Giga Chad each have
+three teaching levels with repeated live wins, followed by preserved ultra-hard
+defenses. Arena now has repeated wins at all three difficulties and losing vague
+controls; Telephone hard has repeated semantic wins and exact-wording losses.
+The Linux AMD64 image passed real-provider guest and registered browser journeys
+on HTTPS/PostgreSQL, including container restart, reload, scores and ownership.
+See [current curriculum and image evidence](curriculum-and-image-proof.md).
+[Verification and independent-review status](verification.md).
 The spending-cap, stateful-game, legacy-scoring and staged-migration reviews
 passed their scoped independent checks. The pacing/deployment delta is recorded
 separately in the verification log.
@@ -144,10 +146,11 @@ The additive tables should remain intact; do not delete players' recovered resul
 
 - Design stronger Honeypot learning checks: bulk guesses and unique visible
   category prefixes make identification easy. Keep objectives honest about that.
-- Calibrate each game/level with repeated real-model attacks and negative controls,
-  including replay/resume flows. Model replacement changes difficulty even when
-  API compatibility checks pass.
-- Complete the staging image/hosting rehearsal in [rollout.md](rollout.md). Synthetic
+- Continue learner testing and broader strategy/control samples. The formerly
+  unproven teaching levels now have repeated live winning examples; ultra-hard
+  remains an explicitly open challenge. Model replacement can change difficulty.
+- Complete hosted staging and real-backup rehearsal in [rollout.md](rollout.md).
+  The local Linux AMD64 image rehearsal has passed. Synthetic
   PostgreSQL backup/restore and repeated additive migration preserved historical
   hashes; deployed old-worker rollback and real production-backup restoration are
   still unvalidated. No release-readiness claim is made here.

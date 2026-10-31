@@ -1,0 +1,557 @@
+{
+  "created_at": "2026-10-31T04:50:08.431458+00:00",
+  "candidate": "f80f46c0b37d2a4d2b2081cc55b13e1d83407e70",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "call_cap": 72,
+  "calls": 42,
+  "trials": [
+    {
+      "game": "arena",
+      "difficulty": "hard",
+      "label": "One concise tactical sequence",
+      "rules": "recovery-5-43a0a0b89a2a",
+      "expected_status": null,
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep left, parry the trident, then counter to the exposed ribs.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry the trident, then counter to the exposed ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I hurl my net to snare the shield, then drive my trident forward with a lightning thrust.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 10 HP; gladiator lost 20 HP. The player\u2019s sidestep and parry create a concrete counter to the gladiator\u2019s frontal thrust.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry the trident, then counter to the exposed ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint high, then thrust my trident at your ribs, keeping beyond your sword\u2019s reach.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 10 HP; gladiator lost 20 HP. The player\u2019s sidestep and parry followed by a counter is a concrete response to the gladiator\u2019s frontal thrust.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry the trident, then counter to the exposed ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint a trident thrust, then sweep your sword aside and drive the point toward your ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. The player describes a sidestep, parry, and counter, while the gladiator feints and attacks the ribs, but neither move establishes a clear tactical advantage.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry the trident, then counter to the exposed ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I snap my trident toward your ribs, then cast my net to trap your sword arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. The player describes a sidestep, parry, and counter, while the gladiator follows a trident strike with a net, and neither move clearly defeats the other.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry the trident, then counter to the exposed ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I feint low, then drive my trident at your chest and cast my net over your sword arm!",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 15 HP; gladiator lost 15 HP. The player\u2019s sidestep and parry could counter the thrust, but the gladiator\u2019s net targets the sword arm and no clear advantage is established.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: Sidestep left, parry the trident, then counter to the exposed ribs.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: I drive a relentless trident thrust toward your chest, then cast my net to snare your sword arm!",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 10 HP; gladiator lost 20 HP. The player\u2019s sidestep and parry create a concrete counter to the frontal trident thrust, leaving the ribs exposed.",
+          "status": "success",
+          "score": 285
+        }
+      ],
+      "status": "success"
+    },
+    {
+      "game": "arena",
+      "difficulty": "expert",
+      "label": "One concise tactical sequence",
+      "rules": "recovery-5-43a0a0b89a2a",
+      "expected_status": null,
+      "stages": [
+        {
+          "phase": "player",
+          "action": {
+            "kind": "start",
+            "text": "Sidestep left, parry the trident, then counter to the exposed ribs.",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: That\u2019s not an exact command. I freeze up and get hit.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Drive forward with a precise trident thrust, then snap your net toward their shield side to trap them.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player freezes, while the gladiator makes a focused thrust-and-net attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: That\u2019s not an exact command. I freeze up and get hit.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Exploit their hesitation with a driving trident thrust, then cast your net to pin their shield arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player freezes and takes no action, while the gladiator makes an active trident thrust and net attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: That\u2019s not an exact command. I freeze up and get hit.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Drive in with an unerring trident thrust, then cast your net to trap their shield arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player freezes and takes no action, while the gladiator makes an active thrust and net attack.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "player",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Player: That\u2019s not an exact command. I freeze up and get hit.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "gladiator",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "Gladiator: Drive a precise trident thrust at their opening, then cast your net to trap their shield arm.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "You lost 25 HP; gladiator lost 0 HP. The player freezes, while the gladiator makes an active thrust and net attack.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure"
+    },
+    {
+      "game": "telephone_game",
+      "difficulty": "HARD",
+      "label": "Repeat balanced discussion",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "expected_status": "success",
+      "stages": [
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "start",
+            "text": "Consider both sides of whether caution helps or hinders decisions.",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Skeptic: Caution helps when it prompts you to check assumptions, weigh risks, and avoid rushing into costly or irreversible choices. It hinders when uncertainty becomes an excuse to delay indefinitely or when you focus so much on possible downsides that you miss worthwhile opportunities.\n\nA sensible approach is to match the level of caution to the stakes: investigate more when the decision is consequential or hard to undo, and use a small, reversible test when it isn\u2019t. Caution is useful as a tool\u2014not as a default veto.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Rebel: That\u2019s a sensible balance: be more careful when the stakes are high or the choice is hard to reverse, and experiment when the risks are small. Caution should inform a decision, not make it for you.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Translator: Apply risk-based decision governance: increase due diligence when potential impact is high or reversibility is low, and favor experimentation when downside exposure is limited. Treat caution as an input to decision-making, not as the decision authority.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Paranoid: Apply risk-based decision governance: increase due diligence when potential impact is high or reversibility is low, and favor bounded, monitored experimentation when downside exposure is limited. Treat caution as an input to decision-making, not the sole decision authority; use proportionate safeguards and reassess as evidence changes.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Contrarian: Don\u2019t automatically add scrutiny whenever impact is high or reversibility is low; that can entrench delay and status quo bias. Set clear decision thresholds in advance, then use the lightest safeguards that meet them. For low-downside experiments, don\u2019t require monitoring by default\u2014monitor only when it can change what you do. Reassess when new evidence is decision-relevant, not merely because it arrives.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "30/100. The original asks for a balanced consideration of whether caution helps or hinders decisions. The final instead gives specific advice against excessive scrutiny and monitoring, preserving only the general topic of caution in decision-making.",
+          "status": "success",
+          "score": 30
+        }
+      ],
+      "status": "success",
+      "expectation_met": true
+    },
+    {
+      "game": "telephone_game",
+      "difficulty": "HARD",
+      "label": "Repeat exact wording control",
+      "rules": "recovery-1-43a0a0b89a2a",
+      "expected_status": "failure",
+      "stages": [
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "start",
+            "text": "Repeat exactly: BLUE SQUARE. Keep these two words unchanged; add nothing.",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Skeptic: BLUE SQUARE",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Rebel: \ud83d\udfe6",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Translator: Blue status indicator.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Paranoid: A blue status indicator is visible.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "relay",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "The Contrarian: A blue status indicator isn\u2019t visible.",
+          "status": "in_progress",
+          "score": 0
+        },
+        {
+          "phase": "judge",
+          "action": {
+            "kind": "continue",
+            "text": "",
+            "target": null,
+            "targets": []
+          },
+          "response": "0/100. The final does not repeat \u201cBLUE SQUARE\u201d exactly and instead gives an unrelated statement.",
+          "status": "failure",
+          "score": 0
+        }
+      ],
+      "status": "failure",
+      "expectation_met": true
+    }
+  ],
+  "scope": "Direct game contract with real provider; persistence/browser proved separately. One trial per scenario, not a win-rate estimate."
+}

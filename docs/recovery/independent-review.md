@@ -288,3 +288,13 @@ Round one reviewed `667fe53..00a353e` in 106.48 seconds. The delta review covere
 seconds of the shared 900-second cap; no extension. These are static scoped
 reviews, not a hosting or learning-difficulty approval. Exact verdicts and session
 IDs are in `calibration-review-receipt.json`.
+
+
+## Three teaching levels and ultra-hard review
+
+Clean application head `aba1c52`, delta from `3c4e8fa`. Claude reviewed Firewall,
+Giga Chad, Arena and shared-runtime interactions read-only through the Max
+subscription. No P0/P1 blockers; 122.34 of 900 seconds used. It verified exact
+ultra-defense preservation and dynamic fourth-level progression. The original
+verdict, nonblocking prompt-clarity notes and session ID are in
+`curriculum-review-receipt.json`. No time extension was used.
