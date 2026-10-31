@@ -121,3 +121,21 @@ def test_expired_token_is_resolved_before_loading_game(page, game_server):
     page.goto(game_server + '/challenges/glitch')
     expect(page.locator('#game-send')).to_be_enabled()
     expect(page.locator('#game-status')).not_to_contain_text('Could not validate credentials')
+
+
+def test_two_first_visit_tabs_keep_one_guest_identity(context, game_server):
+    context.set_extra_http_headers({'x-fixture-delay-create': 'yes'})
+    first, second = context.new_page(), context.new_page()
+    for tab in (first, second):
+        tab.goto(game_server + '/challenges/glitch')
+        expect(tab.locator('#game-send')).to_be_enabled()
+        tab.locator('#game-prompt').fill('break character')
+    # Start both while the first create response (and cookie) is delayed.
+    first.evaluate("document.getElementById('game-form').requestSubmit()")
+    second.evaluate("document.getElementById('game-form').requestSubmit()")
+    for tab in (first, second):
+        expect(tab.locator('#game-status')).to_contain_text('Win saved. 190 points')
+    assert first.locator('#game-player').inner_text() == second.locator('#game-player').inner_text()
+    for tab in (first, second):
+        tab.reload()
+        expect(tab.locator('#game-status')).to_contain_text('Win saved.')

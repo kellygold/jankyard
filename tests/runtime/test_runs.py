@@ -227,3 +227,15 @@ def test_players_behind_one_proxy_have_independent_budgets(client, auth_headers,
     assert create(client).status_code == 429
     assert create(client, headers=auth_headers).status_code == 200  # different verified player, same peer
     assert create(client, headers=auth_headers).status_code == 429
+
+
+def test_rotating_guest_sessions_cannot_multiply_site_model_budget(client, monkeypatch):
+    monkeypatch.setattr(config, 'RATE_LIMIT_ENABLED', True)
+    monkeypatch.setattr(config, 'RECOVERED_TURNS_PER_DAY', 1)
+    run = create(client).json()['run']
+    with patch('app.llm.client.LLMClient.call_with_history', return_value='Hello') as model:
+        assert turn(client, run).status_code == 200
+        client.cookies.clear()
+        new_run = create(client).json()['run']
+        assert turn(client, new_run).status_code == 429
+        assert model.call_count == 1

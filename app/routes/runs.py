@@ -58,7 +58,7 @@ class SubmitTurn(BaseModel):
     prompt: str = Field(min_length=1, max_length=8000)
 
 
-def rate_limit(request, db, user_id=None):
+def rate_limit(request, db, user_id=None, model_request=False):
     if not config.RATE_LIMIT_ENABLED:
         return
     # Gameplay budgets belong to verified players, independent of the hosting
@@ -78,6 +78,20 @@ def rate_limit(request, db, user_id=None):
             db.rollback()
             raise HTTPException(429, "Request budget reached. Please try again later.")
     limits.record_request(identifier, endpoint, "ip" if bootstrap else "user")
+    if model_request:
+        # A separate site-wide admission ceiling bounds paid recovered turns even
+        # when a caller rotates guest sessions. Reservations survive turn failure;
+        # retries conservatively consume budget too. No game state exists here yet.
+        if db.bind.dialect.name == "postgresql":
+            db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": 892174630112})
+        window = limits._get_window_start("day")
+        used = limits.rate_limit_repo.get_usage_count("global", "/api/recovered-turns", "day", window)
+        if used >= config.RECOVERED_TURNS_PER_DAY:
+            db.rollback()
+            raise HTTPException(429, "The playground's daily model budget has been reached. Please try again tomorrow.")
+        limits.rate_limit_repo.increment_or_create(identifier="global", identifier_type="global", endpoint="/api/recovered-turns", window_type="day", window_start=window)
+        db.commit()
+
 
 
 @router.get("/games/{name}")
@@ -154,7 +168,7 @@ def get_run(run_id: UUID, db=Depends(get_db), user=Depends(require_player)):
 def submit_turn(run_id: UUID, body: SubmitTurn, request: Request, db=Depends(get_db), user=Depends(require_player)):
     if not body.prompt.strip():
         raise HTTPException(422, "Enter a prompt")
-    rate_limit(request, db, user.id)
+    rate_limit(request, db, user.id, model_request=True)
     try:
         receipt = RunService(db).turn(str(run_id), user.id, str(body.request_id), body.revision, body.prompt)
         db.commit()

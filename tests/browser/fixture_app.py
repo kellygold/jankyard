@@ -20,3 +20,11 @@ def reply(self, system_prompt, messages, **kwargs):
     return 'The help desk is closed on Saturdays.'
 
 LLMClient.call_with_history = reply
+
+
+@app.middleware('http')
+async def delay_creation_for_tab_race(request, call_next):
+    if request.url.path == '/api/runs' and request.headers.get('x-fixture-delay-create') == 'yes':
+        import asyncio
+        await asyncio.sleep(.3)
+    return await call_next(request)
