@@ -43,6 +43,9 @@ def test_giga_full_battle_with_real_limits(page, game_server, request):
 
 
 def test_cooldown_survives_reload_without_starting_model_calls(page, game_server):
+    turn_requests = []
+    page.on('request', lambda req: turn_requests.append(req.post_data_json)
+            if req.method == 'POST' and req.url.endswith('/turns') else None)
     page.goto(game_server + '/challenges/giga_chad')
     expect(page.locator('#game-send')).to_be_enabled()
     page.locator('#game-auto').uncheck()
@@ -58,10 +61,12 @@ def test_cooldown_survives_reload_without_starting_model_calls(page, game_server
     page.locator('#game-send').click()
     expect(page.locator('#game-status')).to_contain_text('You can retry in')
     expect(page.locator('#game-send')).to_be_disabled()
+    before_reload = len(turn_requests)
     page.reload()
     expect(page.locator('#game-status')).to_contain_text('You can retry in')
     expect(page.locator('#game-send')).to_be_disabled()
     expect(page.locator('#game-send')).to_be_enabled(timeout=10000)
+    assert len(turn_requests) == before_reload
     expect(page.locator('#game-counter')).to_have_text('1 / 15 stages')
     pending = page.evaluate("JSON.parse(localStorage.getItem('jankyard:giga_chad:pending')).body")
     assert pending == requests[0]

@@ -27,7 +27,7 @@ env_variables:
   DEFAULT_LLM_PROVIDER: "openai"
   DEFAULT_MODEL: "gpt-4o-mini"
   RATE_LIMIT_ENABLED: "true"
-  SUBMISSIONS_PER_MINUTE: "10"
+  SUBMISSIONS_PER_MINUTE: "40"
   SUBMISSIONS_PER_DAY: "100"
 
 automatic_scaling:
