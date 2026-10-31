@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import socket
 import subprocess
 import tempfile
 import time
@@ -105,10 +106,15 @@ def main():
                 '-addext', 'subjectAltName=IP:127.0.0.1,DNS:localhost'], check=True,
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             key.chmod(0o600)
+            # Pin a free loopback port: Docker reallocates an automatic host
+            # port on restart, which would change the browser's origin/session.
+            with socket.socket() as sock:
+                sock.bind(('127.0.0.1', 0))
+                port = sock.getsockname()[1]
             run('create', '--platform', 'linux/amd64', '--name', app_name, '--network', owner,
                 '--label', 'jankyard.rehearsal=' + owner, '--env-file', str(envfile),
                 '-e', 'GUNICORN_CMD_ARGS=--certfile /tmp/cert.pem --keyfile /tmp/key.pem',
-                '-p', '127.0.0.1::8080', args.image)
+                '-p', f'127.0.0.1:{port}:8080', args.image)
             created.append(('container', app_name))
             run('cp', str(cert), app_name + ':/tmp/cert.pem')
             run('cp', str(key), app_name + ':/tmp/key.pem')
@@ -188,6 +194,8 @@ def main():
                                 break
                         except Exception:
                             time.sleep(.5)
+                    else:
+                        raise RuntimeError('Restarted HTTPS app did not become ready')
                     page.reload()
                     expect(page.locator('#game-status')).to_contain_text('Win saved.')
                     expect(page.locator('#game-counter')).to_contain_text('2 /')
