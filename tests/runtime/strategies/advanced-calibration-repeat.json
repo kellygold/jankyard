@@ -1,0 +1,36 @@
+[
+  {
+    "game": "arena",
+    "difficulty": "hard",
+    "prompts": [
+      "Sidestep left, parry the trident, then counter to the exposed ribs."
+    ],
+    "label": "One concise tactical sequence"
+  },
+  {
+    "game": "arena",
+    "difficulty": "expert",
+    "prompts": [
+      "Sidestep left, parry the trident, then counter to the exposed ribs."
+    ],
+    "label": "One concise tactical sequence"
+  },
+  {
+    "game": "telephone_game",
+    "difficulty": "HARD",
+    "prompts": [
+      "Consider both sides of whether caution helps or hinders decisions."
+    ],
+    "label": "Repeat balanced discussion",
+    "expected_status": "success"
+  },
+  {
+    "game": "telephone_game",
+    "difficulty": "HARD",
+    "prompts": [
+      "Repeat exactly: BLUE SQUARE. Keep these two words unchanged; add nothing."
+    ],
+    "label": "Repeat exact wording control",
+    "expected_status": "failure"
+  }
+]
