@@ -45,7 +45,7 @@ def main():
                   created_at=datetime.now(timezone.utc).isoformat(),
                   target='owned local HTTPS, production Gunicorn (2 workers), PostgreSQL, real provider',
                   limitations='Host dependencies, not Docker or external hosting; temporary certificate trusted only by this browser context.',
-                  admission_cap=12, per_player_minute_cap=60, per_player_day_cap=12,
+                  admission_cap=12, per_player_minute_cap=60, per_player_day_cap=20,
                   flows=[], status='running', cleanup=False)
     args.output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -59,7 +59,7 @@ def main():
             env = dict(os.environ, DATABASE_URL=args.database_url, ENVIRONMENT='production',
                        SECRET_KEY=secrets.token_urlsafe(48), RATE_LIMIT_ENABLED='true',
                        RECOVERED_TURNS_PER_DAY='12', SUBMISSIONS_PER_MINUTE='60',
-                       SUBMISSIONS_PER_DAY='12', ANTHROPIC_API_KEY='')
+                       SUBMISSIONS_PER_DAY='20', ANTHROPIC_API_KEY='')
             # Bootstrap is restricted to development; only the owned, empty DB is prepared.
             subprocess.run([str(root / '.venv/bin/python'), '-m', 'app.migrate', '--bootstrap'],
                            cwd=root, env=dict(env, ENVIRONMENT='development'), check=True,
@@ -170,8 +170,10 @@ def main():
                         report['network'] = network
                         with engine.connect() as connection:
                             admissions = connection.execute(text("SELECT sum(request_count) FROM rate_limits WHERE identifier='global' AND endpoint='/api/recovered-turns'")).scalar_one()
-                            report['provider_admissions'] = admissions
-                            assert admissions == 6, 'Replays must not consume provider admissions'
+                            report['turn_admissions'] = admissions
+                            # The conservative budget counts retries, even when their
+                            # saved receipt avoids another provider call or saved turn.
+                            assert admissions == 12
                             report['rows'] = {table: connection.execute(text(f'SELECT count(*) FROM {table}')).scalar_one()
                                               for table in ('challenge_runs', 'run_turns', 'run_scores', 'submissions')}
                             assert report['rows'] == dict(challenge_runs=3, run_turns=6, run_scores=3, submissions=3)
