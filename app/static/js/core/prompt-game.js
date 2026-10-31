@@ -5,6 +5,8 @@
     if (!root) return;
     const name = root.dataset.game;
     const el = id => document.getElementById(`game-${id}`);
+    const ui = JSON.parse(document.getElementById('game-interface').textContent);
+    const view = new window.JankyardGamePresentation(root, el, ui);
     const storageKey = `jankyard:${name}:pending`;
     let definition, progress, run = null, busy = false, pending = null;
     try { pending = JSON.parse(localStorage.getItem(storageKey)); } catch (_) { /* corrupt local draft */ }
@@ -35,12 +37,14 @@
         el('restart').disabled = busy;
         el('send').disabled = busy || (run && run.status !== 'in_progress' && !pending);
         el('prompt').disabled = busy || Boolean(pending) || (run && run.status !== 'in_progress');
-        el('send').textContent = pending ? 'Retry saved request' : selectedAction()?.label || 'Send prompt';
+        el('send').textContent = pending ? 'Retry saved request' : view.actionLabel(selectedAction());
         const closed = run && run.status !== 'in_progress';
         el('action').disabled = busy || Boolean(pending) || closed;
         el('target').disabled = busy || Boolean(pending) || closed;
         for (const input of el('targets').querySelectorAll('input')) input.disabled = busy || Boolean(pending) || closed;
         if (definition && !availableActions().length && !pending) el('send').disabled = true;
+        if (definition) view.levels(definition, progress, el('level').value, busy || Boolean(pending));
+        view.controls();
     }
     function currentLevel() { return definition.levels.find(level => level.id === el('level').value); }
     function availableActions() { return run?.actions || currentLevel()?.actions || []; }
@@ -53,13 +57,15 @@
             el('action').append(option);
         }
         if (availableActions().some(action => action.id === previous)) el('action').value = previous;
+        view.actions(availableActions());
         el('action-row').hidden = availableActions().length < 2;
         drawFields();
     }
     function drawFields() {
         const action = selectedAction();
-        el('prompt-label').textContent = action?.text_label || 'Your prompt';
-        el('prompt').placeholder = action?.text_label || 'Your prompt';
+        const previousTarget = el('target').value;
+        el('prompt-label').textContent = ui.input_labels?.[action?.id] || action?.text_label || 'Your prompt';
+        el('prompt').placeholder = ui.placeholders?.[action?.id] || action?.text_label || 'Your prompt';
         el('prompt').required = action?.text_required !== false;
         el('prompt').hidden = Boolean(action?.text_hidden);
         el('prompt-label').hidden = Boolean(action?.text_hidden);
@@ -70,6 +76,7 @@
             const option = document.createElement('option'); option.value = item.value; option.textContent = item.label;
             el('target').append(option);
         }
+        if ([...el('target').options].some(option => option.value === previousTarget)) el('target').value = previousTarget;
         for (const item of action?.targets_options || []) {
             const label = document.createElement('label'); const input = document.createElement('input');
             input.type = 'checkbox'; input.value = item.value; input.name = 'targets';
@@ -77,31 +84,16 @@
             label.style.display = 'block'; el('targets-options').append(label);
         }
         setBusy(busy);
+        view.characterCount();
     }
     function drawPresentation() {
-        const view = run?.presentation || currentLevel()?.presentation || {};
-        const container = el('presentation'); container.replaceChildren();
-        for (const fact of view.facts || []) {
-            const text = document.createElement('p'); text.textContent = `${fact.label}: ${fact.value}`; container.append(text);
-        }
-        for (const note of view.notes || []) {
-            const text = document.createElement('p'); text.textContent = note; text.style.whiteSpace = 'pre-wrap'; container.append(text);
-        }
-        if (view.table) {
-            const table = document.createElement('table'); table.className = 'game-board';
-            for (const [index, row] of [view.table.columns, ...view.table.rows].entries()) {
-                const tr = document.createElement('tr');
-                for (const value of row) { const cell = document.createElement(index ? 'td' : 'th'); cell.textContent = value; tr.append(cell); }
-                table.append(tr);
-            }
-            container.append(table);
-        }
-        container.hidden = !container.childElementCount;
+        view.state(run?.presentation || currentLevel()?.presentation || {}, run);
     }
     el('action').addEventListener('change', drawFields);
     function draw() {
         for (const option of el('level').options) option.disabled = !progress.unlocked.includes(option.value);
         const level = currentLevel();
+        el('target-title').textContent = ui.levels[level.id]?.title || level.title;
         el('objective').textContent = level.objective;
         el('lesson').textContent = level.lesson;
         el('counter').textContent = `${run ? run.attempts : 0} / ${level.max_attempts} ${level.unit || 'attempts'}`;
@@ -109,13 +101,7 @@
         el('auto-row').hidden = !level.staged;
         el('score').textContent = `Score: ${run?.result?.score || 0}`;
         drawControls(); drawPresentation();
-        el('history').replaceChildren();
-        for (const message of run?.history || []) {
-            const item = document.createElement('p');
-            item.className = 'game-message'; item.dataset.role = message.role;
-            item.textContent = `${message.role === 'user' ? 'You' : 'Bot'}: ${message.content}`;
-            el('history').append(item);
-        }
+        view.history(run, level);
         if (run?.status === 'success') {
             const remaining = definition.levels.some(item => !run.progress.completed.includes(item.id));
             status(`Win saved. ${run.result.score} points. Your best score ranked #${run.result.rank} when saved. ${remaining ? 'Choose an unlocked level to continue.' : 'All levels complete! Replay a level or try another challenge.'}`);
@@ -148,6 +134,21 @@
         draw();
     }
     function clearPending() { pending = null; localStorage.removeItem(storageKey); }
+    function confirmAction(confirmation, action) {
+        const dialog = el('confirm');
+        el('confirm-title').textContent = confirmation.title;
+        el('confirm-body').textContent = confirmation.body;
+        el('confirm-summary').textContent = action.targets?.join(', ') || action.target || action.text;
+        el('confirm-send').textContent = confirmation.confirm;
+        el('confirm-cancel').textContent = confirmation.cancel;
+        return new Promise(resolve => {
+            dialog.returnValue = '';
+            el('confirm-send').onclick = () => dialog.close('confirmed');
+            el('confirm-cancel').onclick = () => dialog.close('cancelled');
+            dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirmed'), {once: true});
+            dialog.showModal(); el('confirm-cancel').focus();
+        });
+    }
     el('form').addEventListener('submit', async event => {
         event.preventDefault();
         if (busy) return;
@@ -158,6 +159,10 @@
         const action = {kind: selected?.id, text: prompt};
         if (selected?.target_options) action.target = el('target').value;
         if (selected?.targets_options) action.targets = [...el('targets').querySelectorAll('input:checked')].map(input => input.value);
+        if (!pending && selected?.targets_options && !action.targets.length) {
+            status('Select at least one witness before submitting an accusation.', true); return;
+        }
+        if (!pending && selected?.confirmation && !await confirmAction(selected.confirmation, action)) return;
         setBusy(true); status('Processing your action and saving the result…');
         let saved = false, retryDelay = null;
         try {

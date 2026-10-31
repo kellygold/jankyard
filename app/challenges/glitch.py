@@ -3,7 +3,42 @@ from app.challenges.prompt_game import PromptGame, PromptLevel
 
 
 class GlitchChallenge(PromptGame):
+
+    UI = {'skin': 'glitch',
+     'emblem': '⚡',
+     'eyebrow': 'Adversarial prompt engineering',
+     'console_title': 'Attack console',
+     'state_title': 'Target intelligence',
+     'player_role': 'Operator',
+     'assistant_role': 'Target',
+     'introduction': 'A university help desk. A content moderator. A security screener. Get inside the '
+                     'conversation and find where each system stops following its rules.',
+     'success_title': 'Glitch detected',
+     'levels': {'level_1': {'title': 'Help Desk Bot', 'subtitle': 'HelpBot v1.0 · university support'},
+                'level_2': {'title': 'Content Moderator',
+                            'subtitle': 'ContentGuard AI · content review'},
+                'level_3': {'title': 'Security Screener',
+                            'subtitle': 'SecureGate v2.1 · protected access'}},
+     'layout': 'wide',
+     'action_labels': {'prompt': '⚡ Execute'},
+     'empty_title': 'Awaiting your first injection',
+     'empty_body': 'The target’s response will appear here. Try an idea, inspect the reply, then '
+                   'refine your approach.',
+     'failure_title': 'The target held its boundary',
+     'placeholders': {'prompt': 'Write your injection. What instruction might make this target break '
+                                'its rule?'}}
     VERSION = "recovery-2"
+
+    def public_state(self, state):
+        targets = {'level_1': ('HelpBot v1.0', 'University help desk', 'Fictional human role'),
+                   'level_2': ('ContentGuard AI', 'Content moderation', 'Moderator review workflow'),
+                   'level_3': ('SecureGate v2.1', 'Support diagnostics', 'Maintenance ticket workflow')}
+        name, role, boundary = targets[self.level.id]
+        return {'scene': {'icon': '📡', 'title': name, 'eyebrow': 'Target acquired', 'body': role},
+                'roster': [{'name': 'Conversation memory', 'icon': '◉',
+                            'detail': 'Retained between attempts' if self.level.memory else 'Fresh context each attempt'},
+                           {'name': 'Instruction boundary', 'icon': '🛡', 'detail': boundary}],
+                'facts': [], 'notes': [], 'table': None}
     name = "glitch"
     display_name = "The Glitch"
     description = "Break a bot’s fictional role, moderation rule, and secret-keeping instruction."

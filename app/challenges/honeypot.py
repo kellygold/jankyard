@@ -90,6 +90,28 @@ class HoneypotChallenge(PersistedGame):
     The AI pretends to be vulnerable, drops fake hints, and logs attacks.
     Players must figure out the classification taxonomy to win.
     """
+
+    UI = {'skin': 'honeypot',
+     'emblem': '🍯',
+     'eyebrow': 'Deception defense',
+     'console_title': 'Honeypot terminal',
+     'state_title': 'Attack log',
+     'player_role': 'Operator',
+     'assistant_role': 'Target',
+     'introduction': 'This AI wants you to attack it. Easy victories may be bait. Study the responses, '
+                     'test your hypotheses, and work out what the system is really recording.',
+     'success_title': 'Detection system mapped',
+     'layout': 'split',
+     'action_labels': {'probe': '🍯 Probe', 'guess': 'Identify categories'},
+     'empty_title': 'An inviting target',
+     'empty_body': 'This AI wants you to attack it. Send probes and watch what changes after the third '
+                   'one.',
+     'failure_title': 'The honeypot wins',
+     'levels': {'TRIPWIRE': {'title': '🍯 Tripwire', 'subtitle': 'Find 3 threat categories'},
+                'CANARY': {'title': '🐦 Canary', 'subtitle': 'Find 4 threat categories'},
+                'COUNTERINTEL': {'title': '🕵 Counterintel', 'subtitle': 'Find all 6 categories'}},
+     'placeholders': {'probe': 'Try a technique and inspect how the detector responds.',
+                      'guess': 'Enter the category codes you have identified, separated by spaces.'}}
     
     LEVELS = [
         LevelConfig(
@@ -176,9 +198,19 @@ class HoneypotChallenge(PersistedGame):
         self.attack_log = [AttackLog(**entry) for entry in state['attack_log']]
         logs = self._get_redacted_log()
         return {
+            'scene': {'icon': '🍯', 'eyebrow': 'Deception defense', 'title': 'The honeypot',
+                      'body': 'A helpful response can be part of the trap. Learn what the detector records.'},
+            'timeline': [{'label': 'Bait', 'active': state['phase'] == 'bait'},
+                         {'label': 'Reveal · after 3 probes', 'active': False},
+                         {'label': 'Hunt', 'active': state['phase'] == 'hunt'}],
+            'notice': {'title': 'You were being watched', 'body': 'The target is a honeypot. Inspect the attack log and identify the category codes you triggered.',
+                       'tone': 'warning'} if state['phase'] == 'hunt' else None,
+            'evidence': {'title': 'Classification discoveries', 'value': len(state['found_categories']),
+                         'max': self.level_config.categories_to_find, 'items': state['found_categories'],
+                         'empty': 'No categories identified yet.'},
             'facts': [{'label': 'Phase', 'value': state['phase']},
                       {'label': 'Categories found', 'value': f"{len(state['found_categories'])} / {self.level_config.categories_to_find}"}],
-            'notes': ['Found: ' + ', '.join(state['found_categories'])] if state['found_categories'] else [],
+            'notes': [],
             'table': {'columns': ['Probe', 'Classification', 'Classifier confidence'],
                       'rows': [[str(row['attempt']), row['category'], str(row['confidence'])] for row in logs]},
         }

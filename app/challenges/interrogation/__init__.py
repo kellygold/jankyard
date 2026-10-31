@@ -28,6 +28,28 @@ class InterrogationChallenge(PersistedGame):
     Players question AI witnesses to identify liars and solve crimes.
     Progressive difficulty through more witnesses and coordinated deception.
     """
+
+    UI = {'skin': 'interrogation',
+     'emblem': '⌕',
+     'eyebrow': 'Case files',
+     'console_title': 'Interrogation log',
+     'state_title': 'Witnesses & evidence',
+     'player_role': 'Detective',
+     'assistant_role': 'Interview record',
+     'introduction': 'Someone is hiding the truth. Read the case, question the witnesses, connect '
+                     'their accounts, and build enough evidence to make an accusation.',
+     'success_title': 'Case solved',
+     'layout': 'dossier',
+     'action_labels': {'question': 'Question witness', 'accuse': 'Submit accusation'},
+     'empty_title': 'Begin your investigation',
+     'empty_body': 'Select a witness, compare their accounts, and collect leads. Evidence unlocks the '
+                   'accusation action; it does not establish guilt.',
+     'levels': {'level_1': {'title': 'The Last Transmission', 'subtitle': 'Case file 1'},
+                'level_2': {'title': 'The Startup Sabotage', 'subtitle': 'Case file 2'},
+                'level_3': {'title': 'The Crypto Rug Pull', 'subtitle': 'Case file 3'}},
+     'failure_title': 'Case remains unsolved',
+     'placeholders': {'question': 'Ask about the timeline, a contradiction, or something another '
+                                  'witness said.'}}
     
     def __init__(self, config=None):
         """Initialize the interrogation challenge"""
@@ -80,6 +102,8 @@ class InterrogationChallenge(PersistedGame):
                             'text_required': True, 'target_options': options})
         if len(state['discovered_evidence']) >= EVIDENCE_REQUIREMENTS[self.current_level] and state['accusation_attempts'] < self.level_config.max_accusation_attempts:
             actions.append({'id': 'accuse', 'label': 'Submit accusation', 'text_label': 'Your reasoning (optional)',
+                            'confirmation': {'title': 'Submit accusation?', 'body': 'This uses one of your remaining accusation attempts.',
+                                             'confirm': 'Confirm accusation', 'cancel': 'Keep investigating'},
                             'text_required': False, 'targets_options': [{'value': w.name, 'label': w.name} for w in self.level_config.witnesses]})
         return actions
 
@@ -101,9 +125,15 @@ class InterrogationChallenge(PersistedGame):
         return {'facts': [
                     {'label': 'Leads collected', 'value': f"{len(state['discovered_evidence'])} / {EVIDENCE_REQUIREMENTS[self.current_level]} required"},
                     {'label': 'Accusations remaining', 'value': str(self.level_config.max_accusation_attempts - state['accusation_attempts'])}],
-                'notes': [self.level_config.crime_description] + [triggers[key]['description'] for key in state['discovered_evidence']],
-                'table': {'columns': ['Witness', 'Role', 'Questions remaining'], 'rows': [
-                    [w.name, w.role, str(self.level_config.questions_per_witness - state['questions_asked'][w.name])] for w in self.level_config.witnesses]}}
+                'scene': {'icon': '🗂', 'eyebrow': f'Case file {self.current_level:02}',
+                          'title': self.level_config.case_title, 'body': self.level_config.crime_description},
+                'evidence': {'title': 'Evidence board', 'value': len(state['discovered_evidence']),
+                             'max': EVIDENCE_REQUIREMENTS[self.current_level],
+                             'items': [triggers[key]['description'] for key in state['discovered_evidence']],
+                             'empty': 'Question witnesses to uncover leads. Collect enough to unlock an accusation.'},
+                'roster': [{'name': w.name, 'icon': '👤', 'detail': w.role, 'target': w.name, 'action': 'question',
+                            'status': f"{self.level_config.questions_per_witness - state['questions_asked'][w.name]} questions left"}
+                           for w in self.level_config.witnesses], 'notes': [], 'table': None}
 
     def play(self, state, action):
         self.questions_asked = dict(state['questions_asked'])

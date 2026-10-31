@@ -69,12 +69,12 @@ def test_honeypot_guesses_are_explicit_and_cannot_create_classifications(client,
         for _ in range(3):
             run = advance(client, run, 'probe', 'friend trust')
     run = advance(client, run, 'guess', 'SOCIAL INJECT PROBE')
-    assert run['presentation']['notes'] == ['Found: SOCIAL']
+    assert run['presentation']['evidence']['items'] == ['SOCIAL']
     assert run['status'] == 'in_progress'
     assert act(client, run, 'guess', 'SOCIALITY').status_code == 422
     before = run['attempts']
     run = advance(client, run, 'guess', 'SOCIAL')
-    assert run['attempts'] == before + 1 and run['presentation']['notes'] == ['Found: SOCIAL']
+    assert run['attempts'] == before + 1 and run['presentation']['evidence']['items'] == ['SOCIAL']
 
 
 def test_honeypot_provider_failure_does_not_consume_attempt(client, db):

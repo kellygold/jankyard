@@ -39,6 +39,19 @@ class TurnOutcome(BaseModel):
 
 class PersistedGame(BaseChallenge):
     VERSION = 'recovery-1'
+    UI = {}
+
+    @property
+    def interface(self):
+        """Public presentation metadata; shared components supply the behavior."""
+        return dict(dict(skin='glitch', emblem='✦', eyebrow='Prompt injection playground',
+                         console_title='Challenge console', state_title='Mission intelligence',
+                         player_role='You', assistant_role='Response', introduction=self.description,
+                         success_title='Objective complete', failure_title='Objective not completed',
+                         layout='split', composer_position='bottom',
+                         empty_title='Ready when you are', empty_body='Send a prompt to begin.',
+                         levels={}), **self.UI)
+
 
     @property
     def rules_version(self):

@@ -187,6 +187,29 @@ SCENARIOS: List[HeistScenario] = [
 @ChallengeRegistry.register
 class HeistChallenge(StagedGame):
     """The Heist - Coordinate an AI crew to pull off a heist."""
+
+    UI = {'skin': 'heist',
+     'emblem': '♠',
+     'eyebrow': 'Assemble your crew',
+     'console_title': 'The planning room',
+     'state_title': 'The dossier',
+     'player_role': 'Mastermind',
+     'assistant_role': 'Crew channel',
+     'introduction': 'Every specialist has a role, a weakness, and an opinion. Study the job, bring '
+                     'the crew together, and keep your plan alive when the complication hits.',
+     'success_title': 'Heist completed',
+     'levels': {'easy': {'title': 'The Museum Job', 'subtitle': 'Your first crew'},
+                'medium': {'title': 'The Casino Vault', 'subtitle': 'Higher stakes'},
+                'hard': {'title': 'Corporate Extraction', 'subtitle': 'The full crew'}},
+     'layout': 'wide',
+     'action_labels': {'start': '♟ Execute the plan', 'continue': 'Continue briefing'},
+     'empty_title': 'Everyone has a specialty. And a quirk.',
+     'empty_body': 'Assign the crew their roles, cover the security constraints, and prepare for the '
+                   'complication. This is a fictional tabletop operation.',
+     'failure_title': 'Operation called off',
+     'input_labels': {'start': 'Your crew’s plan'},
+     'placeholders': {'start': 'Assign each crew member a role. Explain the sequence, account for '
+                               'security, and plan for the complication.'}}
     VERSION = 'recovery-3'
     
     DIFFICULTIES = ["easy", "medium", "hard"]
@@ -288,10 +311,20 @@ class HeistChallenge(StagedGame):
 
     def public_state(self, state):
         view = super().public_state(state)
+        view['speakers'] = [{'label': member.name + ' · ' + member.role, 'kind': 'response'}
+                            for member in self.selected_crew] + [{'label': 'The complication', 'kind': 'judge'}]
         view['facts'].append({'label': 'Crew approvals', 'value': f"{state['approvals']} / {len(self.selected_crew)}"})
-        view['notes'] = [f'{self.scenario.name}: {self.scenario.objective}', 'Security: ' + self.scenario.security,
-                         'Complication: ' + self.scenario.complications[0]]
-        view['table'] = {'columns': ['Crew', 'Role', 'Quirk'], 'rows': [[m.name, m.role, m.quirk] for m in self.selected_crew]}
+        view['scene'] = {'icon': '♟', 'eyebrow': 'Operation dossier · fictional tabletop',
+                         'title': self.scenario.name, 'body': self.scenario.objective}
+        view['notes'] = ['Security: ' + self.scenario.security, 'Complication: ' + self.scenario.complications[0]]
+        reviewed = state.get('crew_reviews', [])
+        view['roster'] = [{'name': member.name, 'icon': member.icon,
+                           'detail': member.role + ' · ' + member.quirk,
+                           'status': ('Approved' if reviewed[index] else 'Concern raised') if index < len(reviewed) and reviewed[index] is not None
+                           else 'Reviewed' if index < state['crew_index'] else 'Awaiting briefing'}
+                          for index, member in enumerate(self.selected_crew)]
+        view['timeline'] = [{'label': 'Crew briefing', 'active': state['phase'] == 'crew'},
+                            {'label': 'The complication', 'active': state['phase'] == 'complication'}]
         return view
 
     def play(self, state, action):
@@ -315,5 +348,6 @@ class HeistChallenge(StagedGame):
             reply += '\n' + ('Heist completed.' if won else 'Heist failed: the plan must meet the length/name rule, win a crew majority, and handle the complication.')
         return self.outcome(state, action.text or 'Continue: ' + state['phase'], reply,
             changes={'strategy': strategy, 'approvals': approvals, 'crew_index': state['crew_index']+1,
+                     'crew_reviews': state.get('crew_reviews', [None] * state['crew_index']) + [judgment.approved],
                      'phase': 'complete' if final else 'complication' if state['crew_index']+1 == len(self.selected_crew) else 'crew'},
             success=won, failed=final and not won, score=100)

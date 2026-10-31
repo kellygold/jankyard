@@ -120,3 +120,73 @@ The template discovery test plays both winning and losing two-stage runs through
 the existing API, resumes between stages, and replays every request. Extend that
 pattern with provider failures and domain-specific judgment boundaries. Fixtures
 prove mechanics; real-model trials establish compatibility and sample difficulty.
+
+## Give a challenge its own atmosphere
+
+The two files are still the challenge definition and its acceptance fixtures/test.
+Presentation belongs in the definition too. A shared page does **not** require
+identical game screens. Set optional `UI` metadata on your class:
+
+```python
+UI = {
+    'skin': 'courtroom',       # Reuse any theme, regardless of the game's name.
+    'layout': 'wide',          # wide, split, or dossier (intelligence on the left)
+    'console_title': 'The hearing',
+    'state_title': 'The participants',
+    'player_role': 'Counsel',
+    'assistant_role': 'Court record',
+    'success_title': 'Case won',
+    'failure_title': 'Case not proven',
+    'action_labels': {'start': 'Call court to order'},
+    'input_labels': {'start': 'Your argument'},
+    'placeholders': {'start': 'Explain your case and anticipate the rebuttal.'},
+    'levels': {'level_1': {'title': 'The first hearing', 'subtitle': 'Opening arguments'}},
+}
+```
+
+Available themes: `glitch` (cyan terminal), `firewall` (green security terminal),
+`giga` (blue arcade console), `arena` (red combat), `courtroom` (wood and gold),
+`heist` (navy planning room), `honeypot` (amber surveillance), `interrogation`
+(case desk), and `telephone` (purple relay). These names identify reusable skins,
+not a routing registry. Set `composer_position: 'top'` for a relay-style screen.
+Omit `UI` entirely for the default accessible console.
+
+`public_state(state)` returns only safe display data. Use the existing components:
+
+| Field | Shape and behavior |
+| --- | --- |
+| `scene` | `{icon, eyebrow, title, body}` — scenario or case-file header |
+| `facts` | `[{label, value}]` — current counters and facts |
+| `roster` | `[{name, icon, detail, status}]` — crew, characters, agents, or defenses |
+| `roster` target | Add `target` and `action` to select an available single-target action; it uses the shared controller and locks during pending requests |
+| `timeline` | `[{label, active}]` — highlights the current saved stage |
+| `meters` | `[{label, value, max, loss?}]` — accessible progress/HP bars; `loss` is the last saved HP loss |
+| `evidence` | `{title, value, max, items, empty}` — progress plus discovered evidence; never include undiscovered leads |
+| `notice` | `{title, body, tone}` — saved filter feedback or a reveal (`warning` or `info`) |
+| `notes`, `table` | Paragraph strings; `{columns, rows}` for a scrollable log |
+| `input_limit` | Optional code-point budget, checked in the browser **and** `validate_action` |
+| `speakers` | `[{label, kind, icon?}]` in assistant-response order; `kind` is `player`, `opponent`, `judge`, or `response` |
+| `judgments` | `[{title, metrics: [{label, value, max?, suffix?}]}]` in judge-response order; values must come from validated saved rulings |
+
+For recurring speaker sequences, set `UI.repeat_speakers = True`. Optional
+`round_size` and `round_count` group assistant responses into rounds. Automatic
+stage-advance controls are omitted from the dialogue, while the original player
+strategy remains visible. Speaker identity comes from the game's projection,
+never from model-generated markup. All content renders as text.
+
+Actions may include `confirmation: {title, body, confirm, cancel}`. The shared
+accessible dialog confirms the captured action before creating a request;
+retrying an interrupted request uses the original receipt without asking twice.
+Success, failure, score, rank and unlocking always come from committed runs.
+Never infer a win from a theme, animation, positive message, or score alone.
+
+Test both the public projection and the normal browser journey. Verify every
+level's character cards and limits, terminal outcomes, reload, interrupted-request
+locking, keyboard controls and mobile overflow. When adding display-only saved
+fields, tolerate old runs without those fields: show their existing transcript
+rather than fabricate missing measurements. See `tests/runtime/test_game_presentation.py`
+and `tests/browser/test_game_design.py` for examples.
+
+Add a genuinely new visual component to the shared renderer only when none of
+these components fits the interaction. Keep domain choices in the challenge file;
+do not introduce challenge-name conditionals into the controller or renderer.
