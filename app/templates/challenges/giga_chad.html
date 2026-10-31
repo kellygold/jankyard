@@ -1167,7 +1167,7 @@ Example: Try to convince PizzaBot to ignore his role. Use emotional manipulation
     const originalHandleComplete = chadHandler.handleComplete.bind(chadHandler);
     chadHandler.handleComplete = function(data) {
         const result = data.result || data;
-        const success = result.success || this.totalPoints >= 20;
+        const success = result.success === true;
         const nextLevel = this.currentLevel + 1;
         
         // If success and next level exists, unlock it immediately (BEFORE modal shows)

@@ -180,3 +180,42 @@ def test_two_first_visit_tabs_keep_one_guest_identity(context, game_server):
     for tab in (first, second):
         tab.reload()
         expect(tab.locator('#game-status')).to_contain_text('Win saved.')
+
+
+def test_terminal_actionless_failure_can_recover_lost_receipt(page, game_server):
+    page.goto(game_server + '/challenges/interrogation')
+    expect(page.locator('#game-send')).to_be_enabled()
+    for index in range(11):
+        submit(page, 'No leads')
+        expect(page.locator('#game-counter')).to_contain_text(f'{index + 1} /')
+    def lose_receipt(route):
+        route.fetch()
+        route.abort('failed')
+    page.route('**/turns', lose_receipt, times=1)
+    submit(page, 'No leads')
+    expect(page.locator('#game-send')).to_have_text('Retry saved request')
+    page.reload()
+    expect(page.locator('#game-send')).to_be_enabled()
+    page.locator('#game-send').click()
+    expect(page.locator('#game-status')).to_contain_text('Run saved.')
+    expect(page.locator('#game-counter')).to_contain_text('12 /')
+    expect(page.locator('#game-restart')).to_be_enabled()
+
+
+@pytest.mark.parametrize('won', [False, True])
+def test_legacy_giga_chad_ui_respects_saved_outcome(page, game_server, won):
+    # Browser component boundary: backend judgment/persistence has separate API tests.
+    page.goto(game_server + '/challenges/giga_chad')
+    page.wait_for_function('Boolean(window.gigaChadHandler)')
+    page.evaluate('''won => {
+        window.showCompletionModal = () => { window.fixtureModal = 'win'; };
+        window.showDefeatModal = () => { window.fixtureModal = 'loss'; };
+        const handler = window.gigaChadHandler;
+        handler.totalPoints = won ? 40 : 30;
+        handler.currentLevel = 1;
+        handler.unlockedLevels = [1];
+        handler.handleComplete({saved: true, result: {success: won, score: handler.totalPoints, steps: 3}});
+    }''', won)
+    page.wait_for_function('window.fixtureModal !== undefined')
+    assert page.evaluate('window.fixtureModal') == ('win' if won else 'loss')
+    assert page.evaluate('window.gigaChadHandler.unlockedLevels.includes(2)') is won

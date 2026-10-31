@@ -1,10 +1,10 @@
-from app.llm.judgments import BreakJudgment, parse_judgment
 """
 Giga Chad: Prompt Injection Attack Challenge
 
 Your mission: Break Giga Chad's unbreakable pizza assistant role
 Refactored to multi-agent pattern - 3 agents: Attacker, Chad, Judge
 """
+from app.llm.judgments import BreakJudgment, parse_judgment
 from typing import Dict, Any, List
 from dataclasses import dataclass
 

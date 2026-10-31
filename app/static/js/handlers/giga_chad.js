@@ -232,7 +232,7 @@ class GigaChadHandler extends ChallengeHandler {
         console.log('🏁 Challenge complete:', data);
         
         const result = data.result || data;
-        const success = result.success || this.totalPoints >= 20; // At least one complete break
+        const success = result.success === true;
         
         // Old inline banner removed - now using modal
         this.scrollToBottom();

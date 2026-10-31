@@ -37,7 +37,7 @@ class CombatState:
 @ChallengeRegistry.register
 class ArenaChallenge(BaseChallenge):
     """Tactical combat challenge with turn-based AI gladiator"""
-    DIFFICULTIES = ['easy', 'hard']
+    DIFFICULTIES = ['easy', 'hard', 'expert']
     DIFFICULTY_ALIASES = {'normal': 'easy'}
 
     

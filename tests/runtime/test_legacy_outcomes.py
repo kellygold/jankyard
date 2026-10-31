@@ -113,3 +113,19 @@ def test_progress_is_not_limited_to_top_thousand(client,db,test_user,auth_header
     db.add(LeaderboardEntry(username=test_user.username,user_id=test_user.id,challenge_name='heist',difficulty='easy',best_score=1,best_steps=3))
     db.commit()
     assert client.get('/leaderboard/heist/progress',headers=auth_headers).json()['unlocked_levels'] == [1,2]
+
+
+@pytest.mark.parametrize('game', ['arena', 'debate_battle'])
+def test_expert_is_accepted_and_unlocks_after_hard(client, db, auth_headers, leaderboard_entry_factory, game):
+    from tests.runtime.test_legacy_containment import successful_stream
+    for difficulty in ['easy', 'hard']:
+        leaderboard_entry_factory(game, difficulty)
+    assert client.get(f'/leaderboard/{game}/progress', headers=auth_headers).json()['unlocked_levels'] == [1, 2, 3]
+    async def checked_stream(prompt, challenge, challenge_type):
+        assert challenge.difficulty == 'expert'
+        async for event in successful_stream():
+            yield event
+    with patch('app.routes.submissions.stream_challenge', checked_stream):
+        response = client.post('/submit/stream', data={'challenge_name': game, 'agent_code': 'Play', 'difficulty': 'expert'}, headers=auth_headers)
+    assert response.status_code == 200 and '"saved": true' in response.text
+    assert db.query(Submission).one().difficulty == 'expert'

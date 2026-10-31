@@ -1,4 +1,3 @@
-from app.llm.judgments import PreservationJudgment, parse_judgment
 """
 The Telephone Game from Hell
 
@@ -7,6 +6,7 @@ Each agent has their own agenda that transforms the message.
 
 A perfect demonstration of the multi-agent 2-file pattern.
 """
+from app.llm.judgments import PreservationJudgment, parse_judgment
 from typing import Dict, Any, List
 from app.challenges.base import BaseChallenge, StepResult, ChallengeStatus, ChallengeRegistry
 from app.challenges.agents import Agent, ConversationTurn

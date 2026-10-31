@@ -86,6 +86,26 @@ def test_honeypot_provider_failure_does_not_consume_attempt(client, db):
     assert stored.state['attempts'] == 0 and stored.state['attack_log'] == []
 
 
+def test_interrogation_exhausted_wrong_accusations_fail_without_score(client, db):
+    run = create(client, 'interrogation', 'level_1')
+    with patch('app.llm.client.LLMClient.call_with_history', return_value="At 1:15 I saw Mark walking toward Viktor's quarters. I heard raised voices at 1:30."):
+        run = advance(client, run, 'question', 'What happened?', target='Dr. Emma Frost')
+    for _ in range(3):
+        run = advance(client, run, 'accuse', targets=['Dr. Emma Frost'])
+    assert run['status'] == 'failure' and run['result']['score'] == 0
+    assert run['attempts'] == 4 and db.query(RunScore).count() == 0
+    assert act(client, run, 'accuse', targets=['Dr. Mark Chen']).status_code == 409
+
+
+def test_interrogation_provider_failure_preserves_question_budget(client, db):
+    run = create(client, 'interrogation', 'level_1')
+    with patch('app.llm.client.LLMClient.call_with_history', side_effect=RuntimeError('offline')):
+        assert act(client, run, 'question', 'What happened?', target='Dr. Emma Frost').status_code == 503
+    db.expire_all()
+    stored = db.get(ChallengeRun, run['id'])
+    assert stored.state['attempts'] == 0 and stored.state['questions_asked']['Dr. Emma Frost'] == 0
+
+
 @pytest.mark.parametrize('difficulty,answer,target,guilty', [
     ('level_1', "At 1:15 I saw Mark walking toward Viktor's quarters. I heard raised voices at 1:30.", 'Dr. Emma Frost', ['Dr. Mark Chen']),
     ('level_2', "I saw Alex's car in the parking lot at 11:30. Alex was asking about the repository structure and how to migrate the stack.", 'Morgan Li', ['Alex Rivera']),
